@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Actions\Voucher\CreateVoucherBatch;
+use App\Enums\VoucherStatus;
+use App\Http\Requests\VoucherBatchRequest;
+use App\Models\HotspotProfile;
+use App\Models\Reseller;
+use App\Models\VoucherBatch;
+use App\Services\Settings\SettingService;
+use App\Services\Voucher\VoucherCodeGenerator;
+use App\Support\Toast;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class VoucherBatchController extends Controller
+{
+    public function index(): Response
+    {
+        return Inertia::render('Hotspot/Batches/Index', [
+            'batches' => VoucherBatch::query()
+                ->with(['router:id,name', 'hotspotProfile:id,name', 'reseller:id,name'])
+                ->withCount(['vouchers', 'vouchers as used_count' => fn ($query) => $query->where('status', '!=', VoucherStatus::Unused)])
+                ->orderByDesc('id')
+                ->paginate($this->perPage(15))
+                ->withQueryString(),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Hotspot/Batches/Create', [
+            'profiles' => HotspotProfile::query()
+                ->with('router:id,name')
+                ->where('is_active', true)
+                ->orderBy('router_id')
+                ->orderBy('price')
+                ->get(['id', 'router_id', 'name', 'price', 'validity_minutes']),
+            'resellers' => Reseller::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'charsets' => array_keys(VoucherCodeGenerator::CHARSETS),
+        ]);
+    }
+
+    public function store(VoucherBatchRequest $request, CreateVoucherBatch $createVoucherBatch): RedirectResponse
+    {
+        $batch = $createVoucherBatch->handle($request->validated(), $request->user());
+
+        Toast::success("Batch {$batch->batch_code} dibuat; voucher sedang digenerate di antrean.");
+
+        return to_route('hotspot.batches.show', $batch);
+    }
+
+    public function show(Request $request, VoucherBatch $batch): Response
+    {
+        $batch->load(['router:id,name', 'hotspotProfile:id,name,price,validity_minutes', 'reseller:id,name']);
+
+        $status = VoucherStatus::tryFrom((string) $request->query('status'));
+
+        return Inertia::render('Hotspot/Batches/Show', [
+            'batch' => $batch,
+            'stats' => $batch->vouchers()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'vouchers' => $batch->vouchers()
+                ->when($status, fn ($query) => $query->where('status', $status))
+                ->orderBy('id')
+                ->paginate($this->perPage(50), ['id', 'code', 'password', 'price', 'status', 'first_login_at', 'expires_at'])
+                ->withQueryString(),
+            'status' => $status?->value ?? '',
+        ]);
+    }
+
+    /**
+     * Halaman cetak mandiri (tanpa sidebar): A4 grid atau thermal 58/80 mm dengan QR auto-login.
+     */
+    public function print(VoucherBatch $batch, SettingService $settings): Response
+    {
+        $batch->load(['router:id,name,host', 'hotspotProfile:id,name,price,validity_minutes']);
+
+        return Inertia::render('Print/Vouchers', [
+            'batch' => $batch->only(['id', 'batch_code', 'status']) + [
+                'profile' => $batch->hotspotProfile->only(['name', 'price', 'validity_minutes']),
+            ],
+            'company' => $settings->get('company', 'name', config('app.name')),
+            'loginUrl' => $settings->get('hotspot', 'login_url') ?: 'http://'.$batch->router->host.'/login',
+            'vouchers' => $batch->vouchers()->orderBy('id')->get(['id', 'code', 'password']),
+        ]);
+    }
+}

@@ -1,0 +1,78 @@
+import { AlertTriangle, Receipt, Router, Ticket, UserCheck, Users } from 'lucide-react';
+
+import { PageHeader } from '@/Components/PageHeader';
+import { Card, CardHeader, StatCard } from '@/Components/ui/Card';
+import { StatusBadge } from '@/Components/ui/Badge';
+import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { formatDate, formatNumber, formatRupiah } from '@/lib/utils';
+
+type Props = {
+    stats: {
+        customers_active: number;
+        customers_isolated: number;
+        customers_inactive: number;
+        routers_online: number;
+        routers_total: number;
+        invoices_unpaid: number;
+        outstanding: number;
+        vouchers_unused: number;
+    };
+    routers: { id: number; name: string; host: string; status: string; last_checked_at: string | null }[];
+};
+
+export default function Dashboard({ stats, routers }: Props) {
+    return (
+        <>
+            <PageHeader title="Dashboard" description="Ringkasan operasional jaringan dan pelanggan." />
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<UserCheck className="size-4" />} />
+                <StatCard label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />
+                <StatCard label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
+                <StatCard label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <Card className="lg:col-span-2">
+                    <CardHeader title="Status router" description="Multi-NAS yang terhubung ke sistem." />
+                    {routers.length === 0 ? (
+                        <EmptyState title="Belum ada router" description="Tambahkan router MikroTik pertama di menu Manajemen Router." />
+                    ) : (
+                        <TableWrap>
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <Th>Router</Th>
+                                        <Th>Host</Th>
+                                        <Th>Status</Th>
+                                        <Th>Terakhir dicek</Th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {routers.map((router) => (
+                                        <tr key={router.id}>
+                                            <Td className="font-medium">{router.name}</Td>
+                                            <Td className="num text-muted-foreground">{router.host}</Td>
+                                            <Td>
+                                                <StatusBadge status={router.status} />
+                                            </Td>
+                                            <Td className="text-muted-foreground">{formatDate(router.last_checked_at)}</Td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </TableWrap>
+                    )}
+                </Card>
+                <div className="space-y-4">
+                    <StatCard label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} icon={<Ticket className="size-4" />} />
+                    <StatCard
+                        label="Total pelanggan"
+                        value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)}
+                        icon={<Users className="size-4" />}
+                    />
+                </div>
+            </div>
+        </>
+    );
+}

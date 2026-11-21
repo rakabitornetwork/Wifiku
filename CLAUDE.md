@@ -145,4 +145,12 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Rerun a test after each change to it.
 - Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
+## Rencana Pengembangan & Arsitektur Proyek
+Selalu rujuk file @BLUEPRINT.md untuk spesifikasi lengkap modul, skema database, aturan bisnis, dan pembagian fase model (Opus vs Sonnet).
+
+## Pelacakan Progres Otomatis
+Setiap kali kamu selesai mengerjakan satu tugas atau satu fase dari @BLUEPRINT.md:
+1. Perbarui tanda centang `[x]` pada bagian "Peta Jalan Eksekusi Bertahap" di dalam file BLUEPRINT.md.
+2. Ingatkan saya model apa yang harus saya pilih untuk fase berikutnya (Opus 5.5 atau Sonnet 5.5).
+
 </laravel-boost-guidelines>
