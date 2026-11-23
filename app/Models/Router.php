@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 #[Fillable(['name', 'host', 'api_port', 'use_ssl', 'username', 'password', 'isolir_profile', 'webhook_token', 'status', 'last_checked_at', 'last_error', 'notes'])]
 #[Hidden(['password', 'webhook_token'])]
@@ -54,6 +55,26 @@ class Router extends Model
     public function odps(): HasMany
     {
         return $this->hasMany(Odp::class);
+    }
+
+    /**
+     * Penanda baris webhook di dalam script on-login, agar tidak ditambahkan dua kali.
+     */
+    public const HOTSPOT_SCRIPT_MARKER = '# wifiku-webhook';
+
+    /**
+     * Script on-login Hotspot User Profile yang memanggil webhook login pertama voucher.
+     * Token webhook dibuat bila router belum punya.
+     */
+    public function hotspotLoginScript(): string
+    {
+        if (blank($this->webhook_token)) {
+            $this->forceFill(['webhook_token' => Str::random(40)])->save();
+        }
+
+        $url = route('webhooks.hotspot-login', $this).'?token='.$this->webhook_token;
+
+        return ':do { /tool fetch url=("'.$url.'&user=" . $user . "&mac=" . $"mac-address") keep-result=no check-certificate=no } on-error={}';
     }
 
     /**

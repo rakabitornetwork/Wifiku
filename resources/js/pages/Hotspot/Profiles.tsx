@@ -1,6 +1,6 @@
-import { useForm } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { router, useForm } from '@inertiajs/react';
+import { Download, Pencil, Plus } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { HotspotTabs } from '@/Components/HotspotTabs';
@@ -31,6 +31,8 @@ type ProfileRow = {
     router: { name: string };
     vouchers_count: number;
 };
+
+type RouterProfile = { name: string; rate_limit: string | null; shared_users: number; price: number; validity_minutes: number; exists: boolean };
 
 const unitMinutes: Record<string, number> = { minutes: 1, hours: 60, days: 1440 };
 
@@ -65,6 +67,41 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
     const [editing, setEditing] = useState<ProfileRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
+    const [importOpen, setImportOpen] = useState(false);
+    const [importRouterId, setImportRouterId] = useState('');
+    const [routerProfiles, setRouterProfiles] = useState<RouterProfile[] | null>(null);
+    const [importError, setImportError] = useState<string | null>(null);
+    const [importLoading, setImportLoading] = useState(false);
+    const [chosen, setChosen] = useState<string[]>([]);
+    const [importing, setImporting] = useState(false);
+
+    useEffect(() => {
+        setRouterProfiles(null);
+        setImportError(null);
+        setChosen([]);
+
+        if (!importOpen || !importRouterId) {
+            return;
+        }
+
+        setImportLoading(true);
+        fetch(`/hotspot/profile-import/${importRouterId}`, { headers: { Accept: 'application/json' } })
+            .then(async (response) => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error ?? 'Gagal membaca router.');
+                }
+
+                setRouterProfiles(data.profiles);
+                setChosen((data.profiles as RouterProfile[]).filter((profile) => !profile.exists).map((profile) => profile.name));
+            })
+            .catch((exception: Error) => setImportError(exception.message))
+            .finally(() => setImportLoading(false));
+    }, [importOpen, importRouterId]);
+
+    const submitImport = () =>
+        router.post(`/hotspot/profile-import/${importRouterId}`, { names: chosen }, { preserveScroll: true, onStart: () => setImporting(true), onFinish: () => setImporting(false), onSuccess: () => setImportOpen(false) });
 
     const openCreate = () => {
         setEditing(null);
@@ -115,9 +152,14 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                 title="Voucher Hotspot"
                 description="Profil harga dan masa aktif voucher per router."
                 actions={
-                    <Button onClick={openCreate}>
-                        <Plus className="size-4" /> Tambah Profil
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setImportOpen(true)}>
+                            <Download className="size-4" /> Impor dari Router
+                        </Button>
+                        <Button onClick={openCreate}>
+                            <Plus className="size-4" /> Tambah Profil
+                        </Button>
+                    </div>
                 }
             />
             <HotspotTabs />
@@ -166,6 +208,78 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                 )}
                 <Pagination meta={profiles} />
             </Card>
+
+            <Modal
+                open={importOpen}
+                onClose={() => setImportOpen(false)}
+                size="lg"
+                title="Impor Profil Hotspot dari Router"
+                description="Membaca Hotspot User Profile yang sudah ada di RouterOS. Router tidak diubah."
+                footer={
+                    <>
+                        <Button variant="outline" onClick={() => setImportOpen(false)}>
+                            Batal
+                        </Button>
+                        <Button onClick={submitImport} disabled={importing || chosen.length === 0}>
+                            {importing ? 'Mengimpor...' : `Impor ${chosen.length} profil`}
+                        </Button>
+                    </>
+                }
+            >
+                <div className="grid gap-4">
+                    <Select value={importRouterId} onChange={(event) => setImportRouterId(event.target.value)} aria-label="Router sumber">
+                        <option value="">Pilih router</option>
+                        {routers.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.name}
+                            </option>
+                        ))}
+                    </Select>
+                    {importLoading && <p className="text-sm text-muted-foreground">Membaca profil dari router...</p>}
+                    {importError && <p className="text-sm text-destructive">{importError}</p>}
+                    {routerProfiles && routerProfiles.length === 0 && <p className="text-sm text-muted-foreground">Tidak ada Hotspot User Profile selain bawaan di router ini.</p>}
+                    {routerProfiles && routerProfiles.length > 0 && (
+                        <>
+                            <div className="max-h-80 overflow-auto rounded-md border">
+                                <Table>
+                                    <thead>
+                                        <tr>
+                                            <Th className="w-10" />
+                                            <Th>Profile</Th>
+                                            <Th>Rate limit</Th>
+                                            <Th className="text-right">Harga</Th>
+                                            <Th>Masa aktif</Th>
+                                            <Th>Status</Th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {routerProfiles.map((profile) => (
+                                            <tr key={profile.name}>
+                                                <Td>
+                                                    <input
+                                                        type="checkbox"
+                                                        disabled={profile.exists}
+                                                        checked={chosen.includes(profile.name)}
+                                                        onChange={(event) => setChosen((current) => (event.target.checked ? [...current, profile.name] : current.filter((name) => name !== profile.name)))}
+                                                        aria-label={`Pilih ${profile.name}`}
+                                                        className="size-4 rounded border-input accent-[var(--primary)]"
+                                                    />
+                                                </Td>
+                                                <Td className="num font-medium">{profile.name}</Td>
+                                                <Td className="num text-muted-foreground">{profile.rate_limit ?? '-'}</Td>
+                                                <Td className="num text-right">{profile.price > 0 ? formatRupiah(profile.price) : '-'}</Td>
+                                                <Td className="num">{formatDuration(profile.validity_minutes)}</Td>
+                                                <Td>{profile.exists ? <Badge>Sudah ada</Badge> : <Badge tone="blue">Baru</Badge>}</Td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Harga dan masa aktif dibaca dari skrip on-login (format Mikhmon). Profil tanpa harga diimpor dalam keadaan nonaktif; isi harganya dulu sebelum dijual.</p>
+                        </>
+                    )}
+                </div>
+            </Modal>
 
             <Modal
                 open={open}

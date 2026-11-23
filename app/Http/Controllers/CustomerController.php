@@ -23,11 +23,17 @@ class CustomerController extends Controller
 {
     private const BULK_LIMIT = 1000;
 
+    /** Kolom yang boleh diurutkan dari judul tabel. */
+    private const SORTABLE = ['customer_code', 'name', 'whatsapp', 'pppoe_username', 'package', 'router', 'billing_day', 'status'];
+
     public function index(Request $request): Response
     {
+        $sort = in_array($request->query('sort'), self::SORTABLE, true) ? (string) $request->query('sort') : '';
+        $direction = $request->query('direction') === 'desc' ? 'desc' : 'asc';
+
         $customers = $this->filteredQuery($request)
             ->with(['router:id,name', 'package:id,name', 'odp:id,name'])
-            ->orderByDesc('id')
+            ->tap(fn (Builder $query) => $this->applySorting($query, $sort, $direction))
             ->paginate($this->perPage(15))
             ->withQueryString();
 
@@ -37,7 +43,7 @@ class CustomerController extends Controller
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'routers' => Router::orderBy('name')->get(['id', 'name']),
-            'filters' => ['search' => trim((string) $request->query('search')), 'status' => $status?->value ?? '', 'router_id' => $routerId ? (string) $routerId : ''],
+            'filters' => ['search' => trim((string) $request->query('search')), 'status' => $status?->value ?? '', 'router_id' => $routerId ? (string) $routerId : '', 'sort' => $sort, 'direction' => $direction],
         ]);
     }
 
@@ -85,6 +91,23 @@ class CustomerController extends Controller
         Toast::success('Pelanggan dihapus. Secret PPPoE di router akan dihapus lewat antrean.');
 
         return back();
+    }
+
+    /**
+     * Urutkan berdasarkan kolom pilihan (whitelist); tanpa pilihan, yang terbaru di atas.
+     *
+     * @param  Builder<Customer>  $query
+     */
+    private function applySorting(Builder $query, string $sort, string $direction): void
+    {
+        match ($sort) {
+            'package' => $query->orderBy(Package::select('name')->whereColumn('packages.id', 'customers.package_id'), $direction),
+            'router' => $query->orderBy(Router::select('name')->whereColumn('routers.id', 'customers.router_id'), $direction),
+            '' => null,
+            default => $query->orderBy($sort, $direction),
+        };
+
+        $query->orderByDesc('id');
     }
 
     /**

@@ -5,8 +5,8 @@ namespace App\Services\Voucher;
 use InvalidArgumentException;
 
 /**
- * Pembuat kode voucher hotspot. Karakter yang mudah tertukar (0/O, 1/I) dibuang
- * dari set huruf agar kode mudah dibaca dan diketik dari voucher cetak.
+ * Pembuat kode voucher hotspot. Karakter yang mudah tertukar (0/O, 1/I/l) dibuang
+ * dari set huruf dan angka agar kode mudah dibaca dan diketik dari voucher cetak.
  */
 class VoucherCodeGenerator
 {
@@ -15,6 +15,7 @@ class VoucherCodeGenerator
      */
     public const CHARSETS = [
         'alphanumeric' => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+        'mixed' => 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',
         'numeric' => '0123456789',
         'alpha' => 'ABCDEFGHJKLMNPQRSTUVWXYZ',
     ];

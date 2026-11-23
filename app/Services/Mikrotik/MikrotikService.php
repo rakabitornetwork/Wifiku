@@ -5,6 +5,7 @@ namespace App\Services\Mikrotik;
 use App\Enums\CustomerStatus;
 use App\Models\Customer;
 use App\Models\HotspotProfile;
+use App\Models\Package;
 use App\Models\Router;
 use App\Models\Voucher;
 
@@ -67,6 +68,183 @@ class MikrotikService
     public function pppProfiles(): array
     {
         return $this->client()->command('/ppp/profile/print');
+    }
+
+    /**
+     * Seluruh Hotspot User Profile di router (untuk impor profil hotspot).
+     *
+     * @return list<array<string, string>>
+     */
+    public function hotspotProfiles(): array
+    {
+        return $this->client()->command('/ip/hotspot/user/profile/print');
+    }
+
+    /**
+     * Samakan Hotspot User Profile di router dengan profil aplikasi (nama, rate-limit, shared-users).
+     * Profile yang sudah ada diperbarui; bila nama berubah, profile lama diganti namanya alih-alih membuat duplikat.
+     * Hanya atribut itu yang disentuh, sehingga skrip on-login dan pengaturan lain di RouterOS tetap utuh.
+     * Rate limit yang dikosongkan di aplikasi tidak menghapus rate limit di router.
+     * Baris webhook login pertama voucher ditambahkan ke on-login tanpa menimpa isinya yang sudah ada.
+     *
+     * @return string 'created' atau 'updated'
+     */
+    public function syncHotspotProfile(HotspotProfile $profile, ?string $previousName = null): string
+    {
+        $existing = $this->findHotspotProfile($profile->mikrotik_profile);
+
+        if ($existing === null && $previousName !== null && $previousName !== $profile->mikrotik_profile) {
+            $existing = $this->findHotspotProfile($previousName);
+        }
+
+        $attributes = ['name' => $profile->mikrotik_profile, 'shared-users' => $profile->shared_users];
+
+        if (filled($profile->rate_limit)) {
+            $attributes['rate-limit'] = $profile->rate_limit;
+        }
+
+        $onLogin = $this->withWebhookScript($existing['on-login'] ?? '');
+
+        if ($existing === null) {
+            $this->client()->command('/ip/hotspot/user/profile/add', [...$attributes, 'on-login' => $onLogin]);
+
+            return 'created';
+        }
+
+        if ($onLogin !== ($existing['on-login'] ?? '')) {
+            $attributes['on-login'] = $onLogin;
+        }
+
+        $this->client()->command('/ip/hotspot/user/profile/set', ['.id' => $existing['.id'], ...$attributes]);
+
+        return 'updated';
+    }
+
+    /**
+     * Script on-login dengan baris webhook aplikasi: diisi bila kosong, ditambahkan di akhir bila sudah ada isinya
+     * (mis. script Mikhmon), dan dibiarkan bila baris webhook sudah ada.
+     */
+    private function withWebhookScript(string $current): string
+    {
+        if (str_contains($current, Router::HOTSPOT_SCRIPT_MARKER)) {
+            return $current;
+        }
+
+        $webhook = Router::HOTSPOT_SCRIPT_MARKER."\n".$this->router->hotspotLoginScript();
+
+        return trim($current) === '' ? $webhook : rtrim($current)."\n".$webhook;
+    }
+
+    /**
+     * Hapus Hotspot User Profile dari router. Profile bawaan dan profile yang masih dipakai hotspot user tidak dihapus.
+     *
+     * @return string 'removed', 'missing', 'in_use', atau 'protected'
+     */
+    public function removeHotspotProfile(string $name): string
+    {
+        if (in_array($name, ['default', 'default-encrypted'], true)) {
+            return 'protected';
+        }
+
+        $existing = $this->findHotspotProfile($name);
+
+        if ($existing === null) {
+            return 'missing';
+        }
+
+        if ($this->client()->command('/ip/hotspot/user/print', where: ['profile' => $name]) !== []) {
+            return 'in_use';
+        }
+
+        $this->client()->command('/ip/hotspot/user/profile/remove', ['.id' => $existing['.id']]);
+
+        return 'removed';
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function findHotspotProfile(string $name): ?array
+    {
+        return $this->client()->command('/ip/hotspot/user/profile/print', where: ['name' => $name])[0] ?? null;
+    }
+
+    /**
+     * Samakan PPP Profile di router dengan paket aplikasi (nama dan rate-limit).
+     * Profile yang sudah ada diperbarui; bila nama berubah, profile lama diganti namanya.
+     * Profile bawaan dan profile isolir router tidak pernah disentuh, dan rate limit yang
+     * dikosongkan di aplikasi tidak menghapus rate limit di router.
+     *
+     * @return string 'created', 'updated', atau 'protected'
+     */
+    public function syncPppProfile(Package $package, ?string $previousName = null): string
+    {
+        $name = $package->mikrotik_profile;
+
+        if ($this->isProtectedPppProfile($name)) {
+            return 'protected';
+        }
+
+        $existing = $this->findPppProfile($name);
+
+        if ($existing === null && $previousName !== null && $previousName !== $name && ! $this->isProtectedPppProfile($previousName)) {
+            $existing = $this->findPppProfile($previousName);
+        }
+
+        $attributes = ['name' => $name];
+
+        if (filled($package->rate_limit)) {
+            $attributes['rate-limit'] = $package->rate_limit;
+        }
+
+        if ($existing === null) {
+            $this->client()->command('/ppp/profile/add', $attributes);
+
+            return 'created';
+        }
+
+        $this->client()->command('/ppp/profile/set', ['.id' => $existing['.id'], ...$attributes]);
+
+        return 'updated';
+    }
+
+    /**
+     * Hapus PPP Profile dari router. Profile bawaan, profile isolir, dan profile yang masih dipakai PPP secret tidak dihapus.
+     *
+     * @return string 'removed', 'missing', 'in_use', atau 'protected'
+     */
+    public function removePppProfile(string $name): string
+    {
+        if ($this->isProtectedPppProfile($name)) {
+            return 'protected';
+        }
+
+        $existing = $this->findPppProfile($name);
+
+        if ($existing === null) {
+            return 'missing';
+        }
+
+        if ($this->client()->command('/ppp/secret/print', where: ['profile' => $name]) !== []) {
+            return 'in_use';
+        }
+
+        $this->client()->command('/ppp/profile/remove', ['.id' => $existing['.id']]);
+
+        return 'removed';
+    }
+
+    private function isProtectedPppProfile(string $name): bool
+    {
+        return in_array($name, ['default', 'default-encrypted'], true) || $this->router->isIsolirProfile($name);
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function findPppProfile(string $name): ?array
+    {
+        return $this->client()->command('/ppp/profile/print', where: ['name' => $name])[0] ?? null;
     }
 
     /**

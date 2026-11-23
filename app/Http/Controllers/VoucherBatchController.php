@@ -7,6 +7,7 @@ use App\Enums\VoucherStatus;
 use App\Http\Requests\VoucherBatchRequest;
 use App\Models\HotspotProfile;
 use App\Models\Reseller;
+use App\Models\Router;
 use App\Models\VoucherBatch;
 use App\Services\Settings\SettingService;
 use App\Services\Voucher\VoucherCodeGenerator;
@@ -18,10 +19,15 @@ use Inertia\Response;
 
 class VoucherBatchController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $routerId = $request->integer('router_id') ?: null;
+
         return Inertia::render('Hotspot/Batches/Index', [
+            'routers' => Router::orderBy('name')->get(['id', 'name']),
+            'routerId' => $routerId ? (string) $routerId : '',
             'batches' => VoucherBatch::query()
+                ->when($routerId, fn ($query) => $query->where('router_id', $routerId))
                 ->with(['router:id,name', 'hotspotProfile:id,name', 'reseller:id,name'])
                 ->withCount(['vouchers', 'vouchers as used_count' => fn ($query) => $query->where('status', '!=', VoucherStatus::Unused)])
                 ->orderByDesc('id')

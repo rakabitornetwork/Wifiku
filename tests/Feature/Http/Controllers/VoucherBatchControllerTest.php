@@ -54,7 +54,7 @@ class VoucherBatchControllerTest extends TestCase
         Reseller::factory()->create(['is_active' => false]);
 
         $this->actingAs($this->admin())->get('/hotspot/batches/create')->assertInertia(
-            fn (Assert $page) => $page->has('profiles', 1)->has('resellers', 0)->has('charsets', 3),
+            fn (Assert $page) => $page->has('profiles', 1)->has('resellers', 0)->has('charsets', 4),
         );
     }
 

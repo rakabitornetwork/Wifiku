@@ -7,7 +7,6 @@ use App\Models\Router;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Str;
 
 class RouterConnectionController extends Controller
 {
@@ -30,14 +29,8 @@ class RouterConnectionController extends Controller
      */
     public function hotspotScript(Router $router): JsonResponse
     {
-        if (blank($router->webhook_token)) {
-            $router->forceFill(['webhook_token' => Str::random(40)])->save();
-        }
-
-        $url = route('webhooks.hotspot-login', $router).'?token='.$router->webhook_token;
-
         return response()->json([
-            'script' => ':do { /tool fetch url=("'.$url.'&user=" . $user . "&mac=" . $"mac-address") keep-result=no check-certificate=no } on-error={}',
+            'script' => $router->hotspotLoginScript(),
         ]);
     }
 }

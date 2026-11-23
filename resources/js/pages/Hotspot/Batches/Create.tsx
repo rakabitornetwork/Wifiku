@@ -14,9 +14,10 @@ type Props = {
 };
 
 const charsetLabels: Record<string, string> = {
-    alphanumeric: 'Huruf + angka (tanpa 0/O/1/I)',
+    alphanumeric: 'Huruf besar + angka (tanpa 0/O/1/I)',
+    mixed: 'Huruf besar + kecil + angka (tanpa 0/O/1/I/l)',
     numeric: 'Angka saja',
-    alpha: 'Huruf saja',
+    alpha: 'Huruf besar saja (tanpa O/I)',
 };
 
 export default function BatchCreate({ profiles, resellers, charsets }: Props) {

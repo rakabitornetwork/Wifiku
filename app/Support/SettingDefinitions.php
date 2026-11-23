@@ -32,6 +32,7 @@ class SettingDefinitions
         ],
         'genieacs.ssid_path' => ['label' => 'Parameter SSID', 'default' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID', 'rules' => ['required', 'string', 'max:255']],
         'genieacs.wifi_password_path' => ['label' => 'Parameter password Wi-Fi', 'default' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase', 'rules' => ['required', 'string', 'max:255']],
+        'genieacs.hosts_path' => ['label' => 'Parameter perangkat terhubung', 'default' => 'InternetGatewayDevice.LANDevice.1.Hosts.Host', 'rules' => ['nullable', 'string', 'max:255'], 'hint' => 'Daftar host LAN/Wi-Fi; ONT berbasis Device:2 memakai Device.Hosts.Host.'],
         'hotspot.login_url' => ['label' => 'URL login hotspot', 'default' => null, 'rules' => ['nullable', 'url', 'max:255'], 'hint' => 'Untuk QR auto-login voucher, mis. http://wifi.teslatech/login. Kosong = IP router.'],
     ];
 

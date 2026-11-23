@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
@@ -29,7 +29,7 @@ type PackageRow = {
 
 const emptyForm = { router_id: '', name: '', mikrotik_profile: '', rate_limit: '', price: '', is_active: true };
 
-export default function PackagesIndex({ packages, routers, search }: { packages: Paginated<PackageRow>; routers: { id: number; name: string }[]; search: string }) {
+export default function PackagesIndex({ packages, routers, search, routerId }: { packages: Paginated<PackageRow>; routers: { id: number; name: string }[]; search: string; routerId: string }) {
     const [editing, setEditing] = useState<PackageRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
@@ -79,8 +79,21 @@ export default function PackagesIndex({ packages, routers, search }: { packages:
             />
 
             <Card>
-                <div className="border-b p-4">
-                    <SearchInput value={search} placeholder="Cari nama paket..." />
+                <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
+                    <SearchInput value={search} placeholder="Cari nama paket..." extra={{ router_id: routerId || undefined }} />
+                    <Select
+                        className="sm:w-48"
+                        value={routerId}
+                        onChange={(event) => router.get('/packages', { search: search || undefined, router_id: event.target.value || undefined }, { preserveState: true, replace: true })}
+                        aria-label="Filter router"
+                    >
+                        <option value="">Semua router</option>
+                        {routers.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.name}
+                            </option>
+                        ))}
+                    </Select>
                 </div>
                 {packages.data.length === 0 ? (
                     <EmptyState title="Belum ada paket" description="Buat paket dengan nama profile PPP yang sama persis dengan di MikroTik." />

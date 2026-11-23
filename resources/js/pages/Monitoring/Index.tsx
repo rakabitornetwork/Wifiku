@@ -1,5 +1,5 @@
 import { Link, router, useForm } from '@inertiajs/react';
-import { Activity, AlertTriangle, CheckCircle2, HelpCircle, Wifi } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, Download, Eye, EyeOff, HelpCircle, Info, Wifi } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
@@ -24,6 +24,13 @@ type OntRow = {
     customer: { id: number; customer_code: string; name: string } | null;
 };
 
+type WifiDetails = {
+    ssid: string | null;
+    password: string | null;
+    last_inform: string | null;
+    devices: { hostname: string | null; ip_address: string | null; mac_address: string | null; interface: string | null }[];
+};
+
 type Summary = { total: number; good: number; warning: number; critical: number; unknown: number };
 
 type Props = {
@@ -39,9 +46,38 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
     const can = useCan();
     const [wifiOnt, setWifiOnt] = useState<OntRow | null>(null);
     const [reading, setReading] = useState<number | null>(null);
+    const [importing, setImporting] = useState(false);
+    const [detailOnt, setDetailOnt] = useState<OntRow | null>(null);
+    const [details, setDetails] = useState<WifiDetails | null>(null);
+    const [detailError, setDetailError] = useState<string | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const wifiForm = useForm({ ssid: '', password: '' });
 
     const readRx = (ont: OntRow) => router.post(`/assets/${ont.id}/rx-power`, {}, { preserveScroll: true, onStart: () => setReading(ont.id), onFinish: () => setReading(null) });
+
+    const openDetails = (ont: OntRow) => {
+        setDetailOnt(ont);
+        setDetails(null);
+        setDetailError(null);
+        setShowPassword(false);
+        setDetailLoading(true);
+
+        fetch(`/assets/${ont.id}/wifi-details`, { headers: { Accept: 'application/json' } })
+            .then(async (response) => {
+                const body = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(body.error ?? 'Gagal membaca data dari GenieACS.');
+                }
+
+                setDetails(body);
+            })
+            .catch((error: Error) => setDetailError(error.message))
+            .finally(() => setDetailLoading(false));
+    };
+
+    const importDevices = () => router.post('/assets/import-genieacs', {}, { preserveScroll: true, onStart: () => setImporting(true), onFinish: () => setImporting(false) });
 
     const submitWifi = (event: FormEvent) => {
         event.preventDefault();
@@ -55,7 +91,17 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
 
     return (
         <>
-            <PageHeader title="Monitoring OLT & TR-069" description="Redaman optik (RX Power) dan status ONT terpasang dari GenieACS." />
+            <PageHeader
+                title="Monitoring OLT & TR-069"
+                description="Redaman optik (RX Power) dan status ONT terpasang dari GenieACS."
+                actions={
+                    genieacsConfigured && (
+                        <Button variant="outline" onClick={importDevices} disabled={importing}>
+                            <Download className="size-4" /> {importing ? 'Mengimpor...' : 'Impor dari GenieACS'}
+                        </Button>
+                    )
+                }
+            />
 
             {!genieacsConfigured && (
                 <Card className="mb-4 flex items-start gap-3 border-amber-500/40 p-4 text-sm">
@@ -133,6 +179,9 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
                                                 <Button variant="success" size="icon" onClick={() => readRx(ont)} disabled={reading === ont.id} aria-label="Baca RX Power" title="Baca RX Power (GenieACS)">
                                                     <Activity className={reading === ont.id ? 'size-4 animate-pulse' : 'size-4'} />
                                                 </Button>
+                                                <Button variant="outline" size="icon" onClick={() => openDetails(ont)} aria-label="Detail Wi-Fi" title="SSID, sandi, dan perangkat terhubung">
+                                                    <Info className="size-4" />
+                                                </Button>
                                                 <Button
                                                     variant="info"
                                                     size="icon"
@@ -156,6 +205,65 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
                 )}
                 <Pagination meta={onts} />
             </Card>
+
+            <Modal
+                open={detailOnt !== null}
+                onClose={() => setDetailOnt(null)}
+                title="Detail Wi-Fi & Perangkat Terhubung"
+                description={detailOnt ? `${detailOnt.serial_number}${detailOnt.customer ? ` · ${detailOnt.customer.name}` : ''} — data terakhir dari GenieACS.` : undefined}
+                footer={
+                    <Button variant="outline" onClick={() => setDetailOnt(null)}>
+                        Tutup
+                    </Button>
+                }
+            >
+                {detailLoading && <p className="text-sm text-muted-foreground">Membaca data dari GenieACS...</p>}
+                {detailError && <p className="text-sm text-destructive">{detailError}</p>}
+                {details && (
+                    <div className="grid gap-4 text-sm">
+                        <dl className="grid grid-cols-[7rem_1fr] gap-y-2">
+                            <dt className="text-muted-foreground">SSID</dt>
+                            <dd className="num font-medium">{details.ssid ?? '-'}</dd>
+                            <dt className="text-muted-foreground">Sandi SSID</dt>
+                            <dd className="num flex items-center gap-2 font-medium">
+                                {details.password ? (showPassword ? details.password : '••••••••') : '-'}
+                                {details.password && (
+                                    <button type="button" onClick={() => setShowPassword((value) => !value)} className="text-muted-foreground hover:text-foreground" aria-label={showPassword ? 'Sembunyikan sandi' : 'Tampilkan sandi'}>
+                                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                                    </button>
+                                )}
+                            </dd>
+                            <dt className="text-muted-foreground">Terhubung</dt>
+                            <dd className="num font-medium">{details.devices.length} perangkat</dd>
+                        </dl>
+                        {details.devices.length > 0 && (
+                            <div className="overflow-x-auto rounded-md border">
+                                <Table>
+                                    <thead>
+                                        <tr>
+                                            <Th>Nama</Th>
+                                            <Th>IP</Th>
+                                            <Th>MAC</Th>
+                                            <Th>Antarmuka</Th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {details.devices.map((device, index) => (
+                                            <tr key={device.mac_address ?? index}>
+                                                <Td>{device.hostname ?? '-'}</Td>
+                                                <Td className="num">{device.ip_address ?? '-'}</Td>
+                                                <Td className="num">{device.mac_address ?? '-'}</Td>
+                                                <Td>{device.interface ?? '-'}</Td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        )}
+                        {details.devices.length === 0 && <p className="text-xs text-muted-foreground">Tidak ada perangkat aktif yang dilaporkan. Jika seharusnya ada, periksa jalur "Parameter perangkat terhubung" di Pengaturan.</p>}
+                    </div>
+                )}
+            </Modal>
 
             <Modal
                 open={wifiOnt !== null}

@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 
 import { HotspotTabs } from '@/Components/HotspotTabs';
@@ -6,6 +6,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { StatusBadge } from '@/Components/ui/Badge';
 import { buttonClass } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
+import { Select } from '@/Components/ui/Field';
 import { Pagination } from '@/Components/ui/Pagination';
 import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
@@ -24,7 +25,7 @@ type BatchRow = {
     reseller: { name: string } | null;
 };
 
-export default function BatchesIndex({ batches }: { batches: Paginated<BatchRow> }) {
+export default function BatchesIndex({ batches, routers, routerId }: { batches: Paginated<BatchRow>; routers: { id: number; name: string }[]; routerId: string }) {
     return (
         <>
             <PageHeader
@@ -39,8 +40,23 @@ export default function BatchesIndex({ batches }: { batches: Paginated<BatchRow>
             <HotspotTabs />
 
             <Card>
+                <div className="border-b p-4">
+                    <Select
+                        className="sm:w-48"
+                        value={routerId}
+                        onChange={(event) => router.get('/hotspot/batches', { router_id: event.target.value || undefined }, { preserveState: true, replace: true })}
+                        aria-label="Filter router"
+                    >
+                        <option value="">Semua router</option>
+                        {routers.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.name}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
                 {batches.data.length === 0 ? (
-                    <EmptyState title="Belum ada batch voucher" description="Generate voucher massal; kodenya dibuat di antrean lalu siap dicetak." />
+                    <EmptyState title={routerId ? 'Tidak ada batch di router ini' : 'Belum ada batch voucher'} description="Generate voucher massal; kodenya dibuat di antrean lalu siap dicetak." />
                 ) : (
                     <TableWrap>
                         <Table>

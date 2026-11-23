@@ -16,6 +16,7 @@ class VoucherCodeGeneratorTest extends TestCase
     {
         return [
             'alphanumeric' => ['alphanumeric', '/^[A-HJ-NP-Z2-9]{8}$/'],
+            'mixed' => ['mixed', '/^[A-HJ-NP-Za-km-z2-9]{8}$/'],
             'numeric' => ['numeric', '/^\d{8}$/'],
             'alpha' => ['alpha', '/^[A-HJ-NP-Z]{8}$/'],
         ];
@@ -48,5 +49,20 @@ class VoucherCodeGeneratorTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         (new VoucherCodeGenerator)->generate(6, 'emoji');
+    }
+
+    public function test_mixed_codes_use_both_cases_and_digits_without_ambiguous_characters(): void
+    {
+        $generator = new VoucherCodeGenerator;
+        $all = '';
+
+        for ($i = 0; $i < 300; $i++) {
+            $all .= $generator->generate(10, 'mixed');
+        }
+
+        $this->assertDoesNotMatchRegularExpression('/[01OIl]/', $all);
+        $this->assertMatchesRegularExpression('/[A-Z]/', $all);
+        $this->assertMatchesRegularExpression('/[a-z]/', $all);
+        $this->assertMatchesRegularExpression('/[2-9]/', $all);
     }
 }

@@ -75,7 +75,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:assets.manage')->group(function () {
         Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
         Route::resource('assets', AssetController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::post('/assets/import-genieacs', [AssetDeviceController::class, 'import'])->name('assets.import-genieacs');
         Route::post('/assets/{asset}/rx-power', [AssetDeviceController::class, 'rxPower'])->name('assets.rx-power');
+        Route::get('/assets/{asset}/wifi-details', [AssetDeviceController::class, 'wifiDetails'])->name('assets.wifi-details');
         Route::post('/assets/{asset}/wifi', [AssetDeviceController::class, 'wifi'])->name('assets.wifi');
     });
 
@@ -86,6 +88,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('hotspot')->name('hotspot.')->middleware('can:vouchers.manage')->group(function () {
+        Route::get('profile-import/{router}', [HotspotProfileController::class, 'importPreview'])->name('profiles.import-preview');
+        Route::post('profile-import/{router}', [HotspotProfileController::class, 'import'])->name('profiles.import');
         Route::resource('profiles', HotspotProfileController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('resellers', ResellerController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('batches', VoucherBatchController::class)->only(['index', 'create', 'store', 'show']);

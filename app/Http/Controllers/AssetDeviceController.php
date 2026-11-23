@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Asset\ImportGenieAcsDevices;
 use App\Enums\AssetStatus;
 use App\Enums\AssetType;
 use App\Models\Asset;
 use App\Services\GenieAcs\GenieAcsException;
 use App\Services\GenieAcs\GenieAcsService;
 use App\Support\Toast;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -16,6 +18,30 @@ use Illuminate\Http\Request;
  */
 class AssetDeviceController extends Controller
 {
+    /**
+     * Impor ONT dari GenieACS ke inventaris (sinkron: satu permintaan berhalaman dengan timeout singkat).
+     */
+    public function import(ImportGenieAcsDevices $importDevices, GenieAcsService $genieAcs): RedirectResponse
+    {
+        if (! $genieAcs->isConfigured()) {
+            Toast::error('GenieACS belum dikonfigurasi di Pengaturan.');
+
+            return back();
+        }
+
+        try {
+            $result = $importDevices->handle();
+        } catch (GenieAcsException $exception) {
+            Toast::error($exception->getMessage());
+
+            return back();
+        }
+
+        Toast::success("Impor selesai: {$result['created']} ONT baru (status Stok), {$result['updated']} diperbarui. Ubah status ke Terpasang dan pasangkan ke pelanggan di Inventaris agar tampil di monitoring.");
+
+        return back();
+    }
+
     public function rxPower(Asset $asset, GenieAcsService $genieAcs): RedirectResponse
     {
         $this->ensureOnt($asset);
@@ -35,6 +61,22 @@ class AssetDeviceController extends Controller
             : "RX Power {$asset->serial_number}: {$status['rx_power']} dBm.");
 
         return back();
+    }
+
+    /**
+     * SSID, password Wi-Fi, dan perangkat terhubung milik ONT (dibaca langsung dari GenieACS).
+     */
+    public function wifiDetails(Asset $asset, GenieAcsService $genieAcs): JsonResponse
+    {
+        $this->ensureOnt($asset);
+
+        try {
+            $details = $genieAcs->readWifiDetails($asset);
+        } catch (GenieAcsException $exception) {
+            return response()->json(['error' => $exception->getMessage()], 422);
+        }
+
+        return response()->json($details)->header('Cache-Control', 'no-store');
     }
 
     public function wifi(Request $request, Asset $asset, GenieAcsService $genieAcs): RedirectResponse

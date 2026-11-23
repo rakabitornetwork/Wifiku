@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
@@ -31,7 +31,7 @@ type CustomerRow = {
 type Props = {
     customers: Paginated<CustomerRow>;
     routers: { id: number; name: string }[];
-    filters: { search: string; status: string; router_id: string };
+    filters: { search: string; status: string; router_id: string; sort: string; direction: 'asc' | 'desc' };
 };
 
 export default function CustomersIndex({ customers, routers, filters }: Props) {
@@ -76,7 +76,28 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
         });
 
     const applyFilter = (key: 'status' | 'router_id', value: string) =>
-        router.get('/customers', { ...filters, [key]: value || undefined, search: filters.search || undefined, page: undefined }, { preserveState: true, replace: true });
+        router.get('/customers', { ...filters, [key]: value || undefined, search: filters.search || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined, page: undefined }, { preserveState: true, replace: true });
+
+    // Klik judul: urut naik, klik lagi turun, klik ketiga kembali ke urutan bawaan.
+    const toggleSort = (column: string) => {
+        const next = filters.sort !== column ? { sort: column, direction: 'asc' } : filters.direction === 'asc' ? { sort: column, direction: 'desc' } : { sort: undefined, direction: undefined };
+
+        router.get('/customers', { search: filters.search || undefined, status: filters.status || undefined, router_id: filters.router_id || undefined, ...next }, { preserveState: true, replace: true });
+    };
+
+    const SortTh = ({ column, children }: { column: string; children: string }) => {
+        const active = filters.sort === column;
+        const Icon = !active ? ArrowUpDown : filters.direction === 'asc' ? ArrowUp : ArrowDown;
+
+        return (
+            <Th aria-sort={active ? (filters.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <button type="button" onClick={() => toggleSort(column)} className={`inline-flex items-center gap-1 font-medium hover:text-foreground ${active ? 'text-foreground' : ''}`}>
+                    {children}
+                    <Icon className={`size-3.5 ${active ? '' : 'opacity-50'}`} />
+                </button>
+            </Th>
+        );
+    };
 
     return (
         <>
@@ -92,7 +113,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
 
             <Card>
                 <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-                    <SearchInput value={filters.search} placeholder="Cari nama, kode, username, WhatsApp..." extra={{ status: filters.status || undefined, router_id: filters.router_id || undefined }} />
+                    <SearchInput value={filters.search} placeholder="Cari nama, kode, username, WhatsApp..." extra={{ status: filters.status || undefined, router_id: filters.router_id || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined }} />
                     <Select className="sm:w-44" value={filters.status} onChange={(event) => applyFilter('status', event.target.value)} aria-label="Filter status">
                         <option value="">Semua status</option>
                         <option value="active">Aktif</option>
@@ -143,14 +164,14 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                                     <Th className="w-10">
                                         <input type="checkbox" checked={pageSelected} onChange={(event) => togglePage(event.target.checked)} aria-label="Pilih semua di halaman ini" className="size-4 rounded border-input accent-[var(--primary)]" />
                                     </Th>
-                                    <Th>ID</Th>
-                                    <Th>Nama</Th>
-                                    <Th>WhatsApp</Th>
-                                    <Th>Username PPPoE</Th>
-                                    <Th>Paket</Th>
-                                    <Th>Router / ODP</Th>
-                                    <Th>Tagihan</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="customer_code">ID</SortTh>
+                                    <SortTh column="name">Nama</SortTh>
+                                    <SortTh column="whatsapp">WhatsApp</SortTh>
+                                    <SortTh column="pppoe_username">Username PPPoE</SortTh>
+                                    <SortTh column="package">Paket</SortTh>
+                                    <SortTh column="router">Router / ODP</SortTh>
+                                    <SortTh column="billing_day">Tagihan</SortTh>
+                                    <SortTh column="status">Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
