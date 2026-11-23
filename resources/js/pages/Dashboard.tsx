@@ -26,10 +26,10 @@ export default function Dashboard({ stats, routers }: Props) {
             <PageHeader title="Dashboard" description="Ringkasan operasional jaringan dan pelanggan." />
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <StatCard label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<UserCheck className="size-4" />} />
-                <StatCard label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />
-                <StatCard label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
-                <StatCard label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
+                <StatCard tone="green" label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<UserCheck className="size-4" />} />
+                <StatCard tone="red" label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />
+                <StatCard tone="blue" label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
+                <StatCard tone="amber" label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
             </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
