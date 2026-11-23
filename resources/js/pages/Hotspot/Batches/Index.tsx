@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 
+import { DeleteVouchersButton } from '@/Components/DeleteVouchersButton';
 import { HotspotTabs } from '@/Components/HotspotTabs';
 import { PageHeader } from '@/Components/PageHeader';
 import { StatusBadge } from '@/Components/ui/Badge';
@@ -21,11 +22,12 @@ type BatchRow = {
     created_at: string;
     used_count: number;
     router: { name: string };
+    server: string | null;
     hotspot_profile: { name: string };
     reseller: { name: string } | null;
 };
 
-export default function BatchesIndex({ batches, routers, routerId }: { batches: Paginated<BatchRow>; routers: { id: number; name: string }[]; routerId: string }) {
+export default function BatchesIndex({ batches, routers, routerId, routerStats }: { batches: Paginated<BatchRow>; routers: { id: number; name: string }[]; routerId: string; routerStats: Record<string, number> | null }) {
     return (
         <>
             <PageHeader
@@ -40,7 +42,7 @@ export default function BatchesIndex({ batches, routers, routerId }: { batches: 
             <HotspotTabs />
 
             <Card>
-                <div className="border-b p-4">
+                <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
                     <Select
                         className="sm:w-48"
                         value={routerId}
@@ -54,6 +56,14 @@ export default function BatchesIndex({ batches, routers, routerId }: { batches: 
                             </option>
                         ))}
                     </Select>
+                    {routerId && routerStats && (
+                        <DeleteVouchersButton
+                            url={`/hotspot/routers/${routerId}/vouchers`}
+                            label="Hapus voucher router ini"
+                            title={`Hapus voucher router ${routers.find((item) => String(item.id) === routerId)?.name ?? ''}?`}
+                            stats={routerStats}
+                        />
+                    )}
                 </div>
                 {batches.data.length === 0 ? (
                     <EmptyState title={routerId ? 'Tidak ada batch di router ini' : 'Belum ada batch voucher'} description="Generate voucher massal; kodenya dibuat di antrean lalu siap dicetak." />
@@ -81,7 +91,10 @@ export default function BatchesIndex({ batches, routers, routerId }: { batches: 
                                             </Link>
                                         </Td>
                                         <Td>{batch.hotspot_profile.name}</Td>
-                                        <Td>{batch.router.name}</Td>
+                                        <Td>
+                                            {batch.router.name}
+                                            <span className="text-muted-foreground"> · {batch.server ?? 'all'}</span>
+                                        </Td>
                                         <Td>{batch.reseller?.name ?? <span className="text-muted-foreground">-</span>}</Td>
                                         <Td className="num">
                                             {batch.generated_count}/{batch.quantity}

@@ -157,4 +157,11 @@ class HotspotProfileImportTest extends TestCase
         $this->assertStringContainsString("token={$token}", $profiles->firstWhere('name', '1Hari')['on-login']);
         $this->assertStringStartsWith($marker, $profiles->firstWhere('name', 'Polos')['on-login']);
     }
+
+    public function test_lists_hotspot_servers_of_a_router(): void
+    {
+        $this->fakeRouterOs($this->router)->tables['/ip/hotspot'] = [['.id' => '*x1', 'name' => 'hs-vlan-hs'], ['.id' => '*x2', 'name' => 'hs-vlan-promo']];
+
+        $this->actingAs($this->admin())->getJson("/hotspot/routers/{$this->router->id}/servers")->assertOk()->assertExactJson(['servers' => ['hs-vlan-hs', 'hs-vlan-promo']]);
+    }
 }

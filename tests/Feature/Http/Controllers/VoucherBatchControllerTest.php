@@ -10,6 +10,7 @@ use App\Models\Reseller;
 use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\VoucherBatch;
+use App\Services\Settings\SettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -118,6 +119,21 @@ class VoucherBatchControllerTest extends TestCase
 
         $this->actingAs($this->admin())->get("/hotspot/batches/{$batch->id}/print")->assertInertia(
             fn (Assert $page) => $page->where('loginUrl', 'http://10.9.9.1/login'),
+        );
+    }
+
+    public function test_print_page_shows_reseller_contact_or_falls_back_to_company_cs(): void
+    {
+        $reseller = Reseller::factory()->create(['name' => 'Agen Budi', 'phone' => '081234567890']);
+        $withAgent = VoucherBatch::factory()->create(['reseller_id' => $reseller->id]);
+        $withoutAgent = VoucherBatch::factory()->create(['reseller_id' => null]);
+        (new SettingService)->set('company', 'cs_whatsapp', '6281111111111');
+
+        $this->actingAs($this->admin())->get("/hotspot/batches/{$withAgent->id}/print")->assertInertia(
+            fn (Assert $page) => $page->where('contact', ['label' => 'Agen', 'name' => 'Agen Budi', 'phone' => '081234567890']),
+        );
+        $this->actingAs($this->admin())->get("/hotspot/batches/{$withoutAgent->id}/print")->assertInertia(
+            fn (Assert $page) => $page->where('contact', ['label' => 'CS', 'name' => null, 'phone' => '6281111111111']),
         );
     }
 }

@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { useEffect } from 'react';
 
+import { DeleteVouchersButton } from '@/Components/DeleteVouchersButton';
 import { HotspotTabs } from '@/Components/HotspotTabs';
 import { PageHeader } from '@/Components/PageHeader';
 import { StatusBadge } from '@/Components/ui/Badge';
@@ -21,6 +22,7 @@ type Props = {
         generated_count: number;
         status: string;
         router: { name: string };
+        server: string | null;
         hotspot_profile: { name: string; price: number; validity_minutes: number };
         reseller: { name: string } | null;
     };
@@ -55,11 +57,14 @@ export default function BatchShow({ batch, stats, vouchers, status }: Props) {
         <>
             <PageHeader
                 title={`Batch ${batch.batch_code}`}
-                description={`${batch.hotspot_profile.name} · ${batch.router.name} · ${formatRupiah(batch.hotspot_profile.price)} / ${formatDuration(batch.hotspot_profile.validity_minutes)}${batch.reseller ? ` · Reseller ${batch.reseller.name}` : ''}`}
+                description={`${batch.hotspot_profile.name} · ${batch.router.name} (server ${batch.server ?? 'all'}) · ${formatRupiah(batch.hotspot_profile.price)} / ${formatDuration(batch.hotspot_profile.validity_minutes)}${batch.reseller ? ` · Reseller ${batch.reseller.name}` : ''}`}
                 actions={
-                    <Link href="/hotspot/batches" className={buttonClass('outline')}>
-                        <ArrowLeft className="size-4" /> Kembali
-                    </Link>
+                    <div className="flex gap-2">
+                        <DeleteVouchersButton url={`/hotspot/batches/${batch.id}/vouchers`} label="Hapus voucher" title={`Hapus voucher batch ${batch.batch_code}?`} stats={stats} disabled={inProgress} />
+                        <Link href="/hotspot/batches" className={buttonClass('outline')}>
+                            <ArrowLeft className="size-4" /> Kembali
+                        </Link>
+                    </div>
                 }
             />
             <HotspotTabs />

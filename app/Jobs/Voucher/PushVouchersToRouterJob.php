@@ -73,7 +73,7 @@ class PushVouchersToRouterJob implements ShouldQueue
             ->chunkById(100, function (Collection $vouchers) use ($router, $batch, $comment, $existing): void {
                 foreach ($vouchers as $voucher) {
                     if (! isset($existing[$voucher->code])) {
-                        $router->createHotspotUser($voucher, $batch->hotspotProfile, $comment);
+                        $router->createHotspotUser($voucher, $batch->hotspotProfile, $comment, $batch->server);
                     }
                 }
 

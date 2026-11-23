@@ -10,6 +10,7 @@ use App\Models\HotspotProfile;
 use App\Models\Router;
 use App\Services\Mikrotik\MikrotikCommandException;
 use App\Services\Mikrotik\MikrotikConnectionException;
+use App\Services\Mikrotik\MikrotikService;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,18 @@ class HotspotProfileController extends Controller
     {
         try {
             return response()->json(['profiles' => $import->preview($router)]);
+        } catch (MikrotikConnectionException|MikrotikCommandException $exception) {
+            return response()->json(['error' => "Gagal membaca router: {$exception->getMessage()}"], 422);
+        }
+    }
+
+    /**
+     * Daftar Hotspot Server pada router, untuk pilihan server saat generate voucher.
+     */
+    public function servers(Router $router): JsonResponse
+    {
+        try {
+            return response()->json(['servers' => MikrotikService::forRouter($router)->hotspotServers()]);
         } catch (MikrotikConnectionException|MikrotikCommandException $exception) {
             return response()->json(['error' => "Gagal membaca router: {$exception->getMessage()}"], 422);
         }

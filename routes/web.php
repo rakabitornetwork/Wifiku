@@ -88,11 +88,14 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('hotspot')->name('hotspot.')->middleware('can:vouchers.manage')->group(function () {
+        Route::get('routers/{router}/servers', [HotspotProfileController::class, 'servers'])->name('routers.servers');
         Route::get('profile-import/{router}', [HotspotProfileController::class, 'importPreview'])->name('profiles.import-preview');
         Route::post('profile-import/{router}', [HotspotProfileController::class, 'import'])->name('profiles.import');
         Route::resource('profiles', HotspotProfileController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('resellers', ResellerController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('batches', VoucherBatchController::class)->only(['index', 'create', 'store', 'show']);
+        Route::delete('batches/{batch}/vouchers', [VoucherBatchController::class, 'destroyVouchers'])->name('batches.vouchers.destroy');
+        Route::delete('routers/{router}/vouchers', [VoucherBatchController::class, 'destroyRouterVouchers'])->name('routers.vouchers.destroy');
         Route::get('batches/{batch}/print', [VoucherBatchController::class, 'print'])->name('batches.print');
     });
 

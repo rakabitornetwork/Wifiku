@@ -71,6 +71,19 @@ class MikrotikService
     }
 
     /**
+     * Nama Hotspot Server di router (untuk membatasi voucher ke server tertentu).
+     *
+     * @return list<string>
+     */
+    public function hotspotServers(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (array $server): string => $server['name'] ?? '',
+            $this->client()->command('/ip/hotspot/print'),
+        )));
+    }
+
+    /**
      * Seluruh Hotspot User Profile di router (untuk impor profil hotspot).
      *
      * @return list<array<string, string>>
@@ -378,7 +391,7 @@ class MikrotikService
     /**
      * Buat hotspot user dari voucher dengan batas uptime dan kuota profilnya.
      */
-    public function createHotspotUser(Voucher $voucher, HotspotProfile $profile, string $comment): void
+    public function createHotspotUser(Voucher $voucher, HotspotProfile $profile, string $comment, ?string $server = null): void
     {
         $attributes = [
             'name' => $voucher->code,
@@ -386,6 +399,10 @@ class MikrotikService
             'profile' => $profile->mikrotik_profile,
             'comment' => $comment,
         ];
+
+        if (filled($server) && $server !== 'all') {
+            $attributes['server'] = $server;
+        }
 
         if ($profile->uptime_limit_minutes !== null) {
             $attributes['limit-uptime'] = $profile->uptime_limit_minutes.'m';

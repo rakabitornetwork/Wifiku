@@ -14,7 +14,7 @@ class CreateVoucherBatch
     /**
      * Catat batch baru lalu serahkan pembuatan kodenya ke Queue agar UI tidak menunggu.
      *
-     * @param  array{hotspot_profile_id: int, reseller_id?: int|null, quantity: int, prefix?: string|null, code_length: int, charset: string}  $data
+     * @param  array{hotspot_profile_id: int, reseller_id?: int|null, quantity: int, prefix?: string|null, code_length: int, charset: string, server?: string|null}  $data
      */
     public function handle(array $data, User $creator): VoucherBatch
     {

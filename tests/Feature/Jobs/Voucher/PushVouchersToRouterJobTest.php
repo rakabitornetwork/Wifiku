@@ -70,4 +70,20 @@ class PushVouchersToRouterJobTest extends TestCase
 
         Queue::assertPushed(PushVouchersToRouterJob::class, fn ($job) => $job->voucherBatch->is($batch));
     }
+
+    public function test_hotspot_users_are_bound_to_the_chosen_server_or_left_open_for_all(): void
+    {
+        $bound = VoucherBatch::factory()->create(['batch_code' => 'VC-S1', 'server' => 'hs-vlan-vcorner']);
+        $open = VoucherBatch::factory()->create(['batch_code' => 'VC-S2', 'server' => null]);
+        Voucher::factory()->for($bound)->create(['code' => 'BOUND1']);
+        Voucher::factory()->for($open)->create(['code' => 'OPEN01']);
+        $boundFake = $this->fakeRouterOs($bound->router);
+        $openFake = $this->fakeRouterOs($open->router);
+
+        PushVouchersToRouterJob::dispatch($bound);
+        PushVouchersToRouterJob::dispatch($open);
+
+        $this->assertSame('hs-vlan-vcorner', $boundFake->rows('/ip/hotspot/user')[0]['server']);
+        $this->assertArrayNotHasKey('server', $openFake->rows('/ip/hotspot/user')[0]);
+    }
 }

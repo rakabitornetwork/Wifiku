@@ -31,6 +31,7 @@ class VoucherBatchRequest extends FormRequest
             'prefix' => ['nullable', 'alpha_num', 'max:6'],
             'code_length' => ['required', 'integer', 'between:4,10'],
             'charset' => ['required', Rule::in(array_keys(VoucherCodeGenerator::CHARSETS))],
+            'server' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

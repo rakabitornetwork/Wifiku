@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['batch_code', 'router_id', 'hotspot_profile_id', 'reseller_id', 'quantity', 'generated_count', 'prefix', 'code_length', 'charset', 'status', 'created_by'])]
+#[Fillable(['batch_code', 'router_id', 'hotspot_profile_id', 'reseller_id', 'quantity', 'generated_count', 'prefix', 'code_length', 'charset', 'server', 'status', 'created_by'])]
 class VoucherBatch extends Model
 {
     /** @use HasFactory<VoucherBatchFactory> */

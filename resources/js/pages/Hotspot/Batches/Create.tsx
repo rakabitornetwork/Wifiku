@@ -1,5 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
 import { Button, buttonClass } from '@/Components/ui/Button';
@@ -8,7 +8,7 @@ import { Field, Input, Select } from '@/Components/ui/Field';
 import { formatDuration, formatRupiah } from '@/lib/utils';
 
 type Props = {
-    profiles: { id: number; name: string; price: number; validity_minutes: number; router: { name: string } }[];
+    profiles: { id: number; router_id: number; name: string; price: number; validity_minutes: number; router: { name: string } }[];
     resellers: { id: number; name: string }[];
     charsets: string[];
 };
@@ -21,7 +21,37 @@ const charsetLabels: Record<string, string> = {
 };
 
 export default function BatchCreate({ profiles, resellers, charsets }: Props) {
-    const form = useForm({ hotspot_profile_id: '', reseller_id: '', quantity: '50', prefix: '', code_length: '6', charset: 'alphanumeric' });
+    const form = useForm({ hotspot_profile_id: '', reseller_id: '', quantity: '50', prefix: '', code_length: '6', charset: 'alphanumeric', server: '' });
+    const [servers, setServers] = useState<string[]>([]);
+    const [serverError, setServerError] = useState<string | null>(null);
+    const [serversLoading, setServersLoading] = useState(false);
+    const routerId = profiles.find((profile) => String(profile.id) === form.data.hotspot_profile_id)?.router_id;
+
+    // Server hotspot dibaca langsung dari router milik profil yang dipilih.
+    useEffect(() => {
+        setServers([]);
+        setServerError(null);
+        form.setData('server', '');
+
+        if (!routerId) {
+            return;
+        }
+
+        setServersLoading(true);
+        fetch(`/hotspot/routers/${routerId}/servers`, { headers: { Accept: 'application/json' } })
+            .then(async (response) => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error ?? 'Gagal membaca server hotspot.');
+                }
+
+                setServers(data.servers);
+            })
+            .catch((exception: Error) => setServerError(exception.message))
+            .finally(() => setServersLoading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [routerId]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -40,6 +70,16 @@ export default function BatchCreate({ profiles, resellers, charsets }: Props) {
                             {profiles.map((profile) => (
                                 <option key={profile.id} value={profile.id}>
                                     {profile.router.name} · {profile.name} — {formatRupiah(profile.price)} / {formatDuration(profile.validity_minutes)}
+                                </option>
+                            ))}
+                        </Select>
+                    </Field>
+                    <Field label="Server hotspot" error={form.errors.server} hint={serverError ?? (serversLoading ? 'Membaca server dari router...' : 'Batasi voucher hanya untuk satu server hotspot. "all" = semua server di router ini.')}>
+                        <Select value={form.data.server} onChange={(event) => form.setData('server', event.target.value)} disabled={!routerId}>
+                            <option value="">all (semua server)</option>
+                            {servers.map((server) => (
+                                <option key={server} value={server}>
+                                    {server}
                                 </option>
                             ))}
                         </Select>
