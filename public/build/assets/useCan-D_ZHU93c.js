@@ -1,1 +1,0 @@
-import{d as e}from"./jsx-runtime-K-Gx_xJ0.js";function t(){let t=e().props.auth?.user.permissions??[];return e=>t.includes(e)}export{t};

@@ -1,0 +1,1 @@
+import{d as e}from"./jsx-runtime-DGVt6F5l.js";function t(){let t=e().props.auth?.user.permissions??[];return e=>t.includes(e)}export{t};

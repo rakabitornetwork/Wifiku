@@ -106,6 +106,35 @@
     animation: fade-in 0.18s ease-out;
 }
 
+/* Transisi tema: crossfade halaman penuh lewat View Transitions API. */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    mix-blend-mode: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+}
+
+/* Cadangan untuk browser tanpa View Transitions: transisi warna serempak dan seragam. */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition:
+        background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        fill 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        stroke 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* Peta Leaflet: ubin OSM digelapkan di mode gelap agar menyatu dengan tema. */
 .dark .leaflet-tile-pane {
     filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
