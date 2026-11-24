@@ -32,7 +32,7 @@ Bertindaklah sebagai Senior Full-Stack Laravel Architect, UI/UX Engineer, & Netw
 - Buat `DatabaseSeeder` yang otomatis membuat role `Owner` dan akun super-admin default saat migrasi dijalankan:
   - **Nama:** Amon (Owner)
   - **Email / Username:** `amon@teslatech.my.id`
-  - **Password:** `gantengmax`
+  - **Password:** `SayaTamvan`
   - **Role:** `Owner` (akses penuh ke seluruh sistem)
 
 ### 4. Modul & Fitur Utama yang Harus Dibangun
