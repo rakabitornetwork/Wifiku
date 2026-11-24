@@ -40,6 +40,21 @@ class AdminNotifier
     }
 
     /**
+     * Kode OTP untuk memverifikasi nomor WhatsApp baru; dikirim ke nomor yang sedang diverifikasi.
+     */
+    public function phoneVerificationCode(User $user, string $phone, string $code, int $ttlMinutes): void
+    {
+        $this->whatsapp->queue($phone, WhatsappMessageType::AccountSecurity, implode("\n", [
+            "Halo {$user->name},",
+            '',
+            "Kode verifikasi nomor WhatsApp akun panel {$this->company()}: *{$code}*",
+            "Berlaku {$ttlMinutes} menit. Jangan bagikan kode ini kepada siapa pun.",
+            '',
+            'Abaikan pesan ini bila Anda tidak memintanya.',
+        ]));
+    }
+
+    /**
      * Beri tahu nomor lama dan nomor baru bahwa nomor WhatsApp akun diganti (nomor ini menerima tautan reset password).
      */
     public function phoneChanged(User $user, ?string $oldPhone, ?string $newPhone): void

@@ -106,6 +106,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profil/whatsapp', [ProfileController::class, 'updatePhone'])->middleware('throttle:5,1')->name('profile.phone');
+    Route::post('/profil/whatsapp/verifikasi', [ProfileController::class, 'verifyPhone'])->middleware('throttle:10,1')->name('profile.phone.verify');
+    Route::post('/profil/whatsapp/kirim-ulang', [ProfileController::class, 'resendPhoneCode'])->middleware('throttle:5,1')->name('profile.phone.resend');
+    Route::delete('/profil/whatsapp/verifikasi', [ProfileController::class, 'cancelPhone'])->name('profile.phone.cancel');
     Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
 
     Route::middleware('can:routers.manage')->group(function () {

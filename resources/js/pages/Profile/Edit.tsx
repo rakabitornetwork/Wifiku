@@ -1,6 +1,6 @@
-import { useForm } from '@inertiajs/react';
-import { KeyRound, MessageCircle } from 'lucide-react';
-import { type FormEvent, useEffect } from 'react';
+import { router, useForm } from '@inertiajs/react';
+import { KeyRound, MessageCircle, ShieldCheck } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/Button';
@@ -8,11 +8,44 @@ import { Card, CardHeader } from '@/Components/ui/Card';
 import { Field, Input } from '@/Components/ui/Field';
 import { formatDate } from '@/lib/utils';
 
-type Props = { account: { name: string; email: string; phone: string | null; role: string | null; last_login_at: string | null } };
+type PendingPhone = { phone: string; expires_at: string; resend_in: number; attempts_left: number };
 
-export default function ProfileEdit({ account }: Props) {
+type Props = {
+    account: { name: string; email: string; phone: string | null; role: string | null; last_login_at: string | null };
+    pendingPhone: PendingPhone | null;
+};
+
+/** 6289912345678 → 62•••••••5678 */
+function maskPhone(phone: string): string {
+    return phone.slice(0, 2) + '•'.repeat(Math.max(0, phone.length - 6)) + phone.slice(-4);
+}
+
+export default function ProfileEdit({ account, pendingPhone }: Props) {
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const phoneForm = useForm({ phone: account.phone ?? '', current_password: '' });
+    const codeForm = useForm({ code: '' });
+    const [cooldown, setCooldown] = useState(pendingPhone?.resend_in ?? 0);
+
+    useEffect(() => {
+        setCooldown(pendingPhone?.resend_in ?? 0);
+    }, [pendingPhone?.resend_in, pendingPhone?.phone]);
+
+    useEffect(() => {
+        if (cooldown <= 0) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => setCooldown(cooldown - 1), 1000);
+
+        return () => window.clearTimeout(timer);
+    }, [cooldown]);
+
+    const submitCode = (event: FormEvent) => {
+        event.preventDefault();
+        codeForm.post('/profil/whatsapp/verifikasi', { preserveScroll: true, onSuccess: () => codeForm.reset(), onError: () => codeForm.reset() });
+    };
+
+    const expiresAt = pendingPhone ? new Date(pendingPhone.expires_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -65,17 +98,49 @@ export default function ProfileEdit({ account }: Props) {
  <div className="space-y-4">
                 <Card>
                     <CardHeader title="Nomor WhatsApp" description="Tujuan tautan reset password dan notifikasi keamanan akun Anda." />
-                    <form onSubmit={submitPhone} className="space-y-4 p-5">
-                        <Field label="No. WhatsApp" error={phoneForm.errors.phone} hint="Format 08xx. Kosongkan untuk menghapus nomor (tautan reset tidak bisa dikirim lagi).">
-                            <Input inputMode="tel" value={phoneForm.data.phone} onChange={(event) => phoneForm.setData('phone', event.target.value)} placeholder="081234567890" />
-                        </Field>
-                        <Field label="Password saat ini" error={phoneForm.errors.current_password} hint="Diminta karena nomor ini menentukan ke mana tautan reset dikirim.">
-                            <Input type="password" autoComplete="current-password" value={phoneForm.data.current_password} onChange={(event) => phoneForm.setData('current_password', event.target.value)} required />
-                        </Field>
-                        <Button type="submit" disabled={phoneForm.processing || phoneForm.data.phone === (account.phone ?? '')}>
-                            <MessageCircle className="size-4" /> {phoneForm.processing ? 'Menyimpan...' : 'Simpan nomor'}
-                        </Button>
-                    </form>
+                    {pendingPhone ? (
+                        <form onSubmit={submitCode} className="space-y-4 p-5">
+                            <p className="rounded-lg bg-accent p-3 text-sm text-accent-foreground">
+                                Kode 6 angka dikirim ke WhatsApp <span className="num font-medium">{maskPhone(pendingPhone.phone)}</span>. Berlaku sampai {expiresAt}. Nomor baru disimpan setelah kode dimasukkan.
+                            </p>
+                            <Field label="Kode verifikasi" error={codeForm.errors.code} hint={`Sisa percobaan: ${pendingPhone.attempts_left}`}>
+                                <Input
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={6}
+                                    autoFocus
+                                    className="num text-center text-lg tracking-[0.4em]"
+                                    value={codeForm.data.code}
+                                    onChange={(event) => codeForm.setData('code', event.target.value.replace(/\D/g, ''))}
+                                    placeholder="••••••"
+                                    required
+                                />
+                            </Field>
+                            <div className="flex flex-wrap gap-2">
+                                <Button type="submit" disabled={codeForm.processing || codeForm.data.code.length !== 6}>
+                                    <ShieldCheck className="size-4" /> {codeForm.processing ? 'Memeriksa...' : 'Verifikasi & simpan'}
+                                </Button>
+                                <Button variant="outline" onClick={() => router.post('/profil/whatsapp/kirim-ulang', {}, { preserveScroll: true })} disabled={cooldown > 0}>
+                                    {cooldown > 0 ? `Kirim ulang (${cooldown}d)` : 'Kirim ulang kode'}
+                                </Button>
+                                <Button variant="ghost" onClick={() => router.delete('/profil/whatsapp/verifikasi', { preserveScroll: true })}>
+                                    Batal
+                                </Button>
+                            </div>
+                        </form>
+                    ) : (
+                        <form onSubmit={submitPhone} className="space-y-4 p-5">
+                            <Field label="No. WhatsApp" error={phoneForm.errors.phone} hint="Format 08xx. Nomor baru diverifikasi dengan kode yang dikirim ke nomor itu. Kosongkan untuk menghapus nomor.">
+                                <Input inputMode="tel" value={phoneForm.data.phone} onChange={(event) => phoneForm.setData('phone', event.target.value)} placeholder="081234567890" />
+                            </Field>
+                            <Field label="Password saat ini" error={phoneForm.errors.current_password} hint="Diminta karena nomor ini menentukan ke mana tautan reset dikirim.">
+                                <Input type="password" autoComplete="current-password" value={phoneForm.data.current_password} onChange={(event) => phoneForm.setData('current_password', event.target.value)} required />
+                            </Field>
+                            <Button type="submit" disabled={phoneForm.processing || phoneForm.data.phone === (account.phone ?? '')}>
+                                <MessageCircle className="size-4" /> {phoneForm.processing ? 'Memproses...' : phoneForm.data.phone.trim() === '' ? 'Hapus nomor' : 'Kirim kode verifikasi'}
+                            </Button>
+                        </form>
+                    )}
                 </Card>
 
                 <Card>
