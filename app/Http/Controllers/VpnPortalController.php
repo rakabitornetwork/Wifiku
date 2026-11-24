@@ -6,9 +6,9 @@ use App\Actions\Payment\CreateOnlinePayment;
 use App\Drivers\Payment\Exceptions\PaymentGatewayException;
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
-use App\Models\PaymentGateway;
 use App\Models\VpnAccount;
 use App\Services\Settings\SettingService;
+use App\Services\Vpn\VpnBillingPresenter;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class VpnPortalController extends Controller
 {
-    public function show(VpnAccount $account, SettingService $settings): Response
+    public function show(VpnAccount $account, SettingService $settings, VpnBillingPresenter $presenter): Response
     {
         $invoices = $account->invoices()
             ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::Partial])
@@ -41,7 +41,6 @@ class VpnPortalController extends Controller
                 'is_overdue' => $invoice->due_date->isPast(),
             ]);
 
-        $gateway = PaymentGateway::where('is_active', true)->orderBy('sort_order')->first();
         $csNumber = preg_replace('/\D+/', '', (string) $settings->get('company', 'cs_whatsapp'));
 
         return Inertia::render('Public/VpnPortal', [
@@ -58,10 +57,7 @@ class VpnPortalController extends Controller
             'memberUrl' => $account->vpn_member_id !== null && Auth::guard('member')->id() === $account->vpn_member_id ? route('vpn-member.dashboard') : null,
             'invoices' => $invoices,
             'outstanding' => $invoices->sum('outstanding'),
-            'payment' => [
-                'available' => $gateway !== null && ! empty($gateway->enabled_channels),
-                'channels' => $gateway?->enabled_channels ?? [],
-            ],
+            'payment' => $presenter->paymentOptions(),
             'whatsappUrl' => $csNumber !== ''
                 ? 'https://wa.me/'.$csNumber.'?text='.rawurlencode("Halo, saya pengguna VPN Tunnel akun {$account->username}. Mohon bantuannya.")
                 : null,

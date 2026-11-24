@@ -34,7 +34,7 @@ class VpnMemberAdminTest extends TestCase
     public function test_lists_members_with_account_counts_search_and_status_filter(): void
     {
         $budi = VpnMember::factory()->create(['name' => 'Budi', 'email' => 'budi@example.com']);
-        VpnMember::factory()->create(['name' => 'Sari', 'is_active' => false]);
+        VpnMember::factory()->create(['name' => 'Sari', 'email' => 'sari@example.com', 'whatsapp' => '6281200000000', 'is_active' => false]);
         $server = VpnServer::factory()->create();
         VpnAccount::factory()->for($server, 'server')->create(['vpn_member_id' => $budi->id]);
         VpnAccount::factory()->for($server, 'server')->create(['vpn_member_id' => $budi->id, 'status' => VpnAccountStatus::Pending]);

@@ -30,6 +30,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
 use App\Http\Controllers\Vpn\VpnLandingController;
 use App\Http\Controllers\Vpn\VpnMemberAuthController;
+use App\Http\Controllers\Vpn\VpnMemberBillingController;
 use App\Http\Controllers\Vpn\VpnMemberPasswordController;
 use App\Http\Controllers\Vpn\VpnMemberPortalController;
 use App\Http\Controllers\VpnAccountController;
@@ -68,6 +69,8 @@ Route::prefix('vpn-tunnel')->name('vpn-member.')->group(function () {
         Route::post('/keluar', [VpnMemberAuthController::class, 'logout'])->name('logout');
         Route::get('/akun', [VpnMemberPortalController::class, 'index'])->name('dashboard');
         Route::post('/akun', [VpnMemberPortalController::class, 'store'])->middleware('throttle:10,1')->name('accounts.store');
+        Route::get('/tagihan', [VpnMemberBillingController::class, 'index'])->name('billing');
+        Route::post('/tagihan/bayar', [VpnMemberBillingController::class, 'pay'])->middleware('throttle:10,1')->name('billing.pay');
         Route::get('/akun/{account}/script', [VpnMemberPortalController::class, 'script'])->name('accounts.script');
     });
 });
