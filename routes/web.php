@@ -5,6 +5,7 @@ use App\Http\Controllers\AssetDeviceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -109,6 +110,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profil/whatsapp/verifikasi', [ProfileController::class, 'verifyPhone'])->middleware('throttle:10,1')->name('profile.phone.verify');
     Route::post('/profil/whatsapp/kirim-ulang', [ProfileController::class, 'resendPhoneCode'])->middleware('throttle:5,1')->name('profile.phone.resend');
     Route::delete('/profil/whatsapp/verifikasi', [ProfileController::class, 'cancelPhone'])->name('profile.phone.cancel');
+    Route::post('/profil/avatar', [ProfileController::class, 'updateAvatar'])->middleware('throttle:10,1')->name('profile.avatar');
+    Route::delete('/profil/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::get('/avatar/{user}', [AvatarController::class, 'show'])->name('avatar.show');
     Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
 
     Route::middleware('can:routers.manage')->group(function () {

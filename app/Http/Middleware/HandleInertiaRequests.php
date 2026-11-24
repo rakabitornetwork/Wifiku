@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                         'id' => $request->user('web')->id,
                         'name' => $request->user('web')->name,
                         'email' => $request->user('web')->email,
+                        'avatar_url' => $request->user('web')->avatarUrl(),
                         'roles' => $request->user('web')->getRoleNames()->all(),
                         'permissions' => $request->user('web')->hasRole('Owner')
                             ? Permissions::all()

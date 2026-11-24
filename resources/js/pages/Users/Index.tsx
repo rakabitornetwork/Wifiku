@@ -4,6 +4,7 @@ import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
+import { Avatar } from '@/Components/ui/Avatar';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
@@ -15,7 +16,7 @@ import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
 import { useServerSort } from '@/Hooks/useSort';
 
-type UserRow = { id: number; name: string; email: string; phone: string | null; is_active: boolean; last_login_at: string | null; role: string | null };
+type UserRow = { id: number; avatar_url: string | null; name: string; email: string; phone: string | null; is_active: boolean; last_login_at: string | null; role: string | null };
 
 const roleLabels: Record<string, { label: string; hint: string }> = {
     Owner: { label: 'Owner', hint: 'Akses penuh, termasuk pengaturan, pengguna, dan audit log.' },
@@ -85,7 +86,12 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                         <tbody>
                             {users.data.map((user) => (
                                 <tr key={user.id} className="hover:bg-muted/40">
-                                    <Td className="font-medium">{user.name}</Td>
+                                    <Td className="font-medium">
+                                        <span className="flex items-center gap-2.5">
+                                            <Avatar name={user.name} url={user.avatar_url} size="sm" />
+                                            {user.name}
+                                        </span>
+                                    </Td>
                                     <Td className="text-muted-foreground">{user.email}</Td>
                                     <Td className="num text-muted-foreground">{user.phone ?? '-'}</Td>
                                     <Td>

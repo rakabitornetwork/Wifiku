@@ -1,9 +1,10 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, UserRound, Wifi, X } from 'lucide-react';
+import { LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, Wifi, X } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 import { Toaster } from '@/Components/Toaster';
-import { Button, buttonClass } from '@/Components/ui/Button';
+import { Avatar } from '@/Components/ui/Avatar';
+import { Button } from '@/Components/ui/Button';
 import { PageSkeleton } from '@/Components/ui/Skeleton';
 import { useTheme } from '@/Hooks/useTheme';
 import { cn } from '@/lib/utils';
@@ -174,12 +175,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
                             {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                         </Button>
                         <div className="mx-1 hidden h-6 w-px bg-border sm:block" />
-                        <Link href="/profil" className="hidden rounded-lg px-2 py-1 text-right leading-tight transition hover:bg-muted sm:block" title="Akun saya (ganti password)">
-                            <div className="text-sm font-medium">{user?.name}</div>
-                            <div className="text-[11px] text-muted-foreground">{user?.roles.join(', ')}</div>
-                        </Link>
-                        <Link href="/profil" className={buttonClass('ghost', 'icon', 'sm:hidden')} aria-label="Akun saya">
-                            <UserRound className="size-[18px]" />
+                        <Link href="/profil" className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-muted" title="Akun saya" aria-label="Akun saya">
+                            <span className="hidden text-right leading-tight sm:block">
+                                <span className="block text-sm font-medium">{user?.name}</span>
+                                <span className="block text-[11px] text-muted-foreground">{user?.roles.join(', ')}</span>
+                            </span>
+                            <Avatar name={user?.name ?? ''} url={user?.avatar_url} />
                         </Link>
                         <Button variant="ghost" size="icon" onClick={() => router.post('/logout')} aria-label="Keluar">
                             <LogOut className="size-[18px]" />

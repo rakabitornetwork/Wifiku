@@ -25,6 +25,7 @@ class UserController extends Controller
                 ->paginate($this->perPage(20))
                 ->through(fn (User $user): array => [
                     ...$user->only(['id', 'name', 'email', 'phone', 'is_active', 'last_login_at']),
+                    'avatar_url' => $user->avatarUrl(),
                     'role' => $user->roles->first()?->name,
                 ]),
         ]);

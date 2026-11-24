@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Requests\AvatarRequest;
 use App\Http\Requests\ProfilePhoneRequest;
 use App\Models\User;
+use App\Services\Auth\AvatarService;
 use App\Services\Auth\PhoneVerificationService;
 use App\Services\Whatsapp\AdminNotifier;
 use App\Support\Toast;
@@ -29,6 +31,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'account' => [
                 ...$user->only(['name', 'email', 'phone']),
+                'avatar_url' => $user->avatarUrl(),
                 'role' => $user->getRoleNames()->first(),
                 'last_login_at' => $user->last_login_at?->toIso8601String(),
             ],
@@ -174,6 +177,34 @@ class ProfileController extends Controller
         $verification->cancel($this->admin($request));
 
         Toast::success('Perubahan nomor dibatalkan.');
+
+        return back();
+    }
+
+    public function updateAvatar(AvatarRequest $request, AvatarService $avatars): RedirectResponse
+    {
+        $user = $this->admin($request);
+
+        $avatars->replace($user, $request->file('avatar'));
+
+        activity('Pengguna')->performedOn($user)->causedBy($user)->log('Mengubah foto profil');
+
+        Toast::success('Foto profil diperbarui.');
+
+        return back();
+    }
+
+    public function removeAvatar(Request $request, AvatarService $avatars): RedirectResponse
+    {
+        $user = $this->admin($request);
+
+        if (filled($user->avatar_path)) {
+            $avatars->remove($user);
+
+            activity('Pengguna')->performedOn($user)->causedBy($user)->log('Menghapus foto profil');
+        }
+
+        Toast::success('Foto profil dihapus.');
 
         return back();
     }

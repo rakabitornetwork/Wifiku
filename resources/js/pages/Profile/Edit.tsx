@@ -1,8 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
-import { KeyRound, MessageCircle, ShieldCheck } from 'lucide-react';
-import { type FormEvent, useEffect, useState } from 'react';
+import { Camera, KeyRound, MessageCircle, ShieldCheck, Trash2 } from 'lucide-react';
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
+import { Avatar } from '@/Components/ui/Avatar';
 import { Button } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
 import { Field, Input } from '@/Components/ui/Field';
@@ -11,7 +12,7 @@ import { formatDate } from '@/lib/utils';
 type PendingPhone = { phone: string; expires_at: string; resend_in: number; attempts_left: number };
 
 type Props = {
-    account: { name: string; email: string; phone: string | null; role: string | null; last_login_at: string | null };
+    account: { name: string; email: string; phone: string | null; avatar_url: string | null; role: string | null; last_login_at: string | null };
     pendingPhone: PendingPhone | null;
 };
 
@@ -24,6 +25,10 @@ export default function ProfileEdit({ account, pendingPhone }: Props) {
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const phoneForm = useForm({ phone: account.phone ?? '', current_password: '' });
     const codeForm = useForm({ code: '' });
+    const avatarForm = useForm<{ avatar: File | null }>({ avatar: null });
+    const fileInput = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [fileError, setFileError] = useState<string | null>(null);
     const [cooldown, setCooldown] = useState(pendingPhone?.resend_in ?? 0);
 
     useEffect(() => {
@@ -39,6 +44,55 @@ export default function ProfileEdit({ account, pendingPhone }: Props) {
 
         return () => window.clearTimeout(timer);
     }, [cooldown]);
+
+    useEffect(() => () => {
+        if (preview) {
+            URL.revokeObjectURL(preview);
+        }
+    }, [preview]);
+
+    const chooseFile = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+        avatarForm.clearErrors();
+        setFileError(null);
+        setPreview(null);
+        avatarForm.setData('avatar', null);
+
+        if (!file) {
+            return;
+        }
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            setFileError('Foto harus berformat JPG, PNG, atau WebP.');
+
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            setFileError('Ukuran foto maksimal 2 MB.');
+
+            return;
+        }
+
+        avatarForm.setData('avatar', file);
+        setPreview(URL.createObjectURL(file));
+    };
+
+    const submitAvatar = (event: FormEvent) => {
+        event.preventDefault();
+        avatarForm.post('/profil/avatar', {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setPreview(null);
+                avatarForm.reset();
+
+                if (fileInput.current) {
+                    fileInput.current.value = '';
+                }
+            },
+        });
+    };
 
     const submitCode = (event: FormEvent) => {
         event.preventDefault();
@@ -68,6 +122,29 @@ export default function ProfileEdit({ account, pendingPhone }: Props) {
             <PageHeader title="Akun Saya" description="Data akun Anda dan penggantian password." />
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+                <div className="space-y-4">
+                <Card>
+                    <CardHeader title="Foto profil" description="Tampil di header dan daftar pengguna. JPG, PNG, atau WebP, maksimal 2 MB." />
+                    <form onSubmit={submitAvatar} className="flex flex-wrap items-center gap-5 p-5">
+                        <Avatar name={account.name} url={preview ?? account.avatar_url} size="lg" />
+                        <div className="min-w-0 flex-1 space-y-2">
+                            <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseFile} className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-accent-foreground hover:file:opacity-90" />
+                            {(fileError || avatarForm.errors.avatar) && <p className="text-xs text-destructive">{fileError ?? avatarForm.errors.avatar}</p>}
+                            <div className="flex flex-wrap gap-2">
+                                <Button type="submit" size="sm" disabled={avatarForm.processing || !avatarForm.data.avatar}>
+                                    <Camera className="size-3.5" /> {avatarForm.processing ? 'Mengunggah...' : 'Unggah foto'}
+                                </Button>
+                                {account.avatar_url && (
+                                    <Button variant="outline" size="sm" onClick={() => router.delete('/profil/avatar', { preserveScroll: true })}>
+                                        <Trash2 className="size-3.5" /> Hapus foto
+                                    </Button>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Foto dipotong persegi dan dikecilkan otomatis; data lokasi (EXIF) tidak disimpan.</p>
+                        </div>
+                    </form>
+                </Card>
+
                 <Card>
                     <CardHeader title="Informasi akun" />
                     <dl className="space-y-3 p-5 text-sm">
@@ -94,6 +171,7 @@ export default function ProfileEdit({ account, pendingPhone }: Props) {
                         {!account.phone && <p className="rounded-lg bg-amber-500/10 p-3 text-xs">Tanpa nomor WhatsApp, tautan reset password tidak bisa dikirim ke Anda. Isi nomor Anda pada formulir Nomor WhatsApp.</p>}
                     </dl>
                 </Card>
+                </div>
 
  <div className="space-y-4">
                 <Card>
