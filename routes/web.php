@@ -46,7 +46,8 @@ use App\Http\Controllers\Webhooks\HotspotLoginWebhookController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
+// Halaman utama: pengunjung diarahkan ke landing page layanan; staf yang sudah login langsung ke dashboard.
+Route::get('/', fn () => auth('web')->check() ? redirect()->route('dashboard') : redirect()->route('vpn-member.landing'))->name('home');
 
 Route::get('/isolir/{customer:customer_code}', IsolirController::class)
     ->middleware('throttle:30,1')

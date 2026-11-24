@@ -48,7 +48,12 @@ export default function Landing({ company, price, maxAccounts, registrationOpen,
 
     return (
         <VpnShell company={company} showAuthLinks={!loggedIn}>
-            <Head title="VPN Tunnel untuk MikroTik" />
+            <Head title={`VPN Tunnel untuk MikroTik · ${company}`}>
+                <meta name="description" content={`Akses router MikroTik Anda dari mana saja dengan VPN Tunnel ${company}: L2TP dan SSTP, port forward Winbox/API otomatis, script siap tempel, mulai ${formatRupiah(price)} per akun per bulan.`} />
+                <meta property="og:title" content={`VPN Tunnel untuk MikroTik · ${company}`} />
+                <meta property="og:description" content="Remote Winbox dan API router MikroTik tanpa IP publik. Daftar, bayar, tempel script." />
+                <meta property="og:type" content="website" />
+            </Head>
 
             <section className="mx-auto max-w-5xl px-4 pt-14 pb-12 text-center sm:pt-20">
                 <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">

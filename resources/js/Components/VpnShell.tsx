@@ -72,6 +72,14 @@ export function VpnShell({ company, children, member = false, showAuthLinks = tr
             <main className="flex-1">{children}</main>
             <footer className="border-t py-6 text-center text-xs text-muted-foreground">
                 © {new Date().getFullYear()} {company}. Layanan VPN Tunnel untuk MikroTik.
+                {!member && (
+                    <>
+                        {' · '}
+                        <Link href="/login" className="hover:text-foreground hover:underline">
+                            Login admin
+                        </Link>
+                    </>
+                )}
             </footer>
             <Toaster />
         </div>
