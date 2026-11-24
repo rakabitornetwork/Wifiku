@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Wifi } from 'lucide-react';
 import { type FormEvent } from 'react';
 
@@ -50,7 +50,12 @@ export default function Login() {
                                 required
                             />
                         </Field>
-                        <Checkbox label="Ingat saya" checked={data.remember} onChange={(checked) => setData('remember', checked)} />
+                        <div className="flex items-center justify-between">
+                            <Checkbox label="Ingat saya" checked={data.remember} onChange={(checked) => setData('remember', checked)} />
+                            <Link href="/lupa-password" className="text-sm font-medium text-primary hover:underline">
+                                Lupa password?
+                            </Link>
+                        </div>
                         <Button type="submit" className="w-full" disabled={processing}>
                             {processing ? 'Memproses...' : 'Masuk'}
                         </Button>

@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use App\Services\Whatsapp\AdminNotifier;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -69,6 +71,31 @@ class UserController extends Controller
         $user->syncRoles([$role]);
 
         Toast::success('Pengguna diperbarui.');
+
+        return back();
+    }
+
+    /**
+     * Kirim tautan reset password ke WhatsApp pengguna; hasilnya dilaporkan apa adanya kepada Owner.
+     */
+    public function sendResetLink(User $user, AdminNotifier $notifier): RedirectResponse
+    {
+        if (blank($user->phone)) {
+            Toast::error('Pengguna belum punya nomor telepon. Isi nomornya (format 08xx) lebih dulu.');
+
+            return back();
+        }
+
+        $status = Password::sendResetLink(
+            ['email' => $user->email, 'is_active' => true],
+            fn (User $target, string $token) => $notifier->passwordReset($target, route('password.reset', ['token' => $token, 'email' => $target->email])),
+        );
+
+        match ($status) {
+            Password::RESET_LINK_SENT => Toast::success("Tautan reset dikirim ke WhatsApp {$user->phone}."),
+            Password::RESET_THROTTLED => Toast::error('Tautan baru saja dikirim. Tunggu sekitar satu menit sebelum mengirim lagi.'),
+            default => Toast::error('Tautan reset tidak dapat dikirim (akun mungkin dinonaktifkan).'),
+        };
 
         return back();
     }

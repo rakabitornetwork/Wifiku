@@ -19,6 +19,20 @@ class UserRequest extends FormRequest
     }
 
     /**
+     * Nomor telepon dinormalkan ke format 62xxx (dipakai untuk WhatsApp, termasuk tautan reset password).
+     */
+    protected function prepareForValidation(): void
+    {
+        $phone = preg_replace('/\D+/', '', (string) $this->input('phone'));
+
+        if (str_starts_with($phone, '0')) {
+            $phone = '62'.substr($phone, 1);
+        }
+
+        $this->merge(['phone' => $phone === '' ? null : $phone]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -31,7 +45,7 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user)],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'regex:/^62\d{8,13}$/'],
             'role' => ['required', Rule::in(RoleSeeder::ROLES)],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8', 'max:100'],
             'is_active' => ['boolean'],

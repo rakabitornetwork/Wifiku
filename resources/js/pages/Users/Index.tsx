@@ -1,5 +1,5 @@
-import { useForm } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
+import { router, useForm } from '@inertiajs/react';
+import { Pencil, Plus, KeyRound } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
@@ -95,6 +95,15 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                                     <Td>{user.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Nonaktif</Badge>}</Td>
                                     <Td>
                                         <div className="flex justify-end gap-1">
+                                            <Button
+                                                variant="warning"
+                                                size="icon"
+                                                onClick={() => router.post(`/users/${user.id}/reset-link`, {}, { preserveScroll: true })}
+                                                aria-label="Kirim tautan reset password"
+                                                title={user.phone ? 'Kirim tautan reset password lewat WhatsApp' : 'Isi nomor telepon dulu untuk mengirim tautan reset'}
+                                            >
+                                                <KeyRound className="size-4" />
+                                            </Button>
                                             <Button variant="edit" size="icon" onClick={() => openEdit(user)} aria-label="Ubah">
                                                 <Pencil className="size-4" />
                                             </Button>
@@ -131,7 +140,7 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                     <Field label="Email (untuk login)" error={form.errors.email}>
                         <Input type="email" value={form.data.email} onChange={(event) => form.setData('email', event.target.value)} required />
                     </Field>
-                    <Field label="No. telepon" error={form.errors.phone}>
+                    <Field label="No. telepon (WhatsApp)" error={form.errors.phone} hint="Format 08xx. Dipakai untuk mengirim tautan reset password.">
                         <Input inputMode="tel" value={form.data.phone} onChange={(event) => form.setData('phone', event.target.value)} />
                     </Field>
                     <Field label="Password" error={form.errors.password} hint={editing ? 'Kosongkan jika tidak ingin mengubah.' : 'Minimal 8 karakter.'}>

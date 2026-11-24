@@ -4,6 +4,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetDeviceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -90,6 +91,11 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
+
+    Route::get('/lupa-password', [PasswordResetController::class, 'showForgot'])->middleware('throttle:30,1')->name('password.request');
+    Route::post('/lupa-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->middleware('throttle:30,1')->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -184,6 +190,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/voucher-sales', [ReportController::class, 'voucherSales'])->name('voucher-sales');
     });
 
+    Route::post('users/{user}/reset-link', [UserController::class, 'sendResetLink'])->middleware('can:users.manage')->name('users.reset-link');
     Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('can:users.manage');
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index')->middleware('can:audit.view');
 
