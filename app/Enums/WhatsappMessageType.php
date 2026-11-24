@@ -14,4 +14,5 @@ enum WhatsappMessageType: string
     case Isolir = 'isolir';
     case Test = 'test';
     case PasswordReset = 'password_reset';
+    case AccountSecurity = 'account_security';
 }

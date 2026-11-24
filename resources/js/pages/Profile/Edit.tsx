@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { KeyRound } from 'lucide-react';
-import { type FormEvent } from 'react';
+import { KeyRound, MessageCircle } from 'lucide-react';
+import { type FormEvent, useEffect } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/Button';
@@ -12,10 +12,22 @@ type Props = { account: { name: string; email: string; phone: string | null; rol
 
 export default function ProfileEdit({ account }: Props) {
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
+    const phoneForm = useForm({ phone: account.phone ?? '', current_password: '' });
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.put('/profil/password', { preserveScroll: true, onSuccess: () => form.reset(), onError: () => form.reset('password', 'password_confirmation') });
+    };
+
+    // Setelah disimpan, isian mengikuti nomor yang sudah dinormalkan server (08xx menjadi 62xx).
+    useEffect(() => {
+        phoneForm.setData('phone', account.phone ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [account.phone]);
+
+    const submitPhone = (event: FormEvent) => {
+        event.preventDefault();
+        phoneForm.put('/profil/whatsapp', { preserveScroll: true, onFinish: () => phoneForm.setData('current_password', '') });
     };
 
     return (
@@ -46,8 +58,24 @@ export default function ProfileEdit({ account }: Props) {
                             <dt className="text-muted-foreground">Login terakhir</dt>
                             <dd className="font-medium">{account.last_login_at ? formatDate(account.last_login_at) : '-'}</dd>
                         </div>
-                        {!account.phone && <p className="rounded-lg bg-amber-500/10 p-3 text-xs">Tanpa nomor WhatsApp, tautan reset password tidak bisa dikirim ke Anda. Minta Owner mengisinya di halaman Pengguna.</p>}
+                        {!account.phone && <p className="rounded-lg bg-amber-500/10 p-3 text-xs">Tanpa nomor WhatsApp, tautan reset password tidak bisa dikirim ke Anda. Isi nomor Anda pada formulir Nomor WhatsApp.</p>}
                     </dl>
+                </Card>
+
+ <div className="space-y-4">
+                <Card>
+                    <CardHeader title="Nomor WhatsApp" description="Tujuan tautan reset password dan notifikasi keamanan akun Anda." />
+                    <form onSubmit={submitPhone} className="space-y-4 p-5">
+                        <Field label="No. WhatsApp" error={phoneForm.errors.phone} hint="Format 08xx. Kosongkan untuk menghapus nomor (tautan reset tidak bisa dikirim lagi).">
+                            <Input inputMode="tel" value={phoneForm.data.phone} onChange={(event) => phoneForm.setData('phone', event.target.value)} placeholder="081234567890" />
+                        </Field>
+                        <Field label="Password saat ini" error={phoneForm.errors.current_password} hint="Diminta karena nomor ini menentukan ke mana tautan reset dikirim.">
+                            <Input type="password" autoComplete="current-password" value={phoneForm.data.current_password} onChange={(event) => phoneForm.setData('current_password', event.target.value)} required />
+                        </Field>
+                        <Button type="submit" disabled={phoneForm.processing || phoneForm.data.phone === (account.phone ?? '')}>
+                            <MessageCircle className="size-4" /> {phoneForm.processing ? 'Menyimpan...' : 'Simpan nomor'}
+                        </Button>
+                    </form>
                 </Card>
 
                 <Card>
@@ -67,6 +95,7 @@ export default function ProfileEdit({ account }: Props) {
                         </Button>
                     </form>
                 </Card>
+                </div>
             </div>
         </>
     );

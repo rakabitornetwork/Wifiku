@@ -39,6 +39,41 @@ class AdminNotifier
         ]));
     }
 
+    /**
+     * Beri tahu nomor lama dan nomor baru bahwa nomor WhatsApp akun diganti (nomor ini menerima tautan reset password).
+     */
+    public function phoneChanged(User $user, ?string $oldPhone, ?string $newPhone): void
+    {
+        $company = $this->company();
+
+        if (filled($oldPhone)) {
+            $this->whatsapp->queue($oldPhone, WhatsappMessageType::AccountSecurity, implode("\n", [
+                "Halo {$user->name},",
+                '',
+                $newPhone === null
+                    ? "Nomor WhatsApp akun panel {$company} Anda dihapus."
+                    : "Nomor WhatsApp akun panel {$company} Anda diganti ke {$this->mask($newPhone)}.",
+                'Bila bukan Anda yang melakukannya, segera hubungi Owner.',
+            ]));
+        }
+
+        if (filled($newPhone)) {
+            $this->whatsapp->queue($newPhone, WhatsappMessageType::AccountSecurity, implode("\n", [
+                "Halo {$user->name},",
+                '',
+                "Nomor ini sekarang terdaftar sebagai WhatsApp akun panel {$company} ({$user->email}). Tautan reset password akan dikirim ke sini.",
+            ]));
+        }
+    }
+
+    /**
+     * 6281234567890 → 62••••••7890 agar nomor lengkap tidak terbuka di pesan.
+     */
+    private function mask(string $phone): string
+    {
+        return substr($phone, 0, 2).str_repeat('•', max(0, strlen($phone) - 6)).substr($phone, -4);
+    }
+
     private function company(): string
     {
         return (string) $this->settings->get('company', 'name');

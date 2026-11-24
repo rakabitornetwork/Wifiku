@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Requests\ProfilePhoneRequest;
 use App\Models\User;
 use App\Services\Whatsapp\AdminNotifier;
 use App\Support\Toast;
@@ -55,6 +56,30 @@ class ProfileController extends Controller
         }
 
         Toast::success('Password berhasil diganti. Sesi login di perangkat lain telah diakhiri.');
+
+        return back();
+    }
+
+    /**
+     * Ganti nomor WhatsApp sendiri. Nomor ini menerima tautan reset password, jadi perubahannya
+     * butuh password saat ini dan nomor lama maupun baru diberi tahu.
+     */
+    public function updatePhone(ProfilePhoneRequest $request, AdminNotifier $notifier): RedirectResponse
+    {
+        $user = $this->admin($request);
+        $old = $user->phone;
+        $new = $request->validated('phone');
+
+        if ($old === $new) {
+            Toast::success('Nomor WhatsApp tidak berubah.');
+
+            return back();
+        }
+
+        $user->update(['phone' => $new]);
+        $notifier->phoneChanged($user, $old, $new);
+
+        Toast::success($new === null ? 'Nomor WhatsApp dihapus.' : 'Nomor WhatsApp diperbarui.');
 
         return back();
     }

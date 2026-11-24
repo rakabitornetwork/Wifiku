@@ -105,6 +105,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profil/whatsapp', [ProfileController::class, 'updatePhone'])->middleware('throttle:5,1')->name('profile.phone');
     Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
 
     Route::middleware('can:routers.manage')->group(function () {
