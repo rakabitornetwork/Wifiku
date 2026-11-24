@@ -7,6 +7,7 @@ use App\Enums\WhatsappMessageType;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\VpnAccount;
+use App\Models\VpnMember;
 use App\Services\Settings\SettingService;
 use Carbon\CarbonInterface;
 
@@ -88,6 +89,32 @@ class VpnNotifier
             '',
             "Masa berlaku VPN Tunnel akun {$account->username} telah habis sehingga tunnel diputus.",
             "Perpanjang dan aktifkan kembali otomatis lewat: {$this->portalUrl($account)}",
+        ]));
+    }
+
+    /**
+     * Tautan reset password dikirim ke WhatsApp yang didaftarkan member (email belum dipakai untuk pengiriman).
+     */
+    public function passwordReset(VpnMember $member, string $url): void
+    {
+        $this->whatsapp->queue($member->whatsapp, WhatsappMessageType::PasswordReset, implode("\n", [
+            "Halo {$member->name},",
+            '',
+            "Kami menerima permintaan reset password akun VPN Tunnel {$this->company()} Anda.",
+            'Buka tautan ini untuk membuat password baru (berlaku 60 menit):',
+            $url,
+            '',
+            'Abaikan pesan ini bila Anda tidak memintanya; password Anda tidak berubah.',
+        ]));
+    }
+
+    public function passwordChanged(VpnMember $member): void
+    {
+        $this->whatsapp->queue($member->whatsapp, WhatsappMessageType::PasswordReset, implode("\n", [
+            "Halo {$member->name},",
+            '',
+            "Password akun VPN Tunnel {$this->company()} Anda baru saja diubah.",
+            'Bila bukan Anda yang melakukannya, segera hubungi CS.',
         ]));
     }
 

@@ -30,7 +30,12 @@ export default function Login({ company }: { company: string }) {
                         <Field label="Password" error={errors.password}>
                             <Input type="password" value={data.password} onChange={(event) => setData('password', event.target.value)} autoComplete="current-password" required />
                         </Field>
-                        <Checkbox label="Ingat saya" checked={data.remember} onChange={(checked) => setData('remember', checked)} />
+                        <div className="flex items-center justify-between">
+                            <Checkbox label="Ingat saya" checked={data.remember} onChange={(checked) => setData('remember', checked)} />
+                            <Link href="/vpn-tunnel/lupa-password" className="text-sm font-medium text-primary hover:underline">
+                                Lupa password?
+                            </Link>
+                        </div>
                         <Button type="submit" className="w-full" disabled={processing}>
                             {processing ? 'Memproses...' : 'Masuk'}
                         </Button>

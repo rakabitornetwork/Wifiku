@@ -30,6 +30,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
 use App\Http\Controllers\Vpn\VpnLandingController;
 use App\Http\Controllers\Vpn\VpnMemberAuthController;
+use App\Http\Controllers\Vpn\VpnMemberPasswordController;
 use App\Http\Controllers\Vpn\VpnMemberPortalController;
 use App\Http\Controllers\VpnAccountController;
 use App\Http\Controllers\VpnController;
@@ -56,6 +57,11 @@ Route::prefix('vpn-tunnel')->name('vpn-member.')->group(function () {
     Route::post('/daftar', [VpnMemberAuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
     Route::get('/masuk', [VpnMemberAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
     Route::post('/masuk', [VpnMemberAuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
+
+    Route::get('/lupa-password', [VpnMemberPasswordController::class, 'showForgot'])->middleware('throttle:30,1')->name('password.request');
+    Route::post('/lupa-password', [VpnMemberPasswordController::class, 'sendLink'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [VpnMemberPasswordController::class, 'showReset'])->middleware('throttle:30,1')->name('password.reset');
+    Route::post('/reset-password', [VpnMemberPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 
     Route::middleware('auth:member')->group(function () {
         Route::post('/keluar', [VpnMemberAuthController::class, 'logout'])->name('logout');
