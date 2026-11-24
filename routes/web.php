@@ -35,6 +35,7 @@ use App\Http\Controllers\Vpn\VpnMemberPortalController;
 use App\Http\Controllers\VpnAccountController;
 use App\Http\Controllers\VpnController;
 use App\Http\Controllers\VpnImportController;
+use App\Http\Controllers\VpnMemberController;
 use App\Http\Controllers\VpnPortalController;
 use App\Http\Controllers\VpnServerController;
 use App\Http\Controllers\Webhooks\HotspotLoginWebhookController;
@@ -108,6 +109,10 @@ Route::middleware('auth')->group(function () {
         Route::post('servers/{server}/import', [VpnImportController::class, 'store'])->name('servers.import');
         Route::post('servers/{server}/install', [VpnServerController::class, 'install'])->name('servers.install');
         Route::resource('servers', VpnServerController::class)->only(['store', 'update', 'destroy']);
+        Route::get('members', [VpnMemberController::class, 'index'])->name('members.index');
+        Route::put('members/{member}', [VpnMemberController::class, 'update'])->name('members.update');
+        Route::delete('members/{member}', [VpnMemberController::class, 'destroy'])->name('members.destroy');
+        Route::post('members/{member}/reset-link', [VpnMemberController::class, 'sendResetLink'])->name('members.reset-link');
         Route::get('accounts/{account}/scripts', [VpnAccountController::class, 'scripts'])->name('accounts.scripts');
         Route::post('accounts/{account}/sync', [VpnAccountController::class, 'sync'])->name('accounts.sync');
         Route::resource('accounts', VpnAccountController::class)->only(['store', 'update', 'destroy']);

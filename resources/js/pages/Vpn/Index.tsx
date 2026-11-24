@@ -1,9 +1,10 @@
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Copy, Download, ExternalLink, FileCode, HardDriveUpload, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
+import { VpnTabs } from '@/Components/VpnTabs';
 import { SearchInput } from '@/Components/SearchInput';
 import { Badge, StatusBadge } from '@/Components/ui/Badge';
 import { Button, buttonClass } from '@/Components/ui/Button';
@@ -60,7 +61,7 @@ type AccountRow = {
     member: { id: number; name: string; email: string } | null;
 };
 
-type Props = { accounts: Paginated<AccountRow>; servers: ServerRow[]; routers: { id: number; name: string }[]; search: string; serverId: string };
+type Props = { accounts: Paginated<AccountRow>; servers: ServerRow[]; routers: { id: number; name: string }[]; search: string; serverId: string; memberFilter: { id: number; name: string } | null };
 
 /** Layanan standar; kode di akhir port publik mengikuti pola server (lihat VpnPortPlanner di backend). */
 const portPresets = [
@@ -95,7 +96,7 @@ const emptyServer = { router_id: '', name: '', public_host: '', local_address: '
 
 const emptyAccount = { vpn_server_id: '', name: '', whatsapp: '', protocol: 'sstp', username: '', password: '', remote_address: '', forwards: [] as Forward[], status: 'active', expires_at: '', monthly_price: '0', notes: '' };
 
-export default function VpnIndex({ accounts, servers, routers, search, serverId }: Props) {
+export default function VpnIndex({ accounts, servers, routers, search, serverId, memberFilter }: Props) {
     const sort = useServerSort();
     const [serverEditing, setServerEditing] = useState<ServerRow | null>(null);
     const [serverOpen, setServerOpen] = useState(false);
@@ -289,6 +290,8 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId 
                 }
             />
 
+            <VpnTabs />
+
             <Card className="mb-4">
                 <CardHeader
                     title="Server VPN"
@@ -366,11 +369,11 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId 
 
             <Card>
                 <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-                    <SearchInput value={search} placeholder="Cari nama, username, atau IP..." extra={{ server_id: serverId || undefined }} />
+                    <SearchInput value={search} placeholder="Cari nama, username, atau IP..." extra={{ server_id: serverId || undefined, member_id: memberFilter ? String(memberFilter.id) : undefined }} />
                     <Select
                         className="sm:w-52"
                         value={serverId}
-                        onChange={(event) => router.get('/vpn', { search: search || undefined, server_id: event.target.value || undefined }, { preserveState: true, replace: true })}
+                        onChange={(event) => router.get('/vpn', { search: search || undefined, server_id: event.target.value || undefined, member_id: memberFilter?.id }, { preserveState: true, replace: true })}
                         aria-label="Filter server"
                     >
                         <option value="">Semua server</option>
@@ -381,6 +384,16 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId 
                         ))}
                     </Select>
                 </div>
+                {memberFilter && (
+                    <div className="flex items-center justify-between gap-3 border-b bg-accent px-4 py-2 text-sm text-accent-foreground">
+                        <span>
+                            Menampilkan akun milik member <strong>{memberFilter.name}</strong>
+                        </span>
+                        <Link href="/vpn" className="text-xs font-medium underline">
+                            Tampilkan semua
+                        </Link>
+                    </div>
+                )}
                 {accounts.data.length === 0 ? (
                     <EmptyState title="Belum ada akun VPN" description="Buat akun VPN untuk pelanggan; script untuk router mereka tersedia setelah akun dibuat." />
                 ) : (

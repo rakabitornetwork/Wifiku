@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Router;
 use App\Models\VpnAccount;
+use App\Models\VpnMember;
 use App\Models\VpnServer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,7 @@ class VpnController extends Controller
     {
         $search = trim((string) $request->query('search'));
         $serverId = $request->integer('server_id') ?: null;
+        $memberId = $request->integer('member_id') ?: null;
 
         $accounts = VpnAccount::query()
             ->with(['server:id,name,public_host', 'member:id,name,email'])
@@ -23,6 +25,7 @@ class VpnController extends Controller
                 ->orWhere('username', 'like', "%{$search}%")
                 ->orWhere('remote_address', 'like', "%{$search}%")))
             ->when($serverId, fn ($query) => $query->where('vpn_server_id', $serverId))
+            ->when($memberId, fn ($query) => $query->where('vpn_member_id', $memberId))
             ->latest('id')
             ->tap(fn ($query) => $this->applySort($query, [
                 'name' => 'name',
@@ -42,6 +45,7 @@ class VpnController extends Controller
             'routers' => Router::orderBy('name')->get(['id', 'name']),
             'search' => $search,
             'serverId' => $serverId ? (string) $serverId : '',
+            'memberFilter' => $memberId ? VpnMember::query()->find($memberId, ['id', 'name']) : null,
         ]);
     }
 }

@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('whatsapp', fn () => Limit::perMinute(20));
 
         // Owner memiliki akses penuh ke seluruh sistem, termasuk permission yang ditambahkan kemudian.
-        Gate::before(fn (User $user): ?bool => $user->hasRole('Owner') ? true : null);
+        // Hanya pengguna admin yang bisa menjadi Owner; sesi member VPN tidak pernah mendapat akses ini.
+        Gate::before(fn (object $user): ?bool => $user instanceof User && $user->hasRole('Owner') ? true : null);
     }
 }
