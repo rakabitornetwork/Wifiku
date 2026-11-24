@@ -1,6 +1,9 @@
 import { createInertiaApp } from '@inertiajs/react';
 
 import { AppLayout } from '@/Layouts/AppLayout';
+import { installTooltips } from '@/lib/tooltip';
+
+installTooltips();
 
 createInertiaApp({
     layout: (name) => {

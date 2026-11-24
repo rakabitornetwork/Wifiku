@@ -179,3 +179,36 @@ html.theme-transition *::after {
 .cable-editing .odp-link-hit {
     cursor: pointer;
 }
+
+/* Tooltip global (lihat resources/js/lib/tooltip.ts): keterangan kecil saat tombol di-hover. */
+.app-tooltip {
+    position: fixed;
+    z-index: 1000;
+    max-width: 18rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--foreground);
+    color: var(--background);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(2px);
+    transition:
+        opacity 0.12s ease,
+        transform 0.12s ease;
+}
+
+.app-tooltip[data-visible='true'] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-tooltip {
+        transition: none;
+        transform: none;
+    }
+}

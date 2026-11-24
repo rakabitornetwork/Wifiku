@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, Wifi, X } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
+import { LiveStatus } from '@/Components/LiveStatus';
 import { Toaster } from '@/Components/Toaster';
 import { Avatar } from '@/Components/ui/Avatar';
 import { Button } from '@/Components/ui/Button';
@@ -171,6 +172,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
                     </Button>
                     <div className="ml-auto flex items-center gap-1.5">
+                        <LiveStatus />
                         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Ganti tema">
                             {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                         </Button>
@@ -182,7 +184,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                             </span>
                             <Avatar name={user?.name ?? ''} url={user?.avatar_url} />
                         </Link>
-                        <Button variant="ghost" size="icon" onClick={() => router.post('/logout')} aria-label="Keluar">
+                        <Button variant="danger" size="icon" onClick={() => router.post('/logout')} aria-label="Keluar dari akun">
                             <LogOut className="size-[18px]" />
                         </Button>
                     </div>
