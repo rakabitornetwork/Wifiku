@@ -29,12 +29,12 @@ class AdminNotifier
         ]));
     }
 
-    public function passwordChanged(User $user): void
+    public function passwordChanged(User $user, bool $allSessionsEnded = true): void
     {
         $this->whatsapp->queue((string) $user->phone, WhatsappMessageType::PasswordReset, implode("\n", [
             "Halo {$user->name},",
             '',
-            "Password akun panel {$this->company()} Anda baru saja diubah dan semua sesi login Anda diakhiri.",
+            "Password akun panel {$this->company()} Anda baru saja diubah dan ".($allSessionsEnded ? 'semua sesi login Anda diakhiri.' : 'sesi login di perangkat lain diakhiri.'),
             'Bila bukan Anda yang melakukannya, segera hubungi Owner.',
         ]));
     }

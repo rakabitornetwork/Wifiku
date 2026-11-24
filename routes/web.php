@@ -21,6 +21,7 @@ use App\Http\Controllers\OutageController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PaymentExtensionController;
 use App\Http\Controllers\PaymentGatewayController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResellerController;
 use App\Http\Controllers\RouterConnectionController;
@@ -102,6 +103,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
 
     Route::middleware('can:routers.manage')->group(function () {
         Route::resource('routers', RouterController::class)->only(['index', 'store', 'update', 'destroy']);

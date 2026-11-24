@@ -105,12 +105,15 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Akhiri semua sesi login pengguna agar sesi lama yang mungkin sudah diambil orang lain tidak berlaku lagi.
+     * Akhiri sesi login pengguna (kecuali $exceptSessionId) agar sesi lama yang mungkin sudah diambil orang lain tidak berlaku lagi.
      */
-    public static function endSessions(User $user): void
+    public static function endSessions(User $user, ?string $exceptSessionId = null): void
     {
         if (config('session.driver') === 'database') {
-            DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)
+                ->when($exceptSessionId, fn ($query) => $query->where('id', '!=', $exceptSessionId))
+                ->delete();
         }
     }
 }
