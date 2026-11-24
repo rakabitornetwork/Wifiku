@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\VpnMember;
 
 return [
 
@@ -42,6 +43,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Pelanggan layanan VPN Tunnel (mendaftar sendiri); terpisah dari pengguna admin.
+        'member' => [
+            'driver' => 'session',
+            'provider' => 'members',
+        ],
     ],
 
     /*
@@ -65,6 +72,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'members' => [
+            'driver' => 'eloquent',
+            'model' => VpnMember::class,
         ],
 
         // 'users' => [

@@ -30,6 +30,7 @@ class IntegrationSettingController extends Controller
         'whatsapp' => 'WhatsApp Gateway',
         'genieacs' => 'GenieACS (TR-069)',
         'hotspot' => 'Hotspot',
+        'vpn' => 'VPN Tunnel (pendaftaran member)',
     ];
 
     public function index(SettingService $settings): Response

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['vpn_server_id', 'name', 'whatsapp', 'protocol', 'username', 'password', 'remote_address', 'forwards', 'status', 'adopted', 'auto_disabled_at', 'expires_at', 'monthly_price', 'synced_at', 'last_error', 'notes'])]
+#[Fillable(['vpn_server_id', 'vpn_member_id', 'name', 'whatsapp', 'protocol', 'username', 'password', 'remote_address', 'forwards', 'status', 'adopted', 'auto_disabled_at', 'expires_at', 'monthly_price', 'synced_at', 'last_error', 'notes'])]
 #[Hidden(['password'])]
 class VpnAccount extends Model
 {
@@ -64,6 +64,14 @@ class VpnAccount extends Model
     public function server(): BelongsTo
     {
         return $this->belongsTo(VpnServer::class, 'vpn_server_id');
+    }
+
+    /**
+     * @return BelongsTo<VpnMember, $this>
+     */
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(VpnMember::class, 'vpn_member_id');
     }
 
     /**

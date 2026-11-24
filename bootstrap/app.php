@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Callback gateway dan MikroTik tidak membawa token CSRF; keamanannya dari signature / token webhook.
         $middleware->validateCsrfTokens(except: ['webhooks/*']);
 
+        // Pengunjung yang belum login diarahkan ke login yang sesuai: portal member VPN atau panel admin.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('vpn-tunnel/*') ? route('vpn-member.login') : route('login'));
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);

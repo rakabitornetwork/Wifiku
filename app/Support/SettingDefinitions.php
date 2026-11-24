@@ -37,6 +37,9 @@ class SettingDefinitions
         'genieacs.wifi_password_path' => ['label' => 'Parameter password Wi-Fi', 'default' => 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase', 'rules' => ['required', 'string', 'max:255']],
         'genieacs.hosts_path' => ['label' => 'Parameter perangkat terhubung', 'default' => 'InternetGatewayDevice.LANDevice.1.Hosts.Host', 'rules' => ['nullable', 'string', 'max:255'], 'hint' => 'Daftar host LAN/Wi-Fi; ONT berbasis Device:2 memakai Device.Hosts.Host.'],
         'hotspot.login_url' => ['label' => 'URL login hotspot', 'default' => null, 'rules' => ['nullable', 'url', 'max:255'], 'hint' => 'Untuk QR auto-login voucher, mis. http://wifi.teslatech/login. Kosong = IP router.'],
+        'vpn.member_registration_open' => ['label' => 'Buka pendaftaran member VPN', 'default' => '1', 'rules' => ['nullable', 'in:0,1'], 'hint' => '1 = pengunjung landing page boleh mendaftar; 0 = pendaftaran ditutup.'],
+        'vpn.member_price' => ['label' => 'Harga akun VPN member per bulan (Rp)', 'default' => '25000', 'rules' => ['required', 'integer', 'between:1000,10000000']],
+        'vpn.member_max_accounts' => ['label' => 'Maksimal akun VPN per member', 'default' => '5', 'rules' => ['required', 'integer', 'between:1,100']],
     ];
 
     public static function default(string $group, string $key): ?string

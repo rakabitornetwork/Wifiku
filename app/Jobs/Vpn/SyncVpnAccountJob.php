@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Vpn;
 
+use App\Enums\VpnAccountStatus;
 use App\Models\VpnAccount;
 use App\Services\Mikrotik\MikrotikCommandException;
 use App\Services\Mikrotik\MikrotikConnectionException;
@@ -49,7 +50,8 @@ class SyncVpnAccountJob implements ShouldQueue
         // Akun yang sudah dihapus tidak boleh dibuat ulang oleh sinkronisasi yang masih mengantre.
         $account = VpnAccount::query()->with('server.router')->find($this->accountId);
 
-        if ($account === null) {
+        // Akun yang belum dibayar belum boleh dipasang di router.
+        if ($account === null || $account->status === VpnAccountStatus::Pending) {
             return;
         }
 

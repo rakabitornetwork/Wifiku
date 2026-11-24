@@ -2,6 +2,7 @@
 
 namespace App\Services\Whatsapp;
 
+use App\Enums\VpnAccountStatus;
 use App\Enums\WhatsappMessageType;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -26,7 +27,7 @@ class VpnNotifier
         $this->send($account, WhatsappMessageType::Invoice, implode("\n", [
             "Halo {$account->name},",
             '',
-            "Tagihan perpanjangan VPN Tunnel {$this->company()} (akun {$account->username}) periode {$this->date($invoice->period_start)} s.d. {$this->date($invoice->period_end)} sudah terbit.",
+            ($account->status === VpnAccountStatus::Pending ? 'Tagihan aktivasi' : 'Tagihan perpanjangan')." VPN Tunnel {$this->company()} (akun {$account->username}) periode {$this->date($invoice->period_start)} s.d. {$this->date($invoice->period_end)} sudah terbit.",
             "No. invoice: {$invoice->invoice_number}",
             "Total: {$this->rupiah($invoice->total)}",
             "Jatuh tempo: {$this->date($invoice->due_date)}",
@@ -66,14 +67,16 @@ class VpnNotifier
         ]));
     }
 
-    public function extended(VpnAccount $account, bool $reopened): void
+    public function extended(VpnAccount $account, bool $reopened, bool $firstActivation = false): void
     {
         $this->send($account, WhatsappMessageType::Receipt, implode("\n", [
             "Halo {$account->name},",
             '',
-            $reopened
+            $firstActivation
+                ? "Pembayaran diterima. VPN Tunnel akun {$account->username} sudah aktif dan berlaku sampai {$this->date($account->expires_at)}. Buka portal untuk melihat script RouterOS: {$this->memberUrl()}"
+                : ($reopened
                 ? "VPN Tunnel akun {$account->username} aktif kembali dan berlaku sampai {$this->date($account->expires_at)}. Tunnel akan tersambung otomatis."
-                : "VPN Tunnel akun {$account->username} diperpanjang sampai {$this->date($account->expires_at)}.",
+                : "VPN Tunnel akun {$account->username} diperpanjang sampai {$this->date($account->expires_at)}."),
             'Terima kasih.',
         ]));
     }
@@ -95,6 +98,11 @@ class VpnNotifier
         }
 
         $this->whatsapp->queue($account->whatsapp, $type, $body);
+    }
+
+    private function memberUrl(): string
+    {
+        return route('vpn-member.dashboard');
     }
 
     private function portalUrl(VpnAccount $account): string

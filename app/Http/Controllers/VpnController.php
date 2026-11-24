@@ -17,7 +17,7 @@ class VpnController extends Controller
         $serverId = $request->integer('server_id') ?: null;
 
         $accounts = VpnAccount::query()
-            ->with('server:id,name,public_host')
+            ->with(['server:id,name,public_host', 'member:id,name,email'])
             ->when($search !== '', fn ($query) => $query->where(fn ($inner) => $inner
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('username', 'like', "%{$search}%")

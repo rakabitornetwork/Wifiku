@@ -25,6 +25,7 @@ const statuses: Record<string, { label: string; tone: Tone }> = {
     used: { label: 'Terpakai', tone: 'green' },
     expired: { label: 'Kedaluwarsa', tone: 'slate' },
     disabled: { label: 'Dinonaktifkan', tone: 'slate' },
+    pending: { label: 'Menunggu bayar', tone: 'amber' },
     in_stock: { label: 'Di gudang', tone: 'blue' },
     installed: { label: 'Terpasang', tone: 'green' },
     broken: { label: 'Rusak', tone: 'red' },

@@ -72,10 +72,12 @@ class VpnInvoiceGenerator
         $expiresAt = CarbonImmutable::parse($account->expires_at)->startOfDay();
         $periodStart = $expiresAt->greaterThanOrEqualTo($today) ? $expiresAt->addDay() : $today;
         $periodEnd = $periodStart->addMonthNoOverflow()->subDay();
+        // Jatuh tempo = hari terakhir masa berlaku; akun yang sudah kedaluwarsa dibayar hari ini juga.
+        $dueDate = $expiresAt->greaterThan($today) ? $expiresAt : $today;
 
         for ($attempt = 1; ; $attempt++) {
             try {
-                $invoice = DB::transaction(fn () => $this->createInvoice($account, $today, $periodStart, $periodEnd));
+                $invoice = DB::transaction(fn () => $this->createInvoice($account, $today, $periodStart, $periodEnd, $dueDate));
 
                 break;
             } catch (UniqueConstraintViolationException $exception) {
@@ -95,9 +97,33 @@ class VpnInvoiceGenerator
         return $invoice;
     }
 
-    private function createInvoice(VpnAccount $account, CarbonImmutable $today, CarbonImmutable $periodStart, CarbonImmutable $periodEnd): Invoice
+    /**
+     * Invoice aktivasi untuk akun buatan member (bulan pertama), jatuh tempo besok sesuai masa berlaku QRIS/VA.
+     */
+    public function issueInitial(VpnAccount $account, CarbonImmutable $today): Invoice
     {
-        $expiresAt = CarbonImmutable::parse($account->expires_at)->startOfDay();
+        $today = $today->startOfDay();
+        $periodEnd = $today->addMonthNoOverflow()->subDay();
+
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $invoice = DB::transaction(fn () => $this->createInvoice($account, $today, $today, $periodEnd, $today->addDay()));
+
+                break;
+            } catch (UniqueConstraintViolationException $exception) {
+                if ($attempt >= self::MAX_NUMBER_ATTEMPTS) {
+                    throw $exception;
+                }
+            }
+        }
+
+        $this->notifier->invoiceIssued($invoice->setRelation('vpnAccount', $account));
+
+        return $invoice;
+    }
+
+    private function createInvoice(VpnAccount $account, CarbonImmutable $today, CarbonImmutable $periodStart, CarbonImmutable $periodEnd, CarbonImmutable $dueDate): Invoice
+    {
         $total = $account->monthly_price;
 
         $invoice = Invoice::create([
@@ -106,8 +132,7 @@ class VpnInvoiceGenerator
             'period_start' => $periodStart,
             'period_end' => $periodEnd,
             'issue_date' => $today,
-            // Jatuh tempo = hari terakhir masa berlaku; akun yang sudah kedaluwarsa dibayar hari ini juga.
-            'due_date' => $expiresAt->greaterThan($today) ? $expiresAt : $today,
+            'due_date' => $dueDate,
             'is_prorated' => false,
             'subtotal' => $total,
             'discount' => 0,

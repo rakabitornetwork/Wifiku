@@ -12,6 +12,7 @@ use App\Jobs\Network\CheckRouterStatusJob;
 use App\Jobs\Network\ProcessOverdueCustomersJob;
 use App\Jobs\Network\SyncIsolationStatusJob;
 use App\Jobs\Voucher\ExpireVouchersJob;
+use App\Jobs\Vpn\ExpirePendingVpnAccountsJob;
 use App\Jobs\Vpn\ExpireVpnAccountsJob;
 use App\Models\Asset;
 use App\Models\Router;
@@ -52,6 +53,9 @@ Schedule::call(function (): void {
 
 // VPN Tunnel: tagihan perpanjangan terbit menjelang masa berlaku habis (sebelum pengecekan kedaluwarsa).
 Schedule::job(new GenerateVpnInvoicesJob)->dailyAt('00:15')->name('generate-vpn-invoices')->onOneServer()->withoutOverlapping(60);
+
+// VPN Tunnel: akun buatan member yang tidak dibayar 3 hari dibersihkan agar kuota dan IP-nya bebas.
+Schedule::job(new ExpirePendingVpnAccountsJob)->dailyAt('00:25')->name('expire-pending-vpn-accounts')->onOneServer()->withoutOverlapping(60);
 
 // VPN Tunnel: akun yang lewat masa aktif dinonaktifkan dan diputus dari router server.
 Schedule::job(new ExpireVpnAccountsJob)->dailyAt('00:20')->name('expire-vpn-accounts')->onOneServer()->withoutOverlapping(60);

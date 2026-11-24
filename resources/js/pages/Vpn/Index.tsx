@@ -57,6 +57,7 @@ type AccountRow = {
     last_error: string | null;
     notes: string | null;
     server: { id: number; name: string; public_host: string };
+    member: { id: number; name: string; email: string } | null;
 };
 
 type Props = { accounts: Paginated<AccountRow>; servers: ServerRow[]; routers: { id: number; name: string }[]; search: string; serverId: string };
@@ -405,6 +406,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId 
                                             <div className="font-medium">{account.name}</div>
                                             <div className="text-xs text-muted-foreground">
                                                 {account.server.name}
+                                                {account.member && <span className="ml-1.5 rounded bg-sky-500/10 px-1 py-0.5 text-[10px] text-sky-600 dark:text-sky-400" title={account.member.email}>member: {account.member.name}</span>}
                                                 {account.adopted && <span className="ml-1.5 rounded bg-muted px-1 py-0.5 text-[10px] uppercase">impor</span>}
                                             </div>
                                         </Td>
@@ -604,6 +606,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId 
                         <Select value={accountForm.data.status} onChange={(event) => accountForm.setData('status', event.target.value)}>
                             <option value="active">Aktif</option>
                             <option value="disabled">Dinonaktifkan</option>
+                            {accountEditing?.status === 'pending' && <option value="pending">Menunggu bayar</option>}
                         </Select>
                     </Field>
                     <Field label="Berlaku sampai" error={accountForm.errors.expires_at} hint="Tagihan perpanjangan terbit otomatis menjelang tanggal ini; setelah lewat, akun dinonaktifkan sampai dibayar. Kosongkan untuk akun tanpa tagihan.">

@@ -22,6 +22,7 @@ class ScheduleTest extends TestCase
             'expire-vouchers' => '*/5 * * * *',
             'fetch-ont-rx-power' => '0 * * * *',
             'generate-vpn-invoices' => '15 0 * * *',
+            'expire-pending-vpn-accounts' => '25 0 * * *',
             'expire-vpn-accounts' => '20 0 * * *',
         ], $events->all());
     }

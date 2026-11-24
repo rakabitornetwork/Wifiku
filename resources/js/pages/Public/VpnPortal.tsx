@@ -15,11 +15,12 @@ type Props = {
     account: { token: string; name: string; username: string; protocol: string; status: string; expires_at: string | null; monthly_price: number };
     invoices: { invoice_number: string; period_start: string; period_end: string; due_date: string; total: number; outstanding: number; status: string; is_overdue: boolean }[];
     outstanding: number;
+    memberUrl: string | null;
     payment: { available: boolean; channels: string[] };
     whatsappUrl: string | null;
 };
 
-export default function VpnPortal({ company, account, invoices, outstanding, payment, whatsappUrl }: Props) {
+export default function VpnPortal({ company, account, invoices, outstanding, memberUrl, payment, whatsappUrl }: Props) {
     useTheme();
     const active = account.status === 'active';
     const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0] ?? '' });
@@ -133,6 +134,12 @@ export default function VpnPortal({ company, account, invoices, outstanding, pay
                             <p className="p-5 text-center text-sm text-muted-foreground">Pembayaran online belum tersedia. Silakan hubungi CS untuk melakukan pembayaran.</p>
                         )}
                     </Card>
+                )}
+
+                {memberUrl && (
+                    <a href={memberUrl} className="flex h-10 items-center justify-center rounded-xl border bg-card text-sm font-medium transition hover:bg-muted">
+                        ← Kembali ke akun VPN saya
+                    </a>
                 )}
 
                 {whatsappUrl && (

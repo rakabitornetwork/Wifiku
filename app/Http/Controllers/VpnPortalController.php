@@ -12,6 +12,7 @@ use App\Services\Settings\SettingService;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -54,6 +55,7 @@ class VpnPortalController extends Controller
                 'expires_at' => $account->expires_at?->toDateString(),
                 'monthly_price' => $account->monthly_price,
             ],
+            'memberUrl' => $account->vpn_member_id !== null && Auth::guard('member')->id() === $account->vpn_member_id ? route('vpn-member.dashboard') : null,
             'invoices' => $invoices,
             'outstanding' => $invoices->sum('outstanding'),
             'payment' => [

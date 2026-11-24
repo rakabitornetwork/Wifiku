@@ -28,6 +28,9 @@ use App\Http\Controllers\RouterImportController;
 use App\Http\Controllers\TopologyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
+use App\Http\Controllers\Vpn\VpnLandingController;
+use App\Http\Controllers\Vpn\VpnMemberAuthController;
+use App\Http\Controllers\Vpn\VpnMemberPortalController;
 use App\Http\Controllers\VpnAccountController;
 use App\Http\Controllers\VpnController;
 use App\Http\Controllers\VpnImportController;
@@ -45,6 +48,22 @@ Route::get('/isolir/{customer:customer_code}', IsolirController::class)
 Route::post('/isolir/{customer:customer_code}/pay', IsolirPaymentController::class)
     ->middleware('throttle:10,1')
     ->name('isolir.pay');
+
+// Landing page + portal pelanggan VPN Tunnel (daftar sendiri, login terpisah dari admin).
+Route::prefix('vpn-tunnel')->name('vpn-member.')->group(function () {
+    Route::get('/', VpnLandingController::class)->name('landing');
+    Route::get('/daftar', [VpnMemberAuthController::class, 'showRegister'])->middleware('throttle:30,1')->name('register');
+    Route::post('/daftar', [VpnMemberAuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('/masuk', [VpnMemberAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
+    Route::post('/masuk', [VpnMemberAuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
+
+    Route::middleware('auth:member')->group(function () {
+        Route::post('/keluar', [VpnMemberAuthController::class, 'logout'])->name('logout');
+        Route::get('/akun', [VpnMemberPortalController::class, 'index'])->name('dashboard');
+        Route::post('/akun', [VpnMemberPortalController::class, 'store'])->middleware('throttle:10,1')->name('accounts.store');
+        Route::get('/akun/{account}/script', [VpnMemberPortalController::class, 'script'])->name('accounts.script');
+    });
+});
 
 Route::get('/layanan-vpn/{account:portal_token}', [VpnPortalController::class, 'show'])
     ->middleware('throttle:30,1')
