@@ -10,9 +10,10 @@ import { buttonClass } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Select } from '@/Components/ui/Field';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate, formatDuration, formatRupiah } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type Props = {
     batch: {
@@ -38,6 +39,7 @@ const printLayouts = [
 ];
 
 export default function BatchShow({ batch, stats, vouchers, status }: Props) {
+    const sort = useServerSort();
     const inProgress = batch.status === 'queued' || batch.status === 'processing';
 
     useEffect(() => {
@@ -133,11 +135,11 @@ export default function BatchShow({ batch, stats, vouchers, status }: Props) {
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Kode</Th>
-                                    <Th className="text-right">Harga</Th>
-                                    <Th>Login pertama</Th>
-                                    <Th>Kedaluwarsa</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="code" state={sort}>Kode</SortTh>
+                                    <SortTh column="price" state={sort} className="text-right">Harga</SortTh>
+                                    <SortTh column="first_login" state={sort}>Login pertama</SortTh>
+                                    <SortTh column="expires" state={sort}>Kedaluwarsa</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                 </tr>
                             </thead>
                             <tbody>

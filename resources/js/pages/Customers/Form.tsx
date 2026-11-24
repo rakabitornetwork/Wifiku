@@ -60,7 +60,6 @@ export default function CustomerForm({ customer, routers, packages, odps }: Prop
         billing_day: str(customer?.billing_day ?? 1),
         due_days: str(customer?.due_days ?? 7),
         installed_at: customer?.installed_at ?? new Date().toISOString().slice(0, 10),
-        promise_to_pay_until: str(customer?.promise_to_pay_until),
         status: customer?.status ?? 'active',
     });
 
@@ -219,9 +218,11 @@ export default function CustomerForm({ customer, routers, packages, odps }: Prop
                                 <option value="inactive">Nonaktif</option>
                             </Select>
                         </Field>
-                        <Field label="Janji bayar sampai" error={form.errors.promise_to_pay_until} hint="Auto-isolir ditunda sampai tanggal ini.">
-                            <Input type="date" value={form.data.promise_to_pay_until} onChange={set('promise_to_pay_until')} />
-                        </Field>
+                        {customer?.promise_to_pay_until && (
+                            <div className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                                Perpanjangan pembayaran aktif sampai <span className="num font-medium text-foreground">{customer.promise_to_pay_until}</span>. Ubah lewat tombol Perpanjangan di Data Pelanggan.
+                            </div>
+                        )}
                     </div>
                 </Card>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AssetStatus;
 use App\Enums\AssetType;
 use App\Models\Asset;
+use App\Models\Customer;
 use App\Services\GenieAcs\GenieAcsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -38,6 +39,7 @@ class MonitoringController extends Controller
             ->when($signal === 'unknown', fn ($query) => $query->whereNull('last_rx_power'))
             ->orderByRaw('last_rx_power is null')
             ->orderBy('last_rx_power')
+            ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
             ->paginate($this->perPage(15))
             ->withQueryString();
 
@@ -53,5 +55,19 @@ class MonitoringController extends Controller
             ],
             'genieacsConfigured' => $genieAcs->isConfigured(),
         ]);
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'serial_number' => 'serial_number',
+            'model' => 'model',
+            'customer' => fn () => Customer::query()->select('name')->whereColumn('customers.id', 'assets.customer_id'),
+            'rx_power' => 'last_rx_power',
+            'last_seen' => 'last_seen_at',
+        ];
     }
 }

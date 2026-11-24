@@ -14,7 +14,7 @@ class ResellerController extends Controller
     public function index(): Response
     {
         return Inertia::render('Hotspot/Resellers', [
-            'resellers' => Reseller::query()->withCount('voucherBatches')->orderBy('name')->paginate($this->perPage(15))->withQueryString(),
+            'resellers' => Reseller::query()->withCount('voucherBatches')->orderBy('name')->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))->paginate($this->perPage(15))->withQueryString(),
         ]);
     }
 
@@ -43,5 +43,13 @@ class ResellerController extends Controller
         Toast::success('Reseller dihapus. Riwayat batch voucher tetap tersimpan.');
 
         return back();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function sortColumns(): array
+    {
+        return ['name' => 'name', 'phone' => 'phone', 'discount' => 'discount_percent', 'batches' => 'voucher_batches_count', 'status' => 'is_active'];
     }
 }

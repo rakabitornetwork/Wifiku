@@ -11,4 +11,5 @@ enum InvoiceItemType: string
     case Prorata = 'prorata';
     case Installation = 'installation';
     case Adjustment = 'adjustment';
+    case Vpn = 'vpn';
 }

@@ -12,9 +12,10 @@ import { Card } from '@/Components/ui/Card';
 import { Field, Input, Select, Textarea } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type AssetRow = {
     id: number;
@@ -40,6 +41,7 @@ const typeLabels: Record<string, string> = { ont: 'ONT', router: 'Router', stb: 
 const emptyForm = { type: 'ont', brand: '', model: '', serial_number: '', mac_address: '', ownership: 'company', status: 'in_stock', installed_at: '', notes: '' };
 
 export default function AssetsIndex({ assets, filters }: { assets: Paginated<AssetRow>; filters: Filters }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<AssetRow | null>(null);
     const [open, setOpen] = useState(false);
     const [customer, setCustomer] = useState<CustomerOption | null>(null);
@@ -147,13 +149,13 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Serial number</Th>
-                                    <Th>Jenis / model</Th>
-                                    <Th>MAC</Th>
-                                    <Th>Kepemilikan</Th>
-                                    <Th>Pelanggan</Th>
-                                    <Th>RX Power</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="serial_number" state={sort}>Serial number</SortTh>
+                                    <SortTh column="type" state={sort}>Jenis / model</SortTh>
+                                    <SortTh column="mac_address" state={sort}>MAC</SortTh>
+                                    <SortTh column="ownership" state={sort}>Kepemilikan</SortTh>
+                                    <SortTh column="customer" state={sort}>Pelanggan</SortTh>
+                                    <SortTh column="rx_power" state={sort}>RX Power</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

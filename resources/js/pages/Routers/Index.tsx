@@ -12,9 +12,10 @@ import { Card } from '@/Components/ui/Card';
 import { Checkbox, Field, Input, Textarea } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type RouterRow = {
     id: number;
@@ -36,6 +37,7 @@ type RouterRow = {
 const emptyForm = { name: '', host: '', api_port: '8728', use_ssl: false, username: '', password: '', isolir_profile: 'ISOLIR', notes: '' };
 
 export default function RoutersIndex({ routers, search }: { routers: Paginated<RouterRow>; search: string }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<RouterRow | null>(null);
     const [open, setOpen] = useState(false);
     const [importing, setImporting] = useState<RouterRow | null>(null);
@@ -115,13 +117,13 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Router / POP</Th>
-                                    <Th>Alamat API</Th>
-                                    <Th>Status</Th>
-                                    <Th>Pelanggan</Th>
-                                    <Th>Paket</Th>
-                                    <Th>Profil hotspot</Th>
-                                    <Th>Terakhir dicek</Th>
+                                    <SortTh column="name" state={sort}>Router / POP</SortTh>
+                                    <SortTh column="host" state={sort}>Alamat API</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
+                                    <SortTh column="customers" state={sort}>Pelanggan</SortTh>
+                                    <SortTh column="packages" state={sort}>Paket</SortTh>
+                                    <SortTh column="hotspot_profiles" state={sort}>Profil hotspot</SortTh>
+                                    <SortTh column="last_checked" state={sort}>Terakhir dicek</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

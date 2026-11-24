@@ -16,10 +16,13 @@ class ScheduleTest extends TestCase
             'generate-invoices' => '10 0 * * *',
             'auto-isolir' => '30 0 * * *',
             'invoice-reminders' => '0 9 * * *',
+            'promise-reminders' => '5 9 * * *',
             'check-routers' => '*/5 * * * *',
             'sync-isolation-status' => '*/5 * * * *',
             'expire-vouchers' => '*/5 * * * *',
             'fetch-ont-rx-power' => '0 * * * *',
+            'generate-vpn-invoices' => '15 0 * * *',
+            'expire-vpn-accounts' => '20 0 * * *',
         ], $events->all());
     }
 }

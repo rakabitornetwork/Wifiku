@@ -7,7 +7,11 @@ use App\Jobs\Network\RemovePppProfileJob;
 use App\Jobs\Network\SyncPppProfileJob;
 use App\Models\Package;
 use App\Models\Router;
+use App\Services\Mikrotik\MikrotikCommandException;
+use App\Services\Mikrotik\MikrotikConnectionException;
+use App\Services\Mikrotik\MikrotikService;
 use App\Support\Toast;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,6 +31,7 @@ class PackageController extends Controller
             ->when($routerId, fn ($query) => $query->where('router_id', $routerId))
             ->orderBy('price')
             ->orderBy('name')
+            ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
             ->paginate($this->perPage(15))
             ->withQueryString();
 
@@ -36,6 +41,25 @@ class PackageController extends Controller
             'search' => $search,
             'routerId' => $routerId ? (string) $routerId : '',
         ]);
+    }
+
+    /**
+     * Nama PPP profile yang ada di router, untuk pilihan saat membuat paket (profile isolir tidak ditawarkan).
+     */
+    public function pppProfiles(Router $router): JsonResponse
+    {
+        try {
+            $names = collect(MikrotikService::forRouter($router)->pppProfiles())
+                ->pluck('name')
+                ->filter()
+                ->reject(fn (string $name): bool => $router->isIsolirProfile($name))
+                ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+
+            return response()->json(['profiles' => $names]);
+        } catch (MikrotikConnectionException|MikrotikCommandException $exception) {
+            return response()->json(['error' => "Gagal membaca router: {$exception->getMessage()}"], 422);
+        }
     }
 
     public function store(PackageRequest $request): RedirectResponse
@@ -100,5 +124,21 @@ class PackageController extends Controller
     private function routerIds(?int $routerId): array
     {
         return $routerId !== null ? [$routerId] : Router::pluck('id')->all();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'name' => 'name',
+            'mikrotik_profile' => 'mikrotik_profile',
+            'rate_limit' => 'rate_limit',
+            'router' => fn () => Router::query()->select('name')->whereColumn('routers.id', 'packages.router_id'),
+            'price' => 'price',
+            'customers' => 'customers_count',
+            'status' => 'is_active',
+        ];
     }
 }

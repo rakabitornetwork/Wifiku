@@ -35,6 +35,7 @@ class VoucherBatchController extends Controller
                 ->with(['router:id,name', 'hotspotProfile:id,name', 'reseller:id,name'])
                 ->withCount(['vouchers', 'vouchers as used_count' => fn ($query) => $query->where('status', '!=', VoucherStatus::Unused)])
                 ->orderByDesc('id')
+                ->tap(fn ($query) => $this->applySort($query, $this->batchSortColumns()))
                 ->paginate($this->perPage(15))
                 ->withQueryString(),
         ]);
@@ -75,6 +76,7 @@ class VoucherBatchController extends Controller
             'vouchers' => $batch->vouchers()
                 ->when($status, fn ($query) => $query->where('status', $status))
                 ->orderBy('id')
+                ->tap(fn ($query) => $this->applySort($query, ['code' => 'code', 'price' => 'price', 'first_login' => 'first_login_at', 'expires' => 'expires_at', 'status' => 'status']))
                 ->paginate($this->perPage(50), ['id', 'code', 'password', 'price', 'status', 'first_login_at', 'expires_at'])
                 ->withQueryString(),
             'status' => $status?->value ?? '',
@@ -137,5 +139,22 @@ class VoucherBatchController extends Controller
             'loginUrl' => $settings->get('hotspot', 'login_url') ?: 'http://'.$batch->router->host.'/login',
             'vouchers' => $batch->vouchers()->orderBy('id')->get(['id', 'code', 'password']),
         ]);
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function batchSortColumns(): array
+    {
+        return [
+            'batch_code' => 'batch_code',
+            'profile' => fn () => HotspotProfile::query()->select('name')->whereColumn('hotspot_profiles.id', 'voucher_batches.hotspot_profile_id'),
+            'router' => fn () => Router::query()->select('name')->whereColumn('routers.id', 'voucher_batches.router_id'),
+            'reseller' => fn () => Reseller::query()->select('name')->whereColumn('resellers.id', 'voucher_batches.reseller_id'),
+            'vouchers' => 'vouchers_count',
+            'used' => 'used_count',
+            'created' => 'created_at',
+            'status' => 'status',
+        ];
     }
 }

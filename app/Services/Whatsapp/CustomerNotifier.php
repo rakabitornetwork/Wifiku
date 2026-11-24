@@ -19,10 +19,17 @@ class CustomerNotifier
     public function __construct(
         private readonly WhatsappNotificationService $whatsapp,
         private readonly SettingService $settings,
+        private readonly VpnNotifier $vpn,
     ) {}
 
     public function invoiceIssued(Invoice $invoice): void
     {
+        if ($invoice->vpn_account_id !== null) {
+            $this->vpn->invoiceIssued($invoice);
+
+            return;
+        }
+
         $customer = $invoice->customer;
 
         $this->send($customer, WhatsappMessageType::Invoice, implode("\n", [
@@ -40,6 +47,12 @@ class CustomerNotifier
 
     public function invoiceReminder(Invoice $invoice): void
     {
+        if ($invoice->vpn_account_id !== null) {
+            $this->vpn->invoiceReminder($invoice);
+
+            return;
+        }
+
         $customer = $invoice->customer;
 
         $this->send($customer, WhatsappMessageType::Reminder, implode("\n", [
@@ -55,6 +68,13 @@ class CustomerNotifier
     public function paymentReceived(Payment $payment): void
     {
         $invoice = $payment->invoice;
+
+        if ($invoice->vpn_account_id !== null) {
+            $this->vpn->paymentReceived($payment);
+
+            return;
+        }
+
         $customer = $invoice->customer;
         $remaining = max(0, $invoice->total - $invoice->amount_paid);
 
@@ -86,6 +106,29 @@ class CustomerNotifier
             '',
             "Layanan internet {$this->company()} Anda telah aktif kembali. Bila belum tersambung, silakan matikan lalu nyalakan ulang modem.",
             'Terima kasih.',
+        ]));
+    }
+
+    public function extensionGranted(Customer $customer, CarbonInterface $until, int $outstanding): void
+    {
+        $this->send($customer, WhatsappMessageType::Reminder, implode("\n", [
+            "Halo {$customer->name},",
+            '',
+            "Permintaan perpanjangan pembayaran Anda disetujui. Layanan internet {$this->company()} tetap aktif sampai {$this->date($until)}.",
+            "Total tagihan yang harus dilunasi: {$this->rupiah($outstanding)}.",
+            "Lihat tagihan dan bayar online: {$this->portalUrl($customer)}",
+            'Mohon lunasi sebelum tanggal tersebut agar layanan tidak terisolir.',
+        ]));
+    }
+
+    public function extensionEnding(Customer $customer, int $outstanding): void
+    {
+        $this->send($customer, WhatsappMessageType::Reminder, implode("\n", [
+            "Halo {$customer->name},",
+            '',
+            "Masa perpanjangan pembayaran Anda berakhir besok. Tagihan yang belum lunas: {$this->rupiah($outstanding)}.",
+            "Bayar online: {$this->portalUrl($customer)}",
+            'Bila belum dibayar, layanan akan diisolir otomatis.',
         ]));
     }
 

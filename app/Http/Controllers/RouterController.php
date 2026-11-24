@@ -23,6 +23,7 @@ class RouterController extends Controller
                 $query->where('name', 'like', "%{$search}%")->orWhere('host', 'like', "%{$search}%");
             }))
             ->orderBy('name')
+            ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
             ->paginate($this->perPage(15))
             ->withQueryString();
 
@@ -65,5 +66,21 @@ class RouterController extends Controller
         Toast::success('Router dihapus.');
 
         return back();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'name' => 'name',
+            'host' => 'host',
+            'status' => 'status',
+            'customers' => 'customers_count',
+            'packages' => 'packages_count',
+            'hotspot_profiles' => 'hotspot_profiles_count',
+            'last_checked' => 'last_checked_at',
+        ];
     }
 }

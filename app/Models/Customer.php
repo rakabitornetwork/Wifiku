@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['customer_code', 'router_id', 'package_id', 'odp_id', 'odp_port', 'name', 'whatsapp', 'address', 'village', 'latitude', 'longitude', 'pppoe_username', 'pppoe_password', 'billing_cycle', 'billing_day', 'due_days', 'installed_at', 'status', 'promise_to_pay_until', 'isolated_at', 'router_synced_at'])]
+#[Fillable(['customer_code', 'router_id', 'package_id', 'odp_id', 'odp_port', 'name', 'whatsapp', 'address', 'village', 'latitude', 'longitude', 'cable_path', 'pppoe_username', 'pppoe_password', 'billing_cycle', 'billing_day', 'due_days', 'installed_at', 'status', 'promise_to_pay_until', 'isolated_at', 'router_synced_at'])]
 #[Hidden(['pppoe_password'])]
 class Customer extends Model
 {
@@ -44,6 +44,7 @@ class Customer extends Model
             'odp_port' => 'integer',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'cable_path' => 'array',
             'pppoe_password' => 'encrypted',
             'billing_cycle' => BillingCycle::class,
             'billing_day' => 'integer',
@@ -110,5 +111,13 @@ class Customer extends Model
     public function whatsappMessages(): HasMany
     {
         return $this->hasMany(WhatsappMessage::class);
+    }
+
+    /**
+     * @return HasMany<PaymentExtension, $this>
+     */
+    public function paymentExtensions(): HasMany
+    {
+        return $this->hasMany(PaymentExtension::class);
     }
 }

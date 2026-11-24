@@ -3,8 +3,9 @@ import { router } from '@inertiajs/react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Card, StatCard } from '@/Components/ui/Card';
 import { Input } from '@/Components/ui/Field';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatNumber, formatRupiah } from '@/lib/utils';
+import { useClientSort } from '@/Hooks/useSort';
 import { Ticket, Wallet } from 'lucide-react';
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function VoucherSales({ month, report }: Props) {
+    const sort = useClientSort(report.rows, { profile: (row) => row.profile, router: (row) => row.router, reseller: (row) => row.reseller, count: (row) => row.count, revenue: (row) => row.revenue });
     return (
         <>
             <PageHeader
@@ -34,15 +36,15 @@ export default function VoucherSales({ month, report }: Props) {
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Profil</Th>
-                                    <Th>Router</Th>
-                                    <Th>Reseller</Th>
-                                    <Th className="text-right">Terjual</Th>
-                                    <Th className="text-right">Pendapatan</Th>
+                                    <SortTh column="profile" state={sort}>Profil</SortTh>
+                                    <SortTh column="router" state={sort}>Router</SortTh>
+                                    <SortTh column="reseller" state={sort}>Reseller</SortTh>
+                                    <SortTh column="count" state={sort} className="text-right">Terjual</SortTh>
+                                    <SortTh column="revenue" state={sort} className="text-right">Pendapatan</SortTh>
                                 </tr>
                             </thead>
                             <tbody>
-                                {report.rows.map((row, index) => (
+                                {sort.rows.map((row, index) => (
                                     <tr key={index} className="hover:bg-muted/40">
                                         <Td className="font-medium">{row.profile}</Td>
                                         <Td>{row.router}</Td>

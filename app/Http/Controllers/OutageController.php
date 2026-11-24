@@ -23,6 +23,7 @@ class OutageController extends Controller
                 ->with(['odp:id,name,code', 'creator:id,name'])
                 ->orderByRaw("case status when 'open' then 0 else 1 end")
                 ->orderByDesc('id')
+                ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
                 ->paginate($this->perPage(15))
                 ->withQueryString(),
             'odps' => Odp::query()
@@ -48,5 +49,20 @@ class OutageController extends Controller
         Toast::success('Gangguan ditandai selesai.');
 
         return back();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'odp' => fn () => Odp::query()->select('name')->whereColumn('odps.id', 'outages.odp_id'),
+            'title' => 'title',
+            'notified' => 'notified_count',
+            'started' => 'created_at',
+            'resolved' => 'resolved_at',
+            'status' => 'status',
+        ];
     }
 }

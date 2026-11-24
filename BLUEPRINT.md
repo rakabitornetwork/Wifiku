@@ -20,7 +20,8 @@ Bertindaklah sebagai Senior Full-Stack Laravel Architect, UI/UX Engineer, & Netw
 - **Layout Utama (Sidebar Navigation):** Gunakan layout dashboard modern dengan **Collapsible Sidebar** di sisi kiri (bisa diperkecil menjadi ikon saja di desktop, dan menjadi *slide-over drawer* responsif di HP teknisi lapangan).
 - **Struktur Menu Sidebar:** Kelompokkan menu secara rapi dengan kategori:
   - *Main:* Dashboard Overview, Peta Topologi & ODP.
-  - *Network & Pelanggan:* Data Pelanggan (PPPoE), Paket Bandwidth, Voucher Hotspot, Manajemen Router (Multi-NAS), Monitoring OLT & TR-069, Inventaris ONT & Aset.
+  - *Pelanggan:* Data Pelanggan (PPPoE), Paket Bandwidth, Voucher Hotspot.
+  - *Network:* Manajemen Router (Multi-NAS), Monitoring OLT & TR-069, Inventaris ONT & Aset.
   - *Keuangan & Billing:* Tagihan & Invoice, Penjualan Voucher, Pengeluaran (OPEX), Laporan Laba Rugi.
   - *Sistem & Tim:* Tiket & Broadcast Gangguan, Manajemen Teknisi & RBAC, Audit Log Aktivitas, Pengaturan (WA Gateway, Payment Gateway, Template Isolir).
 - **Estetika Premium & High-Craft:**

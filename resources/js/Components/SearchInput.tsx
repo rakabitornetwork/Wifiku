@@ -23,7 +23,10 @@ export function SearchInput({ value, placeholder = 'Cari...', extra = {} }: Prop
         }
 
         const timer = window.setTimeout(() => {
-            router.get(window.location.pathname, { ...extra, search: term || undefined }, { preserveState: true, replace: true });
+            const current = new URLSearchParams(window.location.search);
+            const sort = current.get('sort');
+
+            router.get(window.location.pathname, { ...extra, search: term || undefined, ...(sort ? { sort, direction: current.get('direction') ?? 'asc' } : {}) }, { preserveState: true, replace: true });
         }, 300);
 
         return () => window.clearTimeout(timer);

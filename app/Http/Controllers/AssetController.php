@@ -6,6 +6,7 @@ use App\Enums\AssetStatus;
 use App\Enums\AssetType;
 use App\Http\Requests\AssetRequest;
 use App\Models\Asset;
+use App\Models\Customer;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,7 @@ class AssetController extends Controller
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($type, fn ($query) => $query->where('type', $type))
             ->orderByDesc('id')
+            ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
             ->paginate($this->perPage(15))
             ->withQueryString();
 
@@ -66,5 +68,21 @@ class AssetController extends Controller
         Toast::success('Perangkat dihapus.');
 
         return back();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'serial_number' => 'serial_number',
+            'type' => 'type',
+            'mac_address' => 'mac_address',
+            'ownership' => 'ownership',
+            'customer' => fn () => Customer::query()->select('name')->whereColumn('customers.id', 'assets.customer_id'),
+            'rx_power' => 'last_rx_power',
+            'status' => 'status',
+        ];
     }
 }

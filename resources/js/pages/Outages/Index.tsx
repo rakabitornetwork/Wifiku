@@ -9,9 +9,10 @@ import { Card } from '@/Components/ui/Card';
 import { Checkbox, Field, Input, Select, Textarea } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type OutageRow = {
     id: number;
@@ -31,6 +32,7 @@ const defaultMessage = (odpName: string) =>
     `Mohon maaf, terjadi gangguan jaringan (kabel fiber optik) di area ${odpName}. Teknisi kami sedang menuju lokasi untuk perbaikan. Kami akan mengabari kembali setelah layanan normal.`;
 
 export default function OutagesIndex({ outages, odps }: Props) {
+    const sort = useServerSort();
     const [open, setOpen] = useState(false);
     const [resolving, setResolving] = useState<OutageRow | null>(null);
     const [notify, setNotify] = useState(true);
@@ -90,12 +92,12 @@ export default function OutagesIndex({ outages, odps }: Props) {
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>ODP</Th>
-                                    <Th>Gangguan</Th>
-                                    <Th>Pelanggan diberi tahu</Th>
-                                    <Th>Dimulai</Th>
-                                    <Th>Selesai</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="odp" state={sort}>ODP</SortTh>
+                                    <SortTh column="title" state={sort}>Gangguan</SortTh>
+                                    <SortTh column="notified" state={sort}>Pelanggan diberi tahu</SortTh>
+                                    <SortTh column="started" state={sort}>Dimulai</SortTh>
+                                    <SortTh column="resolved" state={sort}>Selesai</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

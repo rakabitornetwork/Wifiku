@@ -2,6 +2,7 @@
 
 namespace App\Actions\Payment;
 
+use App\Actions\Vpn\ExtendVpnAccount;
 use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
@@ -18,6 +19,7 @@ class ApplyPayment
     public function __construct(
         private readonly IsolationService $isolation,
         private readonly CustomerNotifier $notifier,
+        private readonly ExtendVpnAccount $extendVpnAccount,
     ) {}
 
     /**
@@ -62,7 +64,7 @@ class ApplyPayment
             return false;
         }
 
-        $payment->load('invoice.customer');
+        $payment->load('invoice.customer', 'invoice.vpnAccount.server');
 
         if ($payment->method === PaymentMethod::Gateway) {
             activity('Pembayaran')
@@ -72,6 +74,14 @@ class ApplyPayment
         }
 
         $this->notifier->paymentReceived($payment);
+
+        if ($payment->invoice->vpn_account_id !== null) {
+            if ($payment->invoice->status === InvoiceStatus::Paid) {
+                $this->extendVpnAccount->handle($payment->invoice);
+            }
+
+            return true;
+        }
 
         $customer = $payment->invoice->customer;
 

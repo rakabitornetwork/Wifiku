@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['invoice_number', 'customer_id', 'period_start', 'period_end', 'issue_date', 'due_date', 'is_prorated', 'prorata_days', 'period_days', 'subtotal', 'discount', 'tax', 'total', 'amount_paid', 'status', 'paid_at', 'reminder_sent_at', 'notes'])]
+#[Fillable(['invoice_number', 'customer_id', 'vpn_account_id', 'period_start', 'period_end', 'issue_date', 'due_date', 'is_prorated', 'prorata_days', 'period_days', 'subtotal', 'discount', 'tax', 'total', 'amount_paid', 'status', 'paid_at', 'reminder_sent_at', 'notes'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
@@ -23,7 +23,7 @@ class Invoice extends Model
      *
      * @var list<string>
      */
-    protected array $audited = ['invoice_number', 'customer_id', 'due_date', 'discount', 'tax', 'total', 'amount_paid', 'status', 'notes'];
+    protected array $audited = ['invoice_number', 'customer_id', 'vpn_account_id', 'due_date', 'discount', 'tax', 'total', 'amount_paid', 'status', 'notes'];
 
     /**
      * Invoice dibuat massal oleh sistem; hanya perubahan sesudahnya yang dicatat.
@@ -74,6 +74,14 @@ class Invoice extends Model
     /**
      * @return HasMany<InvoiceItem, $this>
      */
+    /**
+     * @return BelongsTo<VpnAccount, $this>
+     */
+    public function vpnAccount(): BelongsTo
+    {
+        return $this->belongsTo(VpnAccount::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);

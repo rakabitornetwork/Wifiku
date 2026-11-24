@@ -4,12 +4,15 @@ use App\Enums\AssetStatus;
 use App\Enums\AssetType;
 use App\Enums\RouterStatus;
 use App\Jobs\Billing\GenerateMonthlyInvoicesJob;
+use App\Jobs\Billing\GenerateVpnInvoicesJob;
 use App\Jobs\Billing\SendInvoiceRemindersJob;
+use App\Jobs\Billing\SendPromiseRemindersJob;
 use App\Jobs\GenieAcs\FetchOntRxPowerJob;
 use App\Jobs\Network\CheckRouterStatusJob;
 use App\Jobs\Network\ProcessOverdueCustomersJob;
 use App\Jobs\Network\SyncIsolationStatusJob;
 use App\Jobs\Voucher\ExpireVouchersJob;
+use App\Jobs\Vpn\ExpireVpnAccountsJob;
 use App\Models\Asset;
 use App\Models\Router;
 use App\Services\GenieAcs\GenieAcsService;
@@ -25,6 +28,7 @@ Artisan::command('inspire', function () {
 Schedule::job(new GenerateMonthlyInvoicesJob)->dailyAt('00:10')->name('generate-invoices')->onOneServer()->withoutOverlapping(60);
 Schedule::job(new ProcessOverdueCustomersJob)->dailyAt('00:30')->name('auto-isolir')->onOneServer()->withoutOverlapping(60);
 Schedule::job(new SendInvoiceRemindersJob)->dailyAt('09:00')->name('invoice-reminders')->onOneServer()->withoutOverlapping(60);
+Schedule::job(new SendPromiseRemindersJob)->dailyAt('09:05')->name('promise-reminders')->onOneServer()->withoutOverlapping(60);
 
 // Jaringan: status router dan voucher hotspot kedaluwarsa.
 Schedule::call(function (): void {
@@ -45,3 +49,9 @@ Schedule::call(function (): void {
         ->where('status', AssetStatus::Installed)
         ->each(fn (Asset $asset) => FetchOntRxPowerJob::dispatch($asset));
 })->hourly()->name('fetch-ont-rx-power')->onOneServer()->when(fn (): bool => app(GenieAcsService::class)->isConfigured());
+
+// VPN Tunnel: tagihan perpanjangan terbit menjelang masa berlaku habis (sebelum pengecekan kedaluwarsa).
+Schedule::job(new GenerateVpnInvoicesJob)->dailyAt('00:15')->name('generate-vpn-invoices')->onOneServer()->withoutOverlapping(60);
+
+// VPN Tunnel: akun yang lewat masa aktif dinonaktifkan dan diputus dari router server.
+Schedule::job(new ExpireVpnAccountsJob)->dailyAt('00:20')->name('expire-vpn-accounts')->onOneServer()->withoutOverlapping(60);

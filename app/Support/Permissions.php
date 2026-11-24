@@ -16,6 +16,8 @@ class Permissions
 
     public const ROUTERS_MANAGE = 'routers.manage';
 
+    public const VPN_MANAGE = 'vpn.manage';
+
     public const ASSETS_MANAGE = 'assets.manage';
 
     public const VOUCHERS_MANAGE = 'vouchers.manage';

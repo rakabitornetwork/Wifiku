@@ -52,12 +52,14 @@ class CreateOnlinePayment
             return $reusable;
         }
 
-        $invoice->loadMissing('customer');
+        $invoice->loadMissing('customer', 'vpnAccount');
         $customer = $invoice->customer;
+        $vpnAccount = $invoice->vpnAccount;
+        $payer = $customer ?? $vpnAccount;
 
         $payment = Payment::create([
             'invoice_id' => $invoice->id,
-            'customer_id' => $customer->id,
+            'customer_id' => $customer?->id,
             'payment_gateway_id' => $gateway->id,
             'method' => PaymentMethod::Gateway,
             'channel' => $channel,
@@ -71,13 +73,13 @@ class CreateOnlinePayment
                 merchantRef: $payment->merchant_ref,
                 amount: $outstanding,
                 channel: $channel,
-                customerName: $customer->name,
+                customerName: $payer->name,
                 // Gateway (mis. Tripay) mewajibkan nomor telepon; pelanggan tanpa WhatsApp memakai nomor CS perusahaan.
-                customerPhone: $customer->whatsapp ?: preg_replace('/\D+/', '', (string) $this->settings->get('company', 'cs_whatsapp')),
-                description: "Tagihan internet {$invoice->invoice_number}",
+                customerPhone: $payer->whatsapp ?: preg_replace('/\D+/', '', (string) $this->settings->get('company', 'cs_whatsapp')),
+                description: ($customer ? 'Tagihan internet ' : 'Tagihan VPN Tunnel ').$invoice->invoice_number,
                 callbackUrl: route('webhooks.payment', $gateway->driver->value),
-                returnUrl: route('isolir.show', $customer->customer_code),
-                customerEmail: strtolower($customer->customer_code).'@'.(parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'pelanggan.local'),
+                returnUrl: $customer ? route('isolir.show', $customer->customer_code) : route('vpn-portal.show', $vpnAccount->portal_token),
+                customerEmail: strtolower($customer?->customer_code ?? 'vpn'.$vpnAccount->id).'@'.(parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'pelanggan.local'),
                 expiresInMinutes: self::EXPIRES_IN_MINUTES,
             ));
         } catch (PaymentGatewayException $exception) {

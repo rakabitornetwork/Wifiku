@@ -1,9 +1,10 @@
 import { Link, router } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CalendarClock, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
+import { PaymentExtensionModal } from '@/Components/PaymentExtensionModal';
 import { SearchInput } from '@/Components/SearchInput';
 import { StatusBadge } from '@/Components/ui/Badge';
 import { Button, buttonClass } from '@/Components/ui/Button';
@@ -11,8 +12,11 @@ import { Card } from '@/Components/ui/Card';
 import { Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import type { Paginated } from '@/types';
+import { useCan } from '@/Hooks/useCan';
+import { useServerSort } from '@/Hooks/useSort';
+import { formatDate } from '@/lib/utils';
 
 type CustomerRow = {
     id: number;
@@ -23,6 +27,7 @@ type CustomerRow = {
     billing_cycle: string;
     billing_day: number;
     status: string;
+    promise_to_pay_until: string | null;
     router: { name: string } | null;
     package: { name: string } | null;
     odp: { name: string } | null;
@@ -78,26 +83,9 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
     const applyFilter = (key: 'status' | 'router_id', value: string) =>
         router.get('/customers', { ...filters, [key]: value || undefined, search: filters.search || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined, page: undefined }, { preserveState: true, replace: true });
 
-    // Klik judul: urut naik, klik lagi turun, klik ketiga kembali ke urutan bawaan.
-    const toggleSort = (column: string) => {
-        const next = filters.sort !== column ? { sort: column, direction: 'asc' } : filters.direction === 'asc' ? { sort: column, direction: 'desc' } : { sort: undefined, direction: undefined };
-
-        router.get('/customers', { search: filters.search || undefined, status: filters.status || undefined, router_id: filters.router_id || undefined, ...next }, { preserveState: true, replace: true });
-    };
-
-    const SortTh = ({ column, children }: { column: string; children: string }) => {
-        const active = filters.sort === column;
-        const Icon = !active ? ArrowUpDown : filters.direction === 'asc' ? ArrowUp : ArrowDown;
-
-        return (
-            <Th aria-sort={active ? (filters.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                <button type="button" onClick={() => toggleSort(column)} className={`inline-flex items-center gap-1 font-medium hover:text-foreground ${active ? 'text-foreground' : ''}`}>
-                    {children}
-                    <Icon className={`size-3.5 ${active ? '' : 'opacity-50'}`} />
-                </button>
-            </Th>
-        );
-    };
+    const sort = useServerSort();
+    const can = useCan();
+    const [extending, setExtending] = useState<{ id: number; name: string } | null>(null);
 
     return (
         <>
@@ -164,14 +152,14 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                                     <Th className="w-10">
                                         <input type="checkbox" checked={pageSelected} onChange={(event) => togglePage(event.target.checked)} aria-label="Pilih semua di halaman ini" className="size-4 rounded border-input accent-[var(--primary)]" />
                                     </Th>
-                                    <SortTh column="customer_code">ID</SortTh>
-                                    <SortTh column="name">Nama</SortTh>
-                                    <SortTh column="whatsapp">WhatsApp</SortTh>
-                                    <SortTh column="pppoe_username">Username PPPoE</SortTh>
-                                    <SortTh column="package">Paket</SortTh>
-                                    <SortTh column="router">Router / ODP</SortTh>
-                                    <SortTh column="billing_day">Tagihan</SortTh>
-                                    <SortTh column="status">Status</SortTh>
+                                    <SortTh column="customer_code" state={sort}>ID</SortTh>
+                                    <SortTh column="name" state={sort}>Nama</SortTh>
+                                    <SortTh column="whatsapp" state={sort}>WhatsApp</SortTh>
+                                    <SortTh column="pppoe_username" state={sort}>Username PPPoE</SortTh>
+                                    <SortTh column="package" state={sort}>Paket</SortTh>
+                                    <SortTh column="router" state={sort}>Router / ODP</SortTh>
+                                    <SortTh column="billing_day" state={sort}>Tagihan</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
@@ -202,9 +190,17 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                                         </Td>
                                         <Td>
                                             <StatusBadge status={customer.status} />
+                                            {customer.promise_to_pay_until && customer.promise_to_pay_until.slice(0, 10) >= new Date().toISOString().slice(0, 10) && (
+                                                <div className="num mt-0.5 text-[11px] text-muted-foreground">Janji s.d. {formatDate(customer.promise_to_pay_until)}</div>
+                                            )}
                                         </Td>
                                         <Td>
                                             <div className="flex justify-end gap-1">
+                                                {can('payments.collect') && customer.status !== 'inactive' && (
+                                                    <Button variant="warning" size="icon" onClick={() => setExtending({ id: customer.id, name: customer.name })} aria-label="Perpanjangan pembayaran" title="Perpanjangan pembayaran (Janji Bayar)">
+                                                        <CalendarClock className="size-4" />
+                                                    </Button>
+                                                )}
                                                 <Link href={`/customers/${customer.id}/edit`} className={buttonClass('edit', 'icon')} aria-label="Ubah">
                                                     <Pencil className="size-4" />
                                                 </Link>
@@ -223,6 +219,8 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                 )}
                 <Pagination meta={customers} />
             </Card>
+
+            <PaymentExtensionModal customer={extending} onClose={() => setExtending(null)} />
 
             <Modal
                 open={confirming}

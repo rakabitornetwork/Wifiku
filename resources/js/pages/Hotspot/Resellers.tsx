@@ -11,14 +11,16 @@ import { Card } from '@/Components/ui/Card';
 import { Checkbox, Field, Input } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type ResellerRow = { id: number; name: string; phone: string | null; discount_percent: number; is_active: boolean; voucher_batches_count: number };
 
 const emptyForm = { name: '', phone: '', discount_percent: '0', is_active: true };
 
 export default function Resellers({ resellers }: { resellers: Paginated<ResellerRow> }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<ResellerRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
@@ -69,11 +71,11 @@ export default function Resellers({ resellers }: { resellers: Paginated<Reseller
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Nama</Th>
-                                    <Th>Telepon</Th>
-                                    <Th>Diskon</Th>
-                                    <Th>Batch</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="name" state={sort}>Nama</SortTh>
+                                    <SortTh column="phone" state={sort}>Telepon</SortTh>
+                                    <SortTh column="discount" state={sort}>Diskon</SortTh>
+                                    <SortTh column="batches" state={sort}>Batch</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

@@ -36,7 +36,7 @@ class SendInvoiceRemindersJob implements ShouldQueue
         $dueDate = CarbonImmutable::today()->addDays((int) $settings->get('billing', 'reminder_days_before'));
 
         Invoice::query()
-            ->with('customer')
+            ->with(['customer', 'vpnAccount'])
             ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::Partial])
             ->where('due_date', $dueDate)
             ->whereNull('reminder_sent_at')
@@ -45,7 +45,7 @@ class SendInvoiceRemindersJob implements ShouldQueue
                     // Klaim atomik: bila job ini berjalan ganda, hanya satu yang mengirim pengingat.
                     $claimed = Invoice::whereKey($invoice->id)->whereNull('reminder_sent_at')->update(['reminder_sent_at' => now()]);
 
-                    if ($claimed === 1 && $invoice->customer !== null) {
+                    if ($claimed === 1 && ($invoice->customer !== null || $invoice->vpnAccount !== null)) {
                         $notifier->invoiceReminder($invoice);
                     }
                 }

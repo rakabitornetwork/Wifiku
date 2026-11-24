@@ -140,7 +140,10 @@ class InvoiceGeneratorService
         return Invoice::withTrashed()->where('customer_id', $customer->id)->where('period_end', $cycleEnd)->first();
     }
 
-    private function nextNumber(CarbonImmutable $today): string
+    /**
+     * Nomor invoice berikutnya bulan ini (dipakai juga oleh tagihan VPN).
+     */
+    public function nextNumber(CarbonImmutable $today): string
     {
         $prefix = 'INV/'.$today->format('ym').'/';
         $last = Invoice::withTrashed()->where('invoice_number', 'like', $prefix.'%')->max('invoice_number');

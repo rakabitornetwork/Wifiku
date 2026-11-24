@@ -1,5 +1,5 @@
-import { Link, useForm } from '@inertiajs/react';
-import { Megaphone, MapPin, Pencil, Plus } from 'lucide-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { Megaphone, MapPin, Pencil, Plus, RotateCcw, Route } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
@@ -10,8 +10,9 @@ import { Button, buttonClass } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
 import { Checkbox, Field, Input, Select, Textarea } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { useCan } from '@/Hooks/useCan';
+import { useClientSort } from '@/Hooks/useSort';
 
 type OdpRow = MapOdp & { router_id: number; parent_odp_id: number | null; description: string | null; router: { name: string } };
 
@@ -20,6 +21,7 @@ type Props = { odps: OdpRow[]; customers: MapCustomer[]; routers: { id: number; 
 const emptyForm = { router_id: '', parent_odp_id: '', name: '', code: '', latitude: '', longitude: '', total_ports: '8', description: '' };
 
 export default function TopologyIndex({ odps, customers, routers }: Props) {
+    const sort = useClientSort(odps, { code: (row) => row.code, name: (row) => row.name, router: (row) => row.router.name, ports: (row) => (row.total_ports > 0 ? row.customers_count / row.total_ports : 0), status: (row) => row.open_outages_count });
     const can = useCan();
     const canManage = can('topology.manage');
     const [editing, setEditing] = useState<OdpRow | null>(null);
@@ -27,7 +29,14 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
     const [picking, setPicking] = useState(false);
     const [showCustomers, setShowCustomers] = useState(true);
     const [showLines, setShowLines] = useState(true);
+    const [editLines, setEditLines] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
     const form = useForm(emptyForm);
+    const selectedCustomer = customers.find((customer) => customer.id === selectedId);
+
+    const saveCable = (customerId: number, path: [number, number][] | null) => {
+        router.put(`/topology/customers/${customerId}/cable-route`, { path }, { preserveScroll: true, preserveState: true, only: ['customers'] });
+    };
 
     const openCreate = () => {
         setEditing(null);
@@ -89,6 +98,16 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-4 py-3">
                     <Checkbox label="Pelanggan" checked={showCustomers} onChange={setShowCustomers} />
                     <Checkbox label="Garis kabel" checked={showLines} onChange={setShowLines} />
+                    {canManage && showLines && (
+                        <Checkbox
+                            label="Atur jalur kabel"
+                            checked={editLines}
+                            onChange={(value) => {
+                                setEditLines(value);
+                                setSelectedId(null);
+                            }}
+                        />
+                    )}
                     <div className="ml-auto flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <Legend color="#10b981" label="ODP normal" square />
                         <Legend color="#f59e0b" label="ODP penuh" square />
@@ -114,7 +133,40 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                         </Button>
                     </div>
                 )}
-                <MapView odps={odps} customers={customers} showCustomers={showCustomers} showLines={showLines} pickMode={picking} onPick={onPick} />
+                {editLines && showLines && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-accent px-4 py-2 text-sm text-accent-foreground">
+                        <span className="flex items-center gap-2">
+                            <Route className="size-4 shrink-0" />
+                            {selectedCustomer
+                                ? `${selectedCustomer.name}: seret titik tengah (putih) untuk membelokkan kabel, seret titik oranye untuk menggeser, klik dua kali untuk menghapus.`
+                                : 'Klik sebuah garis kabel untuk mulai mengatur jalurnya.'}
+                        </span>
+                        {selectedCustomer && (
+                            <span className="flex gap-2">
+                                {selectedCustomer.cable_path && selectedCustomer.cable_path.length > 0 && (
+                                    <Button size="sm" variant="outline" onClick={() => saveCable(selectedCustomer.id, null)}>
+                                        <RotateCcw className="size-3.5" /> Luruskan
+                                    </Button>
+                                )}
+                                <Button size="sm" variant="outline" onClick={() => setSelectedId(null)}>
+                                    Selesai
+                                </Button>
+                            </span>
+                        )}
+                    </div>
+                )}
+                <MapView
+                    odps={odps}
+                    customers={customers}
+                    showCustomers={showCustomers}
+                    showLines={showLines}
+                    pickMode={picking}
+                    onPick={onPick}
+                    editLines={editLines && showLines}
+                    selectedCustomerId={selectedId}
+                    onSelectCustomer={setSelectedId}
+                    onCableChange={saveCable}
+                />
             </Card>
 
             <Card>
@@ -129,17 +181,17 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Kode</Th>
-                                    <Th>Nama</Th>
-                                    <Th>Router / POP</Th>
-                                    <Th>Port terpakai</Th>
+                                    <SortTh column="code" state={sort}>Kode</SortTh>
+                                    <SortTh column="name" state={sort}>Nama</SortTh>
+                                    <SortTh column="router" state={sort}>Router / POP</SortTh>
+                                    <SortTh column="ports" state={sort}>Port terpakai</SortTh>
                                     <Th>Koordinat</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {odps.map((odp) => (
+                                {sort.rows.map((odp) => (
                                     <tr key={odp.id} className="hover:bg-muted/40">
                                         <Td className="num font-medium">{odp.code}</Td>
                                         <Td>{odp.name}</Td>

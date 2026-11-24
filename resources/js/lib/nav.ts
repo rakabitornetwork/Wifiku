@@ -10,6 +10,7 @@ import {
     Router,
     ScrollText,
     Settings,
+    ShieldCheck,
     ShoppingCart,
     TrendingUp,
     UserCog,
@@ -42,12 +43,18 @@ export const navigation: NavGroup[] = [
         ],
     },
     {
-        title: 'Network & Pelanggan',
+        title: 'Pelanggan',
         items: [
             { label: 'Data Pelanggan', href: '/customers', icon: Users, match: '/customers', permission: 'customers.view' },
             { label: 'Paket Bandwidth', href: '/packages', icon: Package, match: '/packages', permission: 'packages.manage' },
             { label: 'Voucher Hotspot', href: '/hotspot/batches', icon: Wifi, match: '/hotspot', permission: 'vouchers.manage' },
+        ],
+    },
+    {
+        title: 'Network',
+        items: [
             { label: 'Manajemen Router', href: '/routers', icon: Router, match: '/routers', permission: 'routers.manage' },
+            { label: 'VPN Tunnel', href: '/vpn', icon: ShieldCheck, match: '/vpn', permission: 'vpn.manage' },
             { label: 'Monitoring OLT & TR-069', href: '/monitoring', icon: Activity, match: '/monitoring', permission: 'assets.manage' },
             { label: 'Inventaris ONT & Aset', href: '/assets', icon: Boxes, match: '/assets', permission: 'assets.manage' },
         ],

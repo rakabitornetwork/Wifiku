@@ -9,10 +9,11 @@ import { Card, StatCard } from '@/Components/ui/Card';
 import { Field, Input, Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { useCan } from '@/Hooks/useCan';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type OntRow = {
     id: number;
@@ -43,6 +44,7 @@ type Props = {
 const rxTone = (value: number) => (value >= -25 ? 'text-emerald-600 dark:text-emerald-400' : value >= -27 ? 'text-amber-600 dark:text-amber-400' : 'text-destructive');
 
 export default function MonitoringIndex({ onts, filters, summary, genieacsConfigured }: Props) {
+    const sort = useServerSort();
     const can = useCan();
     const [wifiOnt, setWifiOnt] = useState<OntRow | null>(null);
     const [reading, setReading] = useState<number | null>(null);
@@ -144,11 +146,11 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Serial number</Th>
-                                    <Th>Model</Th>
-                                    <Th>Pelanggan</Th>
-                                    <Th>RX Power</Th>
-                                    <Th>Terakhir terlihat</Th>
+                                    <SortTh column="serial_number" state={sort}>Serial number</SortTh>
+                                    <SortTh column="model" state={sort}>Model</SortTh>
+                                    <SortTh column="customer" state={sort}>Pelanggan</SortTh>
+                                    <SortTh column="rx_power" state={sort}>RX Power</SortTh>
+                                    <SortTh column="last_seen" state={sort}>Terakhir terlihat</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

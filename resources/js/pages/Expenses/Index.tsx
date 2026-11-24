@@ -10,9 +10,10 @@ import { Card } from '@/Components/ui/Card';
 import { Field, Input, Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate, formatRupiah } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type Category = { id: number; name: string; type: string; expenses_count: number };
 type ExpenseRow = {
@@ -41,6 +42,7 @@ const typeLabels: Record<string, string> = { bandwidth: 'Bandwidth', equipment: 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function ExpensesIndex({ expenses, total, categories, routers, filters }: Props) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<ExpenseRow | null>(null);
     const [open, setOpen] = useState(false);
     const [manageCategories, setManageCategories] = useState(false);
@@ -137,12 +139,12 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Tanggal</Th>
-                                    <Th>Kategori</Th>
-                                    <Th>Keterangan</Th>
-                                    <Th>POP</Th>
-                                    <Th className="text-right">Jumlah</Th>
-                                    <Th>Dicatat</Th>
+                                    <SortTh column="date" state={sort}>Tanggal</SortTh>
+                                    <SortTh column="category" state={sort}>Kategori</SortTh>
+                                    <SortTh column="description" state={sort}>Keterangan</SortTh>
+                                    <SortTh column="router" state={sort}>POP</SortTh>
+                                    <SortTh column="amount" state={sort} className="text-right">Jumlah</SortTh>
+                                    <SortTh column="creator" state={sort}>Dicatat</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

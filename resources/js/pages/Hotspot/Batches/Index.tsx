@@ -9,9 +9,10 @@ import { buttonClass } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Select } from '@/Components/ui/Field';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type BatchRow = {
     id: number;
@@ -28,6 +29,7 @@ type BatchRow = {
 };
 
 export default function BatchesIndex({ batches, routers, routerId, routerStats }: { batches: Paginated<BatchRow>; routers: { id: number; name: string }[]; routerId: string; routerStats: Record<string, number> | null }) {
+    const sort = useServerSort();
     return (
         <>
             <PageHeader
@@ -72,14 +74,14 @@ export default function BatchesIndex({ batches, routers, routerId, routerStats }
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Kode batch</Th>
-                                    <Th>Profil</Th>
-                                    <Th>Router</Th>
-                                    <Th>Reseller</Th>
-                                    <Th>Voucher</Th>
-                                    <Th>Terpakai</Th>
-                                    <Th>Dibuat</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="batch_code" state={sort}>Kode batch</SortTh>
+                                    <SortTh column="profile" state={sort}>Profil</SortTh>
+                                    <SortTh column="router" state={sort}>Router</SortTh>
+                                    <SortTh column="reseller" state={sort}>Reseller</SortTh>
+                                    <SortTh column="vouchers" state={sort}>Voucher</SortTh>
+                                    <SortTh column="used" state={sort}>Terpakai</SortTh>
+                                    <SortTh column="created" state={sort}>Dibuat</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                 </tr>
                             </thead>
                             <tbody>

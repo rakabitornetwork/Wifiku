@@ -70,6 +70,19 @@
         border-color: var(--color-border);
     }
 
+    /* Scrollbar mengikuti tema; gutter dicadangkan agar isi tidak bergeser saat scrollbar muncul/hilang. */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent) transparent;
+    }
+
+    html,
+    .overflow-auto,
+    .overflow-y-auto,
+    .overflow-y-scroll {
+        scrollbar-gutter: stable;
+    }
+
     body {
         background-color: var(--color-background);
         color: var(--color-foreground);
@@ -143,4 +156,26 @@ html.theme-transition *::after {
 .leaflet-container {
     font-family: inherit;
     background: var(--muted);
+}
+
+/* Garis tarikan ODP → pelanggan: aliran putus-putus searah dari ODP. */
+.odp-link-line {
+    animation: odp-link-flow 1s linear infinite;
+}
+
+@keyframes odp-link-flow {
+    to {
+        stroke-dashoffset: -12;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .odp-link-line {
+        animation: none;
+    }
+}
+
+/* Mode atur jalur kabel: area klik garis menampilkan kursor penunjuk. */
+.cable-editing .odp-link-hit {
+    cursor: pointer;
 }

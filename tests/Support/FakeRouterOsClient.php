@@ -54,6 +54,13 @@ class FakeRouterOsClient implements RouterOsClient
 
                 return [];
             case 'set':
+                // Menu singleton (mis. /interface/l2tp-server/server) di-set tanpa .id.
+                if (! isset($attributes['.id'])) {
+                    $this->tables[$menu][0] = [...($rows[0] ?? []), ...array_map('strval', $attributes)];
+
+                    return [];
+                }
+
                 foreach ($rows as $index => $row) {
                     if ($row['.id'] === $attributes['.id']) {
                         $this->tables[$menu][$index] = [...$row, ...array_map('strval', $attributes)];

@@ -6,6 +6,7 @@ use App\Http\Requests\ExpenseRequest;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Router;
+use App\Models\User;
 use App\Support\Toast;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +32,7 @@ class ExpenseController extends Controller
                 ->with(['expenseCategory:id,name,type', 'router:id,name', 'creator:id,name'])
                 ->orderByDesc('expense_date')
                 ->orderByDesc('id')
+                ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
                 ->paginate($this->perPage(15))
                 ->withQueryString(),
             'total' => (int) $query->sum('amount'),
@@ -94,5 +96,20 @@ class ExpenseController extends Controller
         return preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $request->query('month'))
             ? CarbonImmutable::createFromFormat('Y-m-d', $request->query('month').'-01')->startOfDay()
             : CarbonImmutable::today()->startOfMonth();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'date' => 'expense_date',
+            'category' => fn () => ExpenseCategory::query()->select('name')->whereColumn('expense_categories.id', 'expenses.expense_category_id'),
+            'description' => 'description',
+            'router' => fn () => Router::query()->select('name')->whereColumn('routers.id', 'expenses.router_id'),
+            'amount' => 'amount',
+            'creator' => fn () => User::query()->select('name')->whereColumn('users.id', 'expenses.created_by'),
+        ];
     }
 }

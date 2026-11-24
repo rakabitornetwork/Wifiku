@@ -13,7 +13,7 @@ export type MapOdp = {
     open_outages_count: number;
 };
 
-export type MapCustomer = { id: number; customer_code: string; name: string; latitude: string; longitude: string; status: string; odp_id: number | null };
+export type MapCustomer = { id: number; customer_code: string; name: string; latitude: string; longitude: string; status: string; odp_id: number | null; cable_path: [number, number][] | null };
 
 type Props = {
     odps: MapOdp[];
@@ -22,7 +22,25 @@ type Props = {
     showLines: boolean;
     pickMode: boolean;
     onPick: (latitude: number, longitude: number) => void;
+    editLines?: boolean;
+    selectedCustomerId?: number | null;
+    onSelectCustomer?: (id: number | null) => void;
+    onCableChange?: (customerId: number, path: [number, number][] | null) => void;
 };
+
+type CableLine = { line: L.Polyline; odp: L.LatLngTuple; end: L.LatLngTuple; waypoints: L.LatLngTuple[] };
+
+function handleIcon(kind: 'vertex' | 'mid'): L.DivIcon {
+    const size = kind === 'vertex' ? 14 : 10;
+    const style = kind === 'vertex' ? 'background:#f59e0b;border:2px solid #fff' : 'background:#fff;border:2px solid #f59e0b;opacity:.85';
+
+    return L.divIcon({
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.45);cursor:grab;${style}"></div>`,
+    });
+}
 
 /** Popup dibangun dari node DOM (textContent) agar nama pelanggan/ODP tidak pernah ditafsirkan sebagai HTML. */
 function popup(title: string, lines: string[]): HTMLElement {
@@ -50,13 +68,71 @@ function odpColor(odp: MapOdp): string {
 
 const statusColor: Record<string, string> = { active: '#6366f1', isolated: '#ef4444', inactive: '#94a3b8' };
 
-export function MapView({ odps, customers, showCustomers, showLines, pickMode, onPick }: Props) {
+export function MapView({ odps, customers, showCustomers, showLines, pickMode, onPick, editLines = false, selectedCustomerId = null, onSelectCustomer, onCableChange }: Props) {
     const container = useRef<HTMLDivElement>(null);
     const map = useRef<L.Map | null>(null);
     const layer = useRef<L.LayerGroup | null>(null);
     const fitted = useRef(false);
     const pickRef = useRef({ pickMode, onPick });
     pickRef.current = { pickMode, onPick };
+    const handles = useRef<L.LayerGroup | null>(null);
+    const lines = useRef(new Map<number, CableLine>());
+    const editRef = useRef({ editLines, selectedCustomerId, onSelectCustomer, onCableChange });
+    editRef.current = { editLines, selectedCustomerId, onSelectCustomer, onCableChange };
+
+    /** Gambar ulang pegangan titik belok untuk garis yang sedang dipilih. */
+    const renderHandles = () => {
+        const group = handles.current;
+        group?.clearLayers();
+        const { editLines: editing, selectedCustomerId: id, onCableChange: save } = editRef.current;
+        const entry = id !== null ? lines.current.get(id) : undefined;
+
+        if (!group || !editing || id === null || !entry) {
+            return;
+        }
+
+        const fullPath = (): L.LatLngTuple[] => [entry.odp, ...entry.waypoints, entry.end];
+        const commit = () => {
+            entry.line.setLatLngs(fullPath());
+            save?.(id, entry.waypoints.length > 0 ? entry.waypoints.map(([lat, lng]) => [Number(lat.toFixed(7)), Number(lng.toFixed(7))]) : null);
+            renderHandles();
+        };
+        const tuple = (latlng: L.LatLng): L.LatLngTuple => [latlng.lat, latlng.lng];
+
+        entry.waypoints.forEach((point, index) => {
+            const marker = L.marker(point, { icon: handleIcon('vertex'), draggable: true, zIndexOffset: 1000 }).addTo(group);
+            marker.on('drag', () => {
+                entry.waypoints[index] = tuple(marker.getLatLng());
+                entry.line.setLatLngs(fullPath());
+            });
+            marker.on('dragend', commit);
+            const remove = () => {
+                entry.waypoints.splice(index, 1);
+                commit();
+            };
+            marker.on('dblclick', (event) => {
+                L.DomEvent.stopPropagation(event);
+                remove();
+            });
+            marker.on('contextmenu', remove);
+        });
+
+        const path = fullPath();
+
+        for (let index = 0; index < path.length - 1; index++) {
+            const middle: L.LatLngTuple = [(path[index][0] + path[index + 1][0]) / 2, (path[index][1] + path[index + 1][1]) / 2];
+            const marker = L.marker(middle, { icon: handleIcon('mid'), draggable: true, zIndexOffset: 900 }).addTo(group);
+            marker.on('drag', () => {
+                const preview = [...entry.waypoints];
+                preview.splice(index, 0, tuple(marker.getLatLng()));
+                entry.line.setLatLngs([entry.odp, ...preview, entry.end]);
+            });
+            marker.on('dragend', () => {
+                entry.waypoints.splice(index, 0, tuple(marker.getLatLng()));
+                commit();
+            });
+        }
+    };
 
     useEffect(() => {
         if (!container.current || map.current) {
@@ -74,7 +150,9 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
             }
         });
 
+        instance.doubleClickZoom.disable();
         layer.current = L.layerGroup().addTo(instance);
+        handles.current = L.layerGroup().addTo(instance);
         map.current = instance;
 
         return () => {
@@ -92,6 +170,7 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
         }
 
         group.clearLayers();
+        lines.current.clear();
         const points: L.LatLngExpression[] = [];
         const odpPosition = new Map<number, L.LatLngTuple>();
 
@@ -129,7 +208,19 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
                 const odpPoint = customer.odp_id ? odpPosition.get(customer.odp_id) : undefined;
 
                 if (showLines && odpPoint) {
-                    L.polyline([odpPoint, position], { color, weight: 1.5, opacity: 0.55, dashArray: '4 4' }).addTo(group);
+                    const waypoints: L.LatLngTuple[] = (customer.cable_path ?? []).map(([lat, lng]) => [Number(lat), Number(lng)]);
+                    const line = L.polyline([odpPoint, ...waypoints, position], { color, weight: 1.5, opacity: 0.55, dashArray: '6 6', className: 'odp-link-line' }).addTo(group);
+                    lines.current.set(customer.id, { line, odp: odpPoint, end: position, waypoints });
+
+                    // Garis tebal transparan sebagai area klik agar mudah dipilih di layar sentuh.
+                    L.polyline([odpPoint, ...waypoints, position], { color, weight: 16, opacity: 0, className: 'odp-link-hit' })
+                        .on('click', (event) => {
+                            if (editRef.current.editLines) {
+                                L.DomEvent.stopPropagation(event);
+                                editRef.current.onSelectCustomer?.(customer.id);
+                            }
+                        })
+                        .addTo(group);
                 }
             }
         }
@@ -138,7 +229,17 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
             map.current.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 16 });
             fitted.current = true;
         }
+
+        renderHandles();
     }, [odps, customers, showCustomers, showLines]);
+
+    useEffect(() => {
+        renderHandles();
+
+        if (container.current) {
+            container.current.classList.toggle('cable-editing', editLines);
+        }
+    }, [editLines, selectedCustomerId]);
 
     useEffect(() => {
         if (container.current) {
@@ -146,5 +247,5 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
         }
     }, [pickMode]);
 
-    return <div ref={container} className="h-[480px] w-full rounded-b-xl" />;
+    return <div ref={container} className="relative isolate z-0 h-[480px] w-full rounded-b-xl" />;
 }

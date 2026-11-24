@@ -18,6 +18,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\OdpController;
 use App\Http\Controllers\OutageController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PaymentExtensionController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResellerController;
@@ -27,6 +28,11 @@ use App\Http\Controllers\RouterImportController;
 use App\Http\Controllers\TopologyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
+use App\Http\Controllers\VpnAccountController;
+use App\Http\Controllers\VpnController;
+use App\Http\Controllers\VpnImportController;
+use App\Http\Controllers\VpnPortalController;
+use App\Http\Controllers\VpnServerController;
 use App\Http\Controllers\Webhooks\HotspotLoginWebhookController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +45,13 @@ Route::get('/isolir/{customer:customer_code}', IsolirController::class)
 Route::post('/isolir/{customer:customer_code}/pay', IsolirPaymentController::class)
     ->middleware('throttle:10,1')
     ->name('isolir.pay');
+
+Route::get('/layanan-vpn/{account:portal_token}', [VpnPortalController::class, 'show'])
+    ->middleware('throttle:30,1')
+    ->name('vpn-portal.show');
+Route::post('/layanan-vpn/{account:portal_token}/pay', [VpnPortalController::class, 'pay'])
+    ->middleware('throttle:10,1')
+    ->name('vpn-portal.pay');
 
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/payment/{driver}', PaymentWebhookController::class)->middleware('throttle:120,1')->name('payment');
@@ -63,6 +76,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/routers/{router}/hotspot-script', [RouterConnectionController::class, 'hotspotScript'])->name('routers.hotspot-script');
     });
 
+    Route::middleware('can:vpn.manage')->prefix('vpn')->name('vpn.')->group(function () {
+        Route::get('/', [VpnController::class, 'index'])->name('index');
+        Route::get('servers/{server}/script', [VpnServerController::class, 'script'])->name('servers.script');
+        Route::get('servers/{server}/import-preview', [VpnImportController::class, 'preview'])->name('servers.import-preview');
+        Route::post('servers/{server}/import', [VpnImportController::class, 'store'])->name('servers.import');
+        Route::post('servers/{server}/install', [VpnServerController::class, 'install'])->name('servers.install');
+        Route::resource('servers', VpnServerController::class)->only(['store', 'update', 'destroy']);
+        Route::get('accounts/{account}/scripts', [VpnAccountController::class, 'scripts'])->name('accounts.scripts');
+        Route::post('accounts/{account}/sync', [VpnAccountController::class, 'sync'])->name('accounts.sync');
+        Route::resource('accounts', VpnAccountController::class)->only(['store', 'update', 'destroy']);
+    });
+
+    Route::get('/packages/routers/{router}/ppp-profiles', [PackageController::class, 'pppProfiles'])->name('packages.ppp-profiles')->middleware('can:packages.manage');
     Route::resource('packages', PackageController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('can:packages.manage');
 
     Route::middleware('can:customers.view')->group(function () {
@@ -83,6 +109,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index')->middleware('can:invoices.view');
     Route::middleware('can:payments.collect')->group(function () {
+        Route::get('/customers/{customer}/extensions', [PaymentExtensionController::class, 'index'])->name('customers.extensions.index');
+        Route::post('/customers/{customer}/extensions', [PaymentExtensionController::class, 'store'])->name('customers.extensions.store');
         Route::post('/invoices/generate', [InvoiceController::class, 'generate'])->name('invoices.generate');
         Route::post('/invoices/{invoice}/payments', [InvoicePaymentController::class, 'store'])->name('invoices.payments.store');
     });
@@ -100,6 +128,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/topology', [TopologyController::class, 'index'])->name('topology.index')->middleware('can:topology.view');
+    Route::put('/topology/customers/{customer}/cable-route', [TopologyController::class, 'updateCableRoute'])->name('topology.cable-route')->middleware('can:topology.manage');
     Route::resource('odps', OdpController::class)->only(['store', 'update', 'destroy'])->middleware('can:topology.manage');
 
     Route::middleware('can:outages.manage')->group(function () {

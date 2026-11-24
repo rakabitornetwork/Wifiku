@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
@@ -8,12 +8,14 @@ import { SearchInput } from '@/Components/SearchInput';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
+import { Combobox } from '@/Components/ui/Combobox';
 import { Checkbox, Field, Input, Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatRupiah } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type PackageRow = {
     id: number;
@@ -30,9 +32,45 @@ type PackageRow = {
 const emptyForm = { router_id: '', name: '', mikrotik_profile: '', rate_limit: '', price: '', is_active: true };
 
 export default function PackagesIndex({ packages, routers, search, routerId }: { packages: Paginated<PackageRow>; routers: { id: number; name: string }[]; search: string; routerId: string }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<PackageRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
+    const [profiles, setProfiles] = useState<string[]>([]);
+    const [profilesLoading, setProfilesLoading] = useState(false);
+    const [profilesError, setProfilesError] = useState<string | null>(null);
+
+    // Daftar PPP profile dibaca langsung dari router yang dipilih; "Semua router" tidak punya daftar.
+    useEffect(() => {
+        setProfiles([]);
+        setProfilesError(null);
+
+        if (!open || !form.data.router_id) {
+            return;
+        }
+
+        const controller = new AbortController();
+        setProfilesLoading(true);
+        fetch(`/packages/routers/${form.data.router_id}/ppp-profiles`, { headers: { Accept: 'application/json' }, signal: controller.signal })
+            .then(async (response) => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error ?? 'Gagal membaca profile PPP.');
+                }
+
+                setProfiles(data.profiles);
+                setProfilesLoading(false);
+            })
+            .catch((exception: Error) => {
+                if (exception.name !== 'AbortError') {
+                    setProfilesError(exception.message);
+                    setProfilesLoading(false);
+                }
+            });
+
+        return () => controller.abort();
+    }, [open, form.data.router_id]);
 
     const openCreate = () => {
         setEditing(null);
@@ -102,13 +140,13 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Paket</Th>
-                                    <Th>Profile MikroTik</Th>
-                                    <Th>Rate limit</Th>
-                                    <Th>Router</Th>
-                                    <Th className="text-right">Harga / bulan</Th>
-                                    <Th>Pelanggan</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="name" state={sort}>Paket</SortTh>
+                                    <SortTh column="mikrotik_profile" state={sort}>Profile MikroTik</SortTh>
+                                    <SortTh column="rate_limit" state={sort}>Rate limit</SortTh>
+                                    <SortTh column="router" state={sort}>Router</SortTh>
+                                    <SortTh column="price" state={sort} className="text-right">Harga / bulan</SortTh>
+                                    <SortTh column="customers" state={sort}>Pelanggan</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
@@ -172,8 +210,25 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                             ))}
                         </Select>
                     </Field>
-                    <Field label="Profile PPP di MikroTik" error={form.errors.mikrotik_profile}>
-                        <Input value={form.data.mikrotik_profile} onChange={(event) => form.setData('mikrotik_profile', event.target.value)} required />
+                    <Field
+                        label="Profile PPP di MikroTik"
+                        error={form.errors.mikrotik_profile}
+                        hint={
+                            profilesError ??
+                            (!form.data.router_id
+                                ? 'Pilih router untuk melihat daftar profile; atau ketik nama baru.'
+                                : profilesLoading
+                                  ? 'Membaca profile dari router...'
+                                  : 'Pilih dari daftar router, atau ketik nama baru (akan dibuat di router).')
+                        }
+                    >
+                        <Combobox
+                            value={form.data.mikrotik_profile}
+                            options={profiles}
+                            onChange={(value) => form.setData('mikrotik_profile', value)}
+                            placeholder={profiles.length > 0 ? 'Pilih profile...' : undefined}
+                            required
+                        />
                     </Field>
                     <Field label="Rate limit" error={form.errors.rate_limit} hint="Contoh: 20M/20M">
                         <Input value={form.data.rate_limit} onChange={(event) => form.setData('rate_limit', event.target.value)} />

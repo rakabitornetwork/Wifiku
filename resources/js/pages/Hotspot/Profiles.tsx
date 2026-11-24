@@ -11,9 +11,10 @@ import { Card } from '@/Components/ui/Card';
 import { Checkbox, Field, Input, Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDuration, formatRupiah } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type ProfileRow = {
     id: number;
@@ -64,6 +65,7 @@ function splitValidity(minutes: number): { value: string; unit: string } {
 }
 
 export default function HotspotProfiles({ profiles, routers }: { profiles: Paginated<ProfileRow>; routers: { id: number; name: string }[] }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<ProfileRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
@@ -172,13 +174,13 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>Profil</Th>
-                                    <Th>Router</Th>
-                                    <Th>Profile MikroTik</Th>
-                                    <Th className="text-right">Harga jual</Th>
-                                    <Th>Masa aktif</Th>
-                                    <Th>Voucher</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="name" state={sort}>Profil</SortTh>
+                                    <SortTh column="router" state={sort}>Router</SortTh>
+                                    <SortTh column="mikrotik_profile" state={sort}>Profile MikroTik</SortTh>
+                                    <SortTh column="price" state={sort} className="text-right">Harga jual</SortTh>
+                                    <SortTh column="validity" state={sort}>Masa aktif</SortTh>
+                                    <SortTh column="vouchers" state={sort}>Voucher</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>

@@ -10,9 +10,10 @@ import { Card } from "@/Components/ui/Card";
 import { Field, Input, Select } from "@/Components/ui/Field";
 import { Modal } from "@/Components/ui/Modal";
 import { Pagination } from "@/Components/ui/Pagination";
-import { EmptyState, Table, TableWrap, Td, Th } from "@/Components/ui/Table";
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from "@/Components/ui/Table";
 import { formatDate, formatRupiah } from "@/lib/utils";
 import type { Paginated } from "@/types";
+import { useServerSort } from "@/Hooks/useSort";
 
 type InvoiceRow = {
     id: number;
@@ -24,7 +25,8 @@ type InvoiceRow = {
     total: number;
     amount_paid: number;
     status: string;
-    customer: { id: number; customer_code: string; name: string };
+    customer: { id: number; customer_code: string; name: string } | null;
+    vpn_account: { id: number; name: string; username: string; portal_token: string } | null;
 };
 
 type Filters = { search: string; status: string };
@@ -36,6 +38,7 @@ export default function InvoicesIndex({
     invoices: Paginated<InvoiceRow>;
     filters: Filters;
 }) {
+    const sort = useServerSort();
     const { props } = usePage();
     const canCollect =
         props.auth?.user.permissions.includes("payments.collect") ?? false;
@@ -126,13 +129,13 @@ export default function InvoicesIndex({
                         <Table>
                             <thead>
                                 <tr>
-                                    <Th>No. invoice</Th>
-                                    <Th>Pelanggan</Th>
-                                    <Th>Periode</Th>
-                                    <Th>Jatuh tempo</Th>
-                                    <Th className="text-right">Total</Th>
-                                    <Th className="text-right">Sisa</Th>
-                                    <Th>Status</Th>
+                                    <SortTh column="invoice_number" state={sort}>No. invoice</SortTh>
+                                    <SortTh column="customer" state={sort}>Pelanggan</SortTh>
+                                    <SortTh column="period" state={sort}>Periode</SortTh>
+                                    <SortTh column="due_date" state={sort}>Jatuh tempo</SortTh>
+                                    <SortTh column="total" state={sort} className="text-right">Total</SortTh>
+                                    <SortTh column="remaining" state={sort} className="text-right">Sisa</SortTh>
+                                    <SortTh column="status" state={sort}>Status</SortTh>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
@@ -154,10 +157,24 @@ export default function InvoicesIndex({
                                             )}
                                         </Td>
                                         <Td>
-                                            <span className="num text-xs text-muted-foreground">
-                                                {invoice.customer.customer_code}
-                                            </span>{" "}
-                                            {invoice.customer.name}
+                                            {invoice.customer ? (
+                                                <>
+                                                    <span className="num text-xs text-muted-foreground">
+                                                        {invoice.customer.customer_code}
+                                                    </span>{" "}
+                                                    {invoice.customer.name}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Badge tone="blue" className="mr-1.5">
+                                                        VPN
+                                                    </Badge>
+                                                    {invoice.vpn_account?.name}
+                                                    <span className="num ml-1.5 text-xs text-muted-foreground">
+                                                        {invoice.vpn_account?.username}
+                                                    </span>
+                                                </>
+                                            )}
                                         </Td>
                                         <Td className="whitespace-nowrap text-muted-foreground">
                                             {formatDate(invoice.period_start)} –{" "}
@@ -209,7 +226,7 @@ export default function InvoicesIndex({
                                                         </Button>
                                                     )}
                                                 <a
-                                                    href={`/isolir/${invoice.customer.customer_code}`}
+                                                    href={invoice.customer ? `/isolir/${invoice.customer.customer_code}` : `/layanan-vpn/${invoice.vpn_account?.portal_token}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className={buttonClass(
@@ -238,7 +255,7 @@ export default function InvoicesIndex({
                 title="Pembayaran Tunai"
                 description={
                     paying
-                        ? `${paying.invoice_number} · ${paying.customer.name}`
+                        ? `${paying.invoice_number} · ${paying.customer?.name ?? paying.vpn_account?.name}`
                         : undefined
                 }
                 footer={

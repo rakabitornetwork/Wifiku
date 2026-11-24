@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,6 +19,7 @@ class UserController extends Controller
             'users' => User::query()
                 ->with('roles:id,name')
                 ->orderBy('name')
+                ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
                 ->paginate($this->perPage(20))
                 ->through(fn (User $user): array => [
                     ...$user->only(['id', 'name', 'email', 'phone', 'is_active', 'last_login_at']),
@@ -108,5 +110,25 @@ class UserController extends Controller
         }
 
         return ! User::role('Owner')->where('is_active', true)->whereKeyNot($user->id)->exists();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'name' => 'name',
+            'email' => 'email',
+            'phone' => 'phone',
+            'role' => fn () => DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('model_has_roles.model_type', User::class)
+                ->whereColumn('model_has_roles.model_id', 'users.id')
+                ->select('roles.name')
+                ->limit(1),
+            'last_login' => 'last_login_at',
+            'status' => 'is_active',
+        ];
     }
 }

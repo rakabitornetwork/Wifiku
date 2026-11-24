@@ -28,6 +28,7 @@ class HotspotProfileController extends Controller
                 ->withCount('vouchers')
                 ->orderBy('router_id')
                 ->orderBy('price')
+                ->tap(fn ($query) => $this->applySort($query, $this->sortColumns()))
                 ->paginate($this->perPage(15))
                 ->withQueryString(),
             'routers' => Router::orderBy('name')->get(['id', 'name']),
@@ -121,5 +122,21 @@ class HotspotProfileController extends Controller
         Toast::success('Profil hotspot dihapus; profile di router ikut dihapus lewat antrean bila tidak sedang dipakai.');
 
         return back();
+    }
+
+    /**
+     * @return array<string, string|Closure>
+     */
+    private function sortColumns(): array
+    {
+        return [
+            'name' => 'name',
+            'router' => fn () => Router::query()->select('name')->whereColumn('routers.id', 'hotspot_profiles.router_id'),
+            'mikrotik_profile' => 'mikrotik_profile',
+            'price' => 'price',
+            'validity' => 'validity_minutes',
+            'vouchers' => 'vouchers_count',
+            'status' => 'is_active',
+        ];
     }
 }

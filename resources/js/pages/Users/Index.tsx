@@ -10,9 +10,10 @@ import { Card } from '@/Components/ui/Card';
 import { Checkbox, Field, Input, Select } from '@/Components/ui/Field';
 import { Modal } from '@/Components/ui/Modal';
 import { Pagination } from '@/Components/ui/Pagination';
-import { Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import type { Paginated } from '@/types';
+import { useServerSort } from '@/Hooks/useSort';
 
 type UserRow = { id: number; name: string; email: string; phone: string | null; is_active: boolean; last_login_at: string | null; role: string | null };
 
@@ -25,6 +26,7 @@ const roleLabels: Record<string, { label: string; hint: string }> = {
 const emptyForm = { name: '', email: '', phone: '', role: 'Teknisi', password: '', is_active: true };
 
 export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
+    const sort = useServerSort();
     const [editing, setEditing] = useState<UserRow | null>(null);
     const [open, setOpen] = useState(false);
     const form = useForm(emptyForm);
@@ -71,12 +73,12 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                     <Table>
                         <thead>
                             <tr>
-                                <Th>Nama</Th>
-                                <Th>Email</Th>
-                                <Th>Telepon</Th>
-                                <Th>Role</Th>
-                                <Th>Login terakhir</Th>
-                                <Th>Status</Th>
+                                <SortTh column="name" state={sort}>Nama</SortTh>
+                                <SortTh column="email" state={sort}>Email</SortTh>
+                                <SortTh column="phone" state={sort}>Telepon</SortTh>
+                                <SortTh column="role" state={sort}>Role</SortTh>
+                                <SortTh column="last_login" state={sort}>Login terakhir</SortTh>
+                                <SortTh column="status" state={sort}>Status</SortTh>
                                 <Th className="text-right">Aksi</Th>
                             </tr>
                         </thead>

@@ -3,8 +3,9 @@ import { AlertTriangle, Receipt, Router, Ticket, UserCheck, Users } from 'lucide
 import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardHeader, StatCard } from '@/Components/ui/Card';
 import { StatusBadge } from '@/Components/ui/Badge';
-import { EmptyState, Table, TableWrap, Td, Th } from '@/Components/ui/Table';
+import { EmptyState, Table, TableWrap, Td, SortTh, Th } from '@/Components/ui/Table';
 import { formatDate, formatNumber, formatRupiah } from '@/lib/utils';
+import { useClientSort } from '@/Hooks/useSort';
 
 type Props = {
     stats: {
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export default function Dashboard({ stats, routers }: Props) {
+    const sort = useClientSort(routers, { name: (row) => row.name, host: (row) => row.host, status: (row) => row.status, last_checked: (row) => row.last_checked_at });
     return (
         <>
             <PageHeader title="Dashboard" description="Ringkasan operasional jaringan dan pelanggan." />
@@ -42,14 +44,14 @@ export default function Dashboard({ stats, routers }: Props) {
                             <Table>
                                 <thead>
                                     <tr>
-                                        <Th>Router</Th>
-                                        <Th>Host</Th>
-                                        <Th>Status</Th>
-                                        <Th>Terakhir dicek</Th>
+                                        <SortTh column="name" state={sort}>Router</SortTh>
+                                        <SortTh column="host" state={sort}>Host</SortTh>
+                                        <SortTh column="status" state={sort}>Status</SortTh>
+                                        <SortTh column="last_checked" state={sort}>Terakhir dicek</SortTh>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {routers.map((router) => (
+                                    {sort.rows.map((router) => (
                                         <tr key={router.id}>
                                             <Td className="font-medium">{router.name}</Td>
                                             <Td className="num text-muted-foreground">{router.host}</Td>

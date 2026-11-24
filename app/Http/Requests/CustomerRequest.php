@@ -68,7 +68,6 @@ class CustomerRequest extends FormRequest
             'due_days' => ['required', 'integer', 'between:1,60'],
             'installed_at' => ['required', 'date'],
             'status' => ['required', Rule::enum(CustomerStatus::class)],
-            'promise_to_pay_until' => ['nullable', 'date'],
         ];
     }
 
