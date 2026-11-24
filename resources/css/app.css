@@ -44,6 +44,12 @@
     --destructive: oklch(0.58 0.22 25);
     --sidebar: oklch(0.99 0.002 250);
     --sidebar-border: oklch(0.93 0.006 255);
+    /* Gradasi sidebar dan navbar: putih berbias indigo di atas menuju lavender lembut di bawah. */
+    --sidebar-from: oklch(0.985 0.014 275);
+    --sidebar-to: oklch(0.945 0.036 298);
+    --sidebar-glow: oklch(0.6 0.2 275 / 0.14);
+    --navbar-tint-1: oklch(0.6 0.2 275 / 0.1);
+    --navbar-tint-2: oklch(0.62 0.2 305 / 0.08);
 }
 
 .dark {
@@ -63,6 +69,11 @@
     --destructive: oklch(0.68 0.2 25);
     --sidebar: oklch(0.18 0.016 265);
     --sidebar-border: oklch(0.27 0.018 265);
+    --sidebar-from: oklch(0.225 0.05 275);
+    --sidebar-to: oklch(0.15 0.035 300);
+    --sidebar-glow: oklch(0.65 0.2 275 / 0.25);
+    --navbar-tint-1: oklch(0.65 0.2 275 / 0.16);
+    --navbar-tint-2: oklch(0.65 0.2 305 / 0.12);
 }
 
 @layer base {
@@ -98,6 +109,19 @@
     background-color: color-mix(in oklab, var(--card) 72%, transparent);
     backdrop-filter: blur(14px) saturate(1.4);
     -webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+
+/* Latar sidebar: gradasi vertikal dengan pendar lembut di sudut atas (area logo). */
+@utility bg-sidebar-gradient {
+    background-color: var(--sidebar);
+    background-image:
+        radial-gradient(120% 55% at 0% 0%, var(--sidebar-glow), transparent 65%),
+        linear-gradient(180deg, var(--sidebar-from), var(--sidebar-to));
+}
+
+/* Lapisan warna navbar di atas efek kaca: indigo ke ungu, memudar ke kanan. */
+@utility bg-navbar-gradient {
+    background-image: linear-gradient(90deg, var(--navbar-tint-1), var(--navbar-tint-2) 55%, transparent 100%);
 }
 
 @utility num {

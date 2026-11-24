@@ -44,7 +44,12 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
             href={item.href}
             onClick={onNavigate}
             title={collapsed ? item.label : undefined}
-            className={cn(base, active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}
+            className={cn(
+                base,
+                active
+                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25'
+                    : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground',
+            )}
         >
             <Icon className="size-[18px] shrink-0" />
             {!collapsed && <span className="truncate">{item.label}</span>}
@@ -103,7 +108,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     const sidebar = (compact: boolean) => (
         <div className="flex h-full flex-col">
             <div className={cn('flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4', compact && 'justify-center px-0')}>
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20">
                     <Wifi className="size-4" />
                 </div>
                 {!compact && (
@@ -143,7 +148,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="min-h-screen">
             <aside
                 className={cn(
-                    'fixed inset-y-0 left-0 z-30 hidden border-r border-sidebar-border bg-sidebar transition-[width] duration-200 lg:block',
+                    'fixed inset-y-0 left-0 z-30 hidden border-r border-sidebar-border bg-sidebar-gradient transition-[width] duration-200 lg:block',
                     collapsed ? 'w-[68px]' : 'w-64',
                 )}
             >
@@ -153,7 +158,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             {mobileOpen && <div className="fixed inset-0 z-40 animate-fade-in bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
             <aside
                 className={cn(
-                    'fixed inset-y-0 left-0 z-50 w-72 border-r border-sidebar-border bg-sidebar shadow-xl transition-transform duration-200 lg:hidden',
+                    'fixed inset-y-0 left-0 z-50 w-72 border-r border-sidebar-border bg-sidebar-gradient shadow-xl transition-transform duration-200 lg:hidden',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full',
                 )}
             >
@@ -164,7 +169,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </aside>
 
             <div className={cn('transition-[padding] duration-200', collapsed ? 'lg:pl-[68px]' : 'lg:pl-64')}>
-                <header className="glass sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-4 sm:px-6">
+                <header className="glass bg-navbar-gradient sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-[-1px] after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/50 after:to-transparent sm:px-6">
                     <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Buka menu">
                         <Menu className="size-5" />
                     </Button>
