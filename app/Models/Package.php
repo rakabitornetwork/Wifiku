@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['router_id', 'name', 'mikrotik_profile', 'rate_limit', 'price', 'is_active'])]
+#[Fillable(['router_id', 'name', 'mikrotik_profile', 'rate_limit', 'price', 'is_active', 'show_on_landing', 'landing_highlight', 'landing_description'])]
 class Package extends Model
 {
     /** @use HasFactory<PackageFactory> */
@@ -22,7 +22,7 @@ class Package extends Model
      *
      * @var list<string>
      */
-    protected array $audited = ['router_id', 'name', 'mikrotik_profile', 'rate_limit', 'price', 'is_active'];
+    protected array $audited = ['router_id', 'name', 'mikrotik_profile', 'rate_limit', 'price', 'is_active', 'show_on_landing', 'landing_highlight', 'landing_description'];
 
     public static function auditName(): string
     {
@@ -39,6 +39,8 @@ class Package extends Model
         return [
             'price' => 'integer',
             'is_active' => 'boolean',
+            'show_on_landing' => 'boolean',
+            'landing_highlight' => 'boolean',
         ];
     }
 

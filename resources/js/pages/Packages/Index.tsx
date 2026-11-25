@@ -25,11 +25,14 @@ type PackageRow = {
     rate_limit: string | null;
     price: number;
     is_active: boolean;
+    show_on_landing: boolean;
+    landing_highlight: boolean;
+    landing_description: string | null;
     router: { id: number; name: string } | null;
     customers_count: number;
 };
 
-const emptyForm = { router_id: '', name: '', mikrotik_profile: '', rate_limit: '', price: '', is_active: true };
+const emptyForm = { router_id: '', name: '', mikrotik_profile: '', rate_limit: '', price: '', is_active: true, show_on_landing: false, landing_highlight: false, landing_description: '' };
 
 export default function PackagesIndex({ packages, routers, search, routerId }: { packages: Paginated<PackageRow>; routers: { id: number; name: string }[]; search: string; routerId: string }) {
     const sort = useServerSort();
@@ -88,6 +91,9 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
             rate_limit: item.rate_limit ?? '',
             price: String(item.price),
             is_active: item.is_active,
+            show_on_landing: item.show_on_landing,
+            landing_highlight: item.landing_highlight,
+            landing_description: item.landing_description ?? '',
         });
         form.clearErrors();
         setOpen(true);
@@ -238,6 +244,18 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                     </Field>
                     <div className="sm:col-span-2">
                         <Checkbox label="Paket aktif (dapat dipilih untuk pelanggan baru)" checked={form.data.is_active} onChange={(checked) => form.setData('is_active', checked)} />
+                    </div>
+                    <div className="space-y-3 rounded-lg border p-3 sm:col-span-2">
+                        <p className="text-xs font-medium text-muted-foreground">Landing page publik</p>
+                        <Checkbox label="Tampilkan di bagian Harga landing page" checked={form.data.show_on_landing} onChange={(checked) => form.setData('show_on_landing', checked)} />
+                        {form.data.show_on_landing && (
+                            <>
+                                <Checkbox label="Sorot sebagai “Paling banyak diambil”" checked={form.data.landing_highlight} onChange={(checked) => form.setData('landing_highlight', checked)} />
+                                <Field label="Deskripsi singkat" error={form.errors.landing_description} hint="Satu kalimat untuk kartu harga, maksimal 160 karakter.">
+                                    <Input value={form.data.landing_description} maxLength={160} onChange={(event) => form.setData('landing_description', event.target.value)} />
+                                </Field>
+                            </>
+                        )}
                     </div>
                 </form>
             </Modal>

@@ -16,6 +16,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\IsolirController;
 use App\Http\Controllers\IsolirPaymentController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\OdpController;
 use App\Http\Controllers\OutageController;
@@ -46,8 +47,9 @@ use App\Http\Controllers\Webhooks\HotspotLoginWebhookController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
 
-// Halaman utama: pengunjung diarahkan ke landing page layanan; staf yang sudah login langsung ke dashboard.
-Route::get('/', fn () => auth('web')->check() ? redirect()->route('dashboard') : redirect()->route('vpn-member.landing'))->name('home');
+// Halaman utama: landing page perusahaan (publik). Panel admin dibuka lewat /login atau tombol Dashboard.
+Route::get('/', LandingController::class)->name('home');
+Route::get('/terms-of-service', [LandingController::class, 'terms'])->name('terms');
 
 Route::get('/isolir/{customer:customer_code}', IsolirController::class)
     ->middleware('throttle:30,1')

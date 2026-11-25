@@ -94,6 +94,13 @@
         scrollbar-gutter: stable;
     }
 
+    /* Lompat ke anchor landing page dengan gulir halus (dinonaktifkan bila pengguna memilih mengurangi gerakan). */
+    @media (prefers-reduced-motion: no-preference) {
+        html {
+            scroll-behavior: smooth;
+        }
+    }
+
     body {
         background-color: var(--color-background);
         color: var(--color-foreground);

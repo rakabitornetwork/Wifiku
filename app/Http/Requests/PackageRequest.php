@@ -29,6 +29,9 @@ class PackageRequest extends FormRequest
             'rate_limit' => ['nullable', 'string', 'max:50'],
             'price' => ['required', 'integer', 'min:0', 'max:100000000'],
             'is_active' => ['boolean'],
+            'show_on_landing' => ['boolean'],
+            'landing_highlight' => ['boolean'],
+            'landing_description' => ['nullable', 'string', 'max:160'],
         ];
     }
 }

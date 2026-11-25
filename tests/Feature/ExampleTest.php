@@ -13,28 +13,23 @@ class ExampleTest extends TestCase
     use CreatesUsers;
     use RefreshDatabase;
 
-    public function test_root_sends_visitors_to_the_landing_page(): void
+    public function test_root_is_the_public_landing_page_for_everyone(): void
     {
-        $this->get('/')->assertRedirect('/vpn-tunnel');
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Landing')->where('staff', false));
+
+        $this->actingAs($this->admin())->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Landing')->where('staff', true));
     }
 
-    public function test_root_sends_logged_in_staff_to_the_dashboard(): void
+    public function test_a_vpn_member_session_is_not_treated_as_staff_on_the_landing_page(): void
     {
-        $this->actingAs($this->admin())->get('/')->assertRedirect('/dashboard');
+        $this->actingAs(VpnMember::factory()->create(), 'member');
+
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('staff', false));
     }
 
-    public function test_root_sends_vpn_members_to_the_landing_page_not_the_admin_dashboard(): void
+    public function test_admin_login_stays_reachable(): void
     {
-        $this->actingAs(VpnMember::factory()->make(['id' => 1]), 'member');
-
-        $this->get('/')->assertRedirect('/vpn-tunnel');
-    }
-
-    public function test_landing_page_is_public_and_links_staff_to_the_admin_login(): void
-    {
-        $this->followingRedirects()->get('/')->assertOk()->assertInertia(
-            fn (Assert $page) => $page->component('Public/Vpn/Landing')->where('loggedIn', false),
-        );
         $this->get('/login')->assertOk();
+        $this->get('/dashboard')->assertRedirect('/login');
     }
 }

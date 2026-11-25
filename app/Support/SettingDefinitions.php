@@ -13,6 +13,12 @@ class SettingDefinitions
     public const ALL = [
         'company.name' => ['label' => 'Nama perusahaan', 'default' => 'Wifi Teslatech', 'rules' => ['required', 'string', 'max:100']],
         'company.cs_whatsapp' => ['label' => 'No. WhatsApp CS', 'default' => null, 'rules' => ['nullable', 'string', 'max:20'], 'hint' => 'Ditampilkan di halaman isolir, format 62xxx.'],
+        'company.tagline' => ['label' => 'Tagline (landing page)', 'default' => 'Koneksi Rumah yang Stabil & Profesional', 'rules' => ['nullable', 'string', 'max:120']],
+        'company.address' => ['label' => 'Alamat (landing page)', 'default' => null, 'rules' => ['nullable', 'string', 'max:255']],
+        'company.operating_hours' => ['label' => 'Jam operasional', 'default' => 'Senin – Sabtu, 08.00 – 18.00', 'rules' => ['nullable', 'string', 'max:120']],
+        'company.email' => ['label' => 'Email kontak', 'default' => null, 'rules' => ['nullable', 'email', 'max:255']],
+        'company.instagram' => ['label' => 'URL Instagram', 'default' => null, 'rules' => ['nullable', 'url', 'max:255']],
+        'company.facebook' => ['label' => 'URL Facebook', 'default' => null, 'rules' => ['nullable', 'url', 'max:255']],
         'isolir.title' => ['label' => 'Judul halaman isolir', 'default' => 'Layanan Internet Anda Sedang Diisolir', 'rules' => ['required', 'string', 'max:150']],
         'isolir.message' => ['label' => 'Pesan halaman isolir', 'default' => 'Mohon segera melunasi tagihan Anda agar layanan dapat digunakan kembali.', 'rules' => ['nullable', 'string', 'max:1000']],
         'billing.reminder_days_before' => ['label' => 'Pengingat sebelum jatuh tempo (hari)', 'default' => '3', 'rules' => ['required', 'integer', 'between:1,30']],
