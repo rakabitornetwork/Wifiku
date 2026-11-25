@@ -7,7 +7,7 @@ import { Card } from '@/Components/ui/Card';
 import { Field, Input, Textarea } from '@/Components/ui/Field';
 import { cn, formatRupiah } from '@/lib/utils';
 
-import { type Company, type GalleryItem, type Plan, type Sections, waLink } from './types';
+import { type Company, type GalleryItem, type LandingImages, type Plan, type Sections, waLink } from './types';
 
 const icons: Record<string, LucideIcon> = { wifi: Wifi, signal: Signal, router: Router, shield: ShieldCheck, zap: Zap, radar: Radar, lock: Lock, headphones: Headphones };
 
@@ -29,7 +29,7 @@ function Section({ id, className, children }: { id: string; className?: string; 
     );
 }
 
-export function Hero({ content, company }: { content: Sections['hero']; company: Company }) {
+export function Hero({ content, company, image }: { content: Sections['hero']; company: Company; image: LandingImages['hero'] }) {
     const chat = waLink(company.whatsapp, `Halo ${company.name}, saya ingin konsultasi gratis pemasangan WiFi.`);
 
     return (
@@ -62,13 +62,20 @@ export function Hero({ content, company }: { content: Sections['hero']; company:
                 </div>
 
                 <div className="relative mx-auto aspect-square w-full max-w-md" aria-hidden="true">
-                    <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 shadow-2xl shadow-indigo-500/30" />
-                    <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-white">
-                        {[78, 58, 38, 18].map((radius, index) => (
-                            <circle key={radius} cx="100" cy="150" r={radius} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${radius * 2.2} ${radius * 4}`} strokeDashoffset={-radius * 0.15} opacity={0.35 + index * 0.18} transform="rotate(-90 100 150) rotate(0 100 150)" />
-                        ))}
-                        <circle cx="100" cy="150" r="7" fill="currentColor" />
-                    </svg>
+                    {image ? (
+                        <img src={image.url} alt="" className="absolute inset-0 size-full rounded-[2.5rem] object-cover shadow-2xl shadow-indigo-500/30" />
+                    ) : (
+                        <>
+                            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 shadow-2xl shadow-indigo-500/30" />
+                            <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-white">
+                                {[78, 58, 38, 18].map((radius, index) => (
+                                    <circle key={radius} cx="100" cy="150" r={radius} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${radius * 2.2} ${radius * 4}`} strokeDashoffset={-radius * 0.15} opacity={0.35 + index * 0.18} transform="rotate(-90 100 150) rotate(0 100 150)" />
+                                ))}
+                                <circle cx="100" cy="150" r="7" fill="currentColor" />
+                            </svg>
+                        </>
+                    )}
+                    {image?.is_ai && <span className="absolute right-4 bottom-4 rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Ilustrasi</span>}
                     <div className="absolute top-6 -left-3 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-left-6">
                         <span className="mr-1.5 inline-block size-2 rounded-full bg-emerald-500" /> Sinyal merata
                     </div>
@@ -111,11 +118,19 @@ export function Services({ content }: { content: Sections['services'] }) {
     );
 }
 
-export function About({ content }: { content: Sections['about'] }) {
+export function About({ content, image }: { content: Sections['about']; image: LandingImages['about'] }) {
     return (
         <Section id="tentang" className="bg-muted/40">
             <div className="grid items-center gap-10 lg:grid-cols-2">
-                <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} center={false} />
+                <div>
+                    <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} center={false} />
+                    {image && (
+                        <div className="relative mt-6">
+                            <img src={image.url} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-2xl border object-cover" />
+                            {image.is_ai && <span className="absolute right-3 bottom-3 rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Ilustrasi</span>}
+                        </div>
+                    )}
+                </div>
                 {content.stats.length > 0 && (
                     <dl className="grid grid-cols-3 gap-3">
                         {content.stats.map((stat) => (
@@ -255,12 +270,18 @@ export function Testimonials({ content }: { content: Sections['testimonials'] })
     );
 }
 
-export function Cta({ content, company }: { content: Sections['cta']; company: Company }) {
+export function Cta({ content, company, image }: { content: Sections['cta']; company: Company; image: LandingImages['cta'] }) {
     const chat = waLink(company.whatsapp, `Halo ${company.name}, saya ingin memasang WiFi di rumah.`);
 
     return (
         <section className="px-4 py-12">
             <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-14 text-center text-white shadow-2xl shadow-indigo-500/25 sm:px-12">
+                {image && (
+                    <>
+                        <img src={image.url} alt="" loading="lazy" className="pointer-events-none absolute inset-0 size-full object-cover opacity-40 mix-blend-overlay" />
+                        <div className="pointer-events-none absolute inset-0 bg-indigo-950/30" />
+                    </>
+                )}
                 <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-white/10 blur-3xl" />
                 <h2 className="relative mx-auto max-w-2xl text-2xl font-semibold tracking-tight text-balance sm:text-4xl">{content.title}</h2>
                 <p className="relative mx-auto mt-3 max-w-xl text-white/85">{content.body}</p>

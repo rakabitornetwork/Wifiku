@@ -19,6 +19,7 @@ use App\Http\Controllers\InvoicePaymentController;
 use App\Http\Controllers\IsolirController;
 use App\Http\Controllers\IsolirPaymentController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LandingImageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\OdpController;
 use App\Http\Controllers\OutageController;
@@ -52,6 +53,7 @@ use Illuminate\Support\Facades\Route;
 // Halaman utama: landing page perusahaan (publik). Panel admin dibuka lewat /login atau tombol Dashboard.
 Route::get('/', LandingController::class)->name('home');
 Route::get('/galeri/{photo}/{size}', [GalleryImageController::class, 'show'])->middleware('throttle:120,1')->name('gallery.image');
+Route::get('/gambar-landing/{slot}', [LandingImageController::class, 'show'])->middleware('throttle:120,1')->name('landing-image.show');
 Route::get('/terms-of-service', [LandingController::class, 'terms'])->name('terms');
 
 Route::get('/isolir/{customer:customer_code}', IsolirController::class)
@@ -134,6 +136,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [GalleryController::class, 'store'])->middleware('throttle:30,1')->name('store');
         Route::put('/{photo}', [GalleryController::class, 'update'])->name('update');
         Route::delete('/{photo}', [GalleryController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::middleware('can:settings.manage')->prefix('ilustrasi-landing')->name('landing-images.')->group(function () {
+        Route::get('/', [LandingImageController::class, 'index'])->name('index');
+        Route::post('/{slot}/generate', [LandingImageController::class, 'generate'])->middleware('throttle:6,1')->name('generate');
+        Route::post('/{slot}/upload', [LandingImageController::class, 'upload'])->middleware('throttle:20,1')->name('upload');
+        Route::delete('/{slot}', [LandingImageController::class, 'destroy'])->name('destroy');
     });
 
     Route::middleware('can:vpn.manage')->prefix('vpn')->name('vpn.')->group(function () {

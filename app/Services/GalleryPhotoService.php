@@ -52,9 +52,23 @@ class GalleryPhotoService
         $photo->delete();
     }
 
+    /**
+     * Dekode bytes gambar apa pun yang didukung lalu simpan ulang sebagai WebP (sisi terpanjang maksimal $maxSide).
+     *
+     * @throws ValidationException
+     */
+    public function normalize(string $raw, int $maxSide = self::FULL): string
+    {
+        return $this->encode($this->decodeRaw($raw, null), $maxSide);
+    }
+
     private function decode(UploadedFile $file): GdImage
     {
-        $raw = (string) file_get_contents($file->getRealPath());
+        return $this->decodeRaw((string) file_get_contents($file->getRealPath()), $file->getRealPath());
+    }
+
+    private function decodeRaw(string $raw, ?string $exifPath): GdImage
+    {
         $info = @getimagesizefromstring($raw);
 
         if ($info === false || ! in_array($info[2], self::ALLOWED_TYPES, true)) {
@@ -74,8 +88,8 @@ class GalleryPhotoService
             throw $this->error('Gambar rusak atau tidak dapat dibaca.');
         }
 
-        if ($info[2] === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
-            $angle = match (@exif_read_data($file->getRealPath())['Orientation'] ?? 1) {
+        if ($exifPath !== null && $info[2] === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
+            $angle = match (@exif_read_data($exifPath)['Orientation'] ?? 1) {
                 3 => 180,
                 6 => -90,
                 8 => 90,

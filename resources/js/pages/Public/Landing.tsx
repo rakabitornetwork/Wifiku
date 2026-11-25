@@ -3,19 +3,20 @@ import { Head } from '@inertiajs/react';
 import { Footer } from '@/Components/landing/Footer';
 import { LandingShell } from '@/Components/landing/LandingShell';
 import { About, Benefits, Contact, Cta, Gallery, Hero, Pricing, Process, Services, Testimonials, VpnSection } from '@/Components/landing/sections';
-import { type Company, type GalleryItem, type Plan, type Sections } from '@/Components/landing/types';
+import { type Company, type GalleryItem, type LandingImages, type Plan, type Sections } from '@/Components/landing/types';
 
 type Props = {
     company: Company;
     sections: Sections;
     plans: Plan[];
     gallery: GalleryItem[];
+    images: LandingImages;
     vpn: { price: number; registrationOpen: boolean; protocols: string[] };
     staff: boolean;
     seo: { title: string; description: string; canonical: string; jsonLd: Record<string, unknown> };
 };
 
-export default function Landing({ company, sections, plans, gallery, vpn, staff, seo }: Props) {
+export default function Landing({ company, sections, plans, gallery, images, vpn, staff, seo }: Props) {
     // "<" di-escape agar teks dari Pengaturan tidak bisa menutup tag script lebih awal.
     const jsonLd = JSON.stringify(seo.jsonLd).replace(/</g, '\\u003c');
 
@@ -33,15 +34,15 @@ export default function Landing({ company, sections, plans, gallery, vpn, staff,
                 <script type="application/ld+json">{jsonLd}</script>
             </Head>
 
-            <Hero content={sections.hero} company={company} />
+            <Hero content={sections.hero} company={company} image={images.hero} />
             <Services content={sections.services} />
             <Pricing content={sections.pricing} plans={plans} company={company} />
-            <About content={sections.about} />
+            <About content={sections.about} image={images.about} />
             <Benefits content={sections.benefits} />
             <Process content={sections.process} />
             <Gallery content={sections.gallery} photos={gallery} />
             <Testimonials content={sections.testimonials} />
-            <Cta content={sections.cta} company={company} />
+            <Cta content={sections.cta} company={company} image={images.cta} />
             <VpnSection content={sections.vpn} vpn={vpn} />
             <Contact content={sections.contact} company={company} />
             <Footer company={company} body={sections.footer.body} />

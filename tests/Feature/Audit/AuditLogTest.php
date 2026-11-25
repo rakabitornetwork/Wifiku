@@ -144,7 +144,7 @@ class AuditLogTest extends TestCase
     public function test_integration_settings_log_changed_keys_but_not_values(): void
     {
         $owner = $this->owner();
-        $payload = ['settings' => ['whatsapp' => ['base_url' => 'http://wa.local:3000', 'api_key' => 'token-wa-rahasia'], 'company' => ['name' => 'Wifi Teslatech'], 'isolir' => ['title' => 'T', 'message' => ''], 'billing' => ['reminder_days_before' => '3', 'extension_admin_max_days' => '14', 'extension_owner_max_days' => '62', 'vpn_invoice_days_before' => '5'], 'vpn' => ['member_price' => '25000', 'member_max_accounts' => '5'], 'genieacs' => ['rx_power_paths' => 'a', 'ssid_path' => 'b', 'wifi_password_path' => 'c']]];
+        $payload = ['settings' => ['whatsapp' => ['base_url' => 'http://wa.local:3000', 'api_key' => 'token-wa-rahasia'], 'company' => ['name' => 'Wifi Teslatech'], 'isolir' => ['title' => 'T', 'message' => ''], 'billing' => ['reminder_days_before' => '3', 'extension_admin_max_days' => '14', 'extension_owner_max_days' => '62', 'vpn_invoice_days_before' => '5'], 'vpn' => ['member_price' => '25000', 'member_max_accounts' => '5'], 'gemini' => ['model' => 'gemini-nano-banana-2.1'], 'genieacs' => ['rx_power_paths' => 'a', 'ssid_path' => 'b', 'wifi_password_path' => 'c']]];
         Activity::query()->delete();
 
         $this->actingAs($owner)->put('/settings/integrations', $payload)->assertSessionDoesntHaveErrors();

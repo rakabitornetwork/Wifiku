@@ -31,6 +31,7 @@ class IntegrationSettingController extends Controller
         'genieacs' => 'GenieACS (TR-069)',
         'hotspot' => 'Hotspot',
         'vpn' => 'VPN Tunnel (pendaftaran member)',
+        'gemini' => 'Gemini (ilustrasi AI)',
     ];
 
     public function index(SettingService $settings): Response

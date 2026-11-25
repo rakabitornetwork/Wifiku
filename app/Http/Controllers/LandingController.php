@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GalleryPhoto;
+use App\Models\LandingImage;
 use App\Models\Package;
 use App\Models\VpnServer;
 use App\Services\Settings\SettingService;
@@ -26,6 +27,7 @@ class LandingController extends Controller
             'sections' => LandingContent::sections($company['name']),
             'plans' => $this->plans(),
             'gallery' => $this->gallery(),
+            'images' => $this->images(),
             'vpn' => [
                 'price' => (int) $settings->get('vpn', 'member_price'),
                 'registrationOpen' => $settings->get('vpn', 'member_registration_open') === '1',
@@ -71,6 +73,22 @@ class LandingController extends Controller
             'instagram' => $value('instagram'),
             'facebook' => $value('facebook'),
         ];
+    }
+
+    /**
+     * URL ilustrasi per slot; slot tanpa gambar bernilai null (landing memakai ilustrasi bawaan).
+     *
+     * @return array<string, array{url: string, is_ai: bool}|null>
+     */
+    private function images(): array
+    {
+        $images = LandingImage::all()->keyBy('slot');
+
+        return collect(array_keys(LandingImage::SLOTS))->mapWithKeys(fn (string $slot) => [
+            $slot => isset($images[$slot])
+                ? ['url' => route('landing-image.show', [$slot, 'v' => $images[$slot]->updated_at?->timestamp]), 'is_ai' => $images[$slot]->is_ai]
+                : null,
+        ])->all();
     }
 
     /**

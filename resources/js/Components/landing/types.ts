@@ -36,3 +36,5 @@ export function waLink(number: string | null, text: string): string | null {
 }
 
 export type GalleryItem = { id: number; title: string; caption: string | null; thumb: string; full: string };
+
+export type LandingImages = Record<'hero' | 'about' | 'cta', { url: string; is_ai: boolean } | null>;

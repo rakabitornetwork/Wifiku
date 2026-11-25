@@ -36,7 +36,7 @@ class IntegrationSettingControllerTest extends TestCase
     public function test_only_owner_can_open_settings(): void
     {
         $this->actingAs($this->admin())->get('/settings/integrations')->assertForbidden();
-        $this->actingAs($this->owner())->get('/settings/integrations')->assertInertia(fn (Assert $page) => $page->component('Settings/Integrations')->has('groups', 7));
+        $this->actingAs($this->owner())->get('/settings/integrations')->assertInertia(fn (Assert $page) => $page->component('Settings/Integrations')->has('groups', 8));
     }
 
     public function test_secret_values_are_never_sent_to_the_browser(): void
