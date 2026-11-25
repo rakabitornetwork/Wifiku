@@ -10,6 +10,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\GalleryImageController;
 use App\Http\Controllers\HotspotProfileController;
 use App\Http\Controllers\IntegrationSettingController;
 use App\Http\Controllers\InvoiceController;
@@ -49,6 +51,7 @@ use Illuminate\Support\Facades\Route;
 
 // Halaman utama: landing page perusahaan (publik). Panel admin dibuka lewat /login atau tombol Dashboard.
 Route::get('/', LandingController::class)->name('home');
+Route::get('/galeri/{photo}/{size}', [GalleryImageController::class, 'show'])->middleware('throttle:120,1')->name('gallery.image');
 Route::get('/terms-of-service', [LandingController::class, 'terms'])->name('terms');
 
 Route::get('/isolir/{customer:customer_code}', IsolirController::class)
@@ -124,6 +127,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/routers/{router}/import', [RouterImportController::class, 'store'])->name('routers.import');
         Route::post('/routers/{router}/check', [RouterConnectionController::class, 'check'])->name('routers.check');
         Route::get('/routers/{router}/hotspot-script', [RouterConnectionController::class, 'hotspotScript'])->name('routers.hotspot-script');
+    });
+
+    Route::middleware('can:settings.manage')->prefix('galeri-landing')->name('gallery.')->group(function () {
+        Route::get('/', [GalleryController::class, 'index'])->name('index');
+        Route::post('/', [GalleryController::class, 'store'])->middleware('throttle:30,1')->name('store');
+        Route::put('/{photo}', [GalleryController::class, 'update'])->name('update');
+        Route::delete('/{photo}', [GalleryController::class, 'destroy'])->name('destroy');
     });
 
     Route::middleware('can:vpn.manage')->prefix('vpn')->name('vpn.')->group(function () {

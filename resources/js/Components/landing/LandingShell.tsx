@@ -13,6 +13,7 @@ const nav = [
     { id: 'harga', label: 'Harga' },
     { id: 'tentang', label: 'Tentang' },
     { id: 'proses', label: 'Proses' },
+    { id: 'galeri', label: 'Galeri' },
     { id: 'vpn', label: 'VPN Tunnel' },
     { id: 'kontak', label: 'Kontak' },
 ];

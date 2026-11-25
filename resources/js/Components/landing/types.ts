@@ -20,6 +20,7 @@ export type Sections = {
     benefits: { eyebrow: string; title: string; body: string; items: Item[] };
     process: { eyebrow: string; title: string; body: string; steps: Step[] };
     pricing: { eyebrow: string; title: string; body: string; note: string; perks: string[]; empty: string };
+    gallery: { eyebrow: string; title: string; body: string };
     testimonials: { eyebrow: string; title: string; body: string; items: { name: string; role: string; quote: string }[] };
     cta: { title: string; body: string; button: string };
     contact: { eyebrow: string; title: string; body: string; form_note: string };
@@ -33,3 +34,5 @@ export type Plan = { name: string; price: number; speed: string | null; descript
 export function waLink(number: string | null, text: string): string | null {
     return number ? `https://wa.me/${number}?text=${encodeURIComponent(text)}` : null;
 }
+
+export type GalleryItem = { id: number; title: string; caption: string | null; thumb: string; full: string };

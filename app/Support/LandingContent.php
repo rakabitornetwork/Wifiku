@@ -67,6 +67,11 @@ class LandingContent
                     ['title' => 'Uji & serah terima', 'description' => 'Speed test tiap zona, panduan singkat, dan kontak support.'],
                 ],
             ],
+            'gallery' => [
+                'eyebrow' => 'Galeri Instalasi',
+                'title' => 'Hasil pemasangan di rumah pelanggan',
+                'body' => 'Dokumentasi pekerjaan kami: kabel rapi, perangkat tertata, dan sinyal merata.',
+            ],
             'pricing' => [
                 'eyebrow' => 'Harga & Langganan',
                 'title' => 'Paket WiFi rumahan',

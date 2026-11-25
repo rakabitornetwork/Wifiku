@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GalleryPhoto;
 use App\Models\Package;
 use App\Models\VpnServer;
 use App\Services\Settings\SettingService;
@@ -24,6 +25,7 @@ class LandingController extends Controller
             'company' => $company,
             'sections' => LandingContent::sections($company['name']),
             'plans' => $this->plans(),
+            'gallery' => $this->gallery(),
             'vpn' => [
                 'price' => (int) $settings->get('vpn', 'member_price'),
                 'registrationOpen' => $settings->get('vpn', 'member_registration_open') === '1',
@@ -69,6 +71,23 @@ class LandingController extends Controller
             'instagram' => $value('instagram'),
             'facebook' => $value('facebook'),
         ];
+    }
+
+    /**
+     * Foto instalasi yang berstatus tayang; hanya judul, keterangan, dan URL gambar yang dikirim.
+     *
+     * @return list<array{id: int, title: string, caption: string|null, thumb: string, full: string}>
+     */
+    private function gallery(): array
+    {
+        return GalleryPhoto::where('is_published', true)->orderBy('sort_order')->orderBy('id')->get()
+            ->map(fn (GalleryPhoto $photo) => [
+                'id' => $photo->id,
+                'title' => $photo->title,
+                'caption' => $photo->caption,
+                'thumb' => route('gallery.image', [$photo, 'thumb', 'v' => $photo->updated_at?->timestamp]),
+                'full' => route('gallery.image', [$photo, 'full', 'v' => $photo->updated_at?->timestamp]),
+            ])->all();
     }
 
     /**

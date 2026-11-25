@@ -1,13 +1,13 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Check, Clock, Headphones, Lock, Mail, MapPin, MessageCircle, Radar, Router, ShieldCheck, Signal, Star, Wifi, Zap, type LucideIcon } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight, X, Check, Clock, Headphones, Lock, Mail, MapPin, MessageCircle, Radar, Router, ShieldCheck, Signal, Star, Wifi, Zap, type LucideIcon } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { buttonClass } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Field, Input, Textarea } from '@/Components/ui/Field';
 import { cn, formatRupiah } from '@/lib/utils';
 
-import { type Company, type Plan, type Sections, waLink } from './types';
+import { type Company, type GalleryItem, type Plan, type Sections, waLink } from './types';
 
 const icons: Record<string, LucideIcon> = { wifi: Wifi, signal: Signal, router: Router, shield: ShieldCheck, zap: Zap, radar: Radar, lock: Lock, headphones: Headphones };
 
@@ -387,6 +387,82 @@ export function Contact({ content, company }: { content: Sections['contact']; co
                     )}
                 </Card>
             </div>
+        </Section>
+    );
+}
+
+export function Gallery({ content, photos }: { content: Sections['gallery']; photos: GalleryItem[] }) {
+    const [active, setActive] = useState<number | null>(null);
+
+    const move = (step: number) => setActive((current) => (current === null ? null : (current + step + photos.length) % photos.length));
+
+    useEffect(() => {
+        if (active === null) {
+            return;
+        }
+
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setActive(null);
+            } else if (event.key === 'ArrowRight') {
+                setActive((current) => (current === null ? null : (current + 1) % photos.length));
+            } else if (event.key === 'ArrowLeft') {
+                setActive((current) => (current === null ? null : (current - 1 + photos.length) % photos.length));
+            }
+        };
+
+        window.addEventListener('keydown', onKey);
+
+        return () => window.removeEventListener('keydown', onKey);
+    }, [active, photos.length]);
+
+    if (photos.length === 0) {
+        return null;
+    }
+
+    const current = active === null ? null : photos[active];
+
+    return (
+        <Section id="galeri">
+            <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
+            <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3">
+                {photos.map((photo, index) => (
+                    <button
+                        key={photo.id}
+                        type="button"
+                        onClick={() => setActive(index)}
+                        className="group relative aspect-[4/3] overflow-hidden rounded-xl border bg-muted text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    >
+                        <img src={photo.thumb} alt={photo.title} loading="lazy" className="size-full object-cover transition duration-300 group-hover:scale-105" />
+                        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8 text-xs font-medium text-white">{photo.title}</span>
+                    </button>
+                ))}
+            </div>
+
+            {current && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label={current.title} onClick={() => setActive(null)}>
+                    <button type="button" className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setActive(null)} aria-label="Tutup">
+                        <X className="size-5" />
+                    </button>
+                    {photos.length > 1 && (
+                        <>
+                            <button type="button" className="absolute left-3 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(event) => { event.stopPropagation(); move(-1); }} aria-label="Foto sebelumnya">
+                                <ChevronLeft className="size-6" />
+                            </button>
+                            <button type="button" className="absolute right-3 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={(event) => { event.stopPropagation(); move(1); }} aria-label="Foto berikutnya">
+                                <ChevronRight className="size-6" />
+                            </button>
+                        </>
+                    )}
+                    <figure className="max-h-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
+                        <img src={current.full} alt={current.title} className="max-h-[78vh] w-auto rounded-lg object-contain" />
+                        <figcaption className="mt-3 text-center text-sm text-white">
+                            <span className="font-medium">{current.title}</span>
+                            {current.caption && <span className="block text-xs text-white/70">{current.caption}</span>}
+                        </figcaption>
+                    </figure>
+                </div>
+            )}
         </Section>
     );
 }

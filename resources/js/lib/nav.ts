@@ -1,6 +1,7 @@
 import {
     Activity,
     Boxes,
+    Images,
     CreditCard,
     LayoutDashboard,
     Map,
@@ -74,6 +75,7 @@ export const navigation: NavGroup[] = [
             { label: 'Tiket & Broadcast Gangguan', href: '/outages', icon: Megaphone, match: '/outages', permission: 'outages.manage' },
             { label: 'Teknisi & RBAC', href: '/users', icon: UserCog, match: '/users', permission: 'users.manage' },
             { label: 'Audit Log', href: '/audit-log', icon: ScrollText, match: '/audit-log', permission: 'audit.view' },
+            { label: 'Galeri Landing', href: '/galeri-landing', icon: Images, match: '/galeri-landing', permission: 'settings.manage' },
             { label: 'Payment Gateway', href: '/settings/payment-gateways', icon: CreditCard, match: '/settings/payment-gateways', permission: 'settings.manage' },
             { label: 'Pengaturan', href: '/settings/integrations', icon: Settings, match: '/settings/integrations', permission: 'settings.manage' },
         ],

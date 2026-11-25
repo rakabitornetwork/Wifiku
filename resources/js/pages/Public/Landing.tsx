@@ -2,19 +2,20 @@ import { Head } from '@inertiajs/react';
 
 import { Footer } from '@/Components/landing/Footer';
 import { LandingShell } from '@/Components/landing/LandingShell';
-import { About, Benefits, Contact, Cta, Hero, Pricing, Process, Services, Testimonials, VpnSection } from '@/Components/landing/sections';
-import { type Company, type Plan, type Sections } from '@/Components/landing/types';
+import { About, Benefits, Contact, Cta, Gallery, Hero, Pricing, Process, Services, Testimonials, VpnSection } from '@/Components/landing/sections';
+import { type Company, type GalleryItem, type Plan, type Sections } from '@/Components/landing/types';
 
 type Props = {
     company: Company;
     sections: Sections;
     plans: Plan[];
+    gallery: GalleryItem[];
     vpn: { price: number; registrationOpen: boolean; protocols: string[] };
     staff: boolean;
     seo: { title: string; description: string; canonical: string; jsonLd: Record<string, unknown> };
 };
 
-export default function Landing({ company, sections, plans, vpn, staff, seo }: Props) {
+export default function Landing({ company, sections, plans, gallery, vpn, staff, seo }: Props) {
     // "<" di-escape agar teks dari Pengaturan tidak bisa menutup tag script lebih awal.
     const jsonLd = JSON.stringify(seo.jsonLd).replace(/</g, '\\u003c');
 
@@ -38,6 +39,7 @@ export default function Landing({ company, sections, plans, vpn, staff, seo }: P
             <About content={sections.about} />
             <Benefits content={sections.benefits} />
             <Process content={sections.process} />
+            <Gallery content={sections.gallery} photos={gallery} />
             <Testimonials content={sections.testimonials} />
             <Cta content={sections.cta} company={company} />
             <VpnSection content={sections.vpn} vpn={vpn} />
