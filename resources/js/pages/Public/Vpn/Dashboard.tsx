@@ -102,18 +102,24 @@ export default function Dashboard({ company, member, accounts, maxAccounts, pric
     };
 
     return (
-        <VpnShell company={company} member>
-            <Head title="Akun VPN Saya" />
-            <div className="mx-auto max-w-5xl space-y-5 px-4 py-8">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl font-semibold tracking-tight">Halo, {member.name}</h1>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
+        <VpnShell
+            company={company}
+            member
+            hero={
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                    <div className="min-w-0">
+                        <p className="text-sm text-indigo-200/80">Selamat datang,</p>
+                        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{member.name}</h1>
+                        <p className="mt-2 text-sm text-indigo-100/80">{member.email}</p>
                     </div>
-                    <Button onClick={openCreate} disabled={full || protocols.length === 0}>
+                    <Button onClick={openCreate} disabled={full || protocols.length === 0} className="h-11 bg-white px-5 font-semibold text-indigo-700 shadow-md hover:bg-white/90 hover:opacity-100">
                         <Plus className="size-4" /> Buat Akun VPN
                     </Button>
                 </div>
+            }
+        >
+            <Head title="Akun VPN Saya" />
+            <div className="mx-auto max-w-5xl space-y-5 px-4 pb-4">
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <StatCard tone={full ? 'amber' : 'blue'} label="Akun VPN" value={`${accounts.length} / ${maxAccounts}`} hint={full ? 'Batas akun tercapai' : `${maxAccounts - accounts.length} slot tersisa`} icon={<ShieldCheck className="size-4" />} />

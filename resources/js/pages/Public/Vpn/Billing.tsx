@@ -57,13 +57,19 @@ export default function Billing({ company, member, open, outstanding, history, p
         );
 
     return (
-        <VpnShell company={company} member>
-            <Head title="Tagihan VPN" />
-            <div className="mx-auto max-w-5xl space-y-5 px-4 py-8">
+        <VpnShell
+            company={company}
+            member
+            hero={
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight">Tagihan & pembayaran</h1>
-                    <p className="text-sm text-muted-foreground">{member.name} · {member.email}</p>
+                    <p className="text-sm text-indigo-200/80">{member.name}</p>
+                    <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Tagihan &amp; pembayaran</h1>
+                    <p className="mt-2 text-sm text-indigo-100/80">{member.email}</p>
                 </div>
+            }
+        >
+            <Head title="Tagihan VPN" />
+            <div className="mx-auto max-w-5xl space-y-5 px-4 pb-4">
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <StatCard label="Belum dibayar" value={formatRupiah(outstanding)} hint={open.length > 0 ? `${open.length} tagihan` : 'Tidak ada tagihan'} icon={<Wallet className="size-4" />} tone={open.length > 0 ? 'amber' : 'green'} />
