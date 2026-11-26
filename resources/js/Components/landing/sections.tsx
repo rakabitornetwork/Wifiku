@@ -33,38 +33,44 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
     const chat = waLink(company.whatsapp, `Halo ${company.name}, saya ingin konsultasi gratis pemasangan WiFi.`);
 
     return (
-        <section className="relative overflow-hidden px-4 pt-14 pb-16 sm:pt-20 sm:pb-24">
+        <section className={cn('relative isolate overflow-hidden px-4 pt-14 pb-16 sm:pt-20 sm:pb-24', image && 'flex min-h-[34rem] items-center sm:min-h-[40rem]')}>
+            {image ? (
+                <>
+                    <img src={image.url} alt="" fetchPriority="high" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover" />
+                    <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/25" />
+                    {image.is_ai && <span className="absolute right-4 bottom-4 rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Ilustrasi</span>}
+                </>
+            ) : (
             <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_20%_0%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent),radial-gradient(45%_40%_at_90%_30%,color-mix(in_oklab,oklch(0.62_0.2_305)_14%,transparent),transparent)]" />
-            <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-                <div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            )}
+            <div className={cn('mx-auto grid w-full max-w-6xl items-center gap-12', !image && 'lg:grid-cols-[1.1fr_0.9fr]')}>
+                <div className={cn(image && 'max-w-2xl text-white')}>
+                    <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium', image ? 'border-white/25 bg-white/10 text-white backdrop-blur' : 'bg-card text-muted-foreground')}>
                         <Wifi className="size-3.5 text-primary" /> {content.badge}
                     </span>
                     <h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                         {content.title}
                     </h1>
-                    <p className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground">{content.body}</p>
+                    <p className={cn('mt-5 max-w-xl text-lg text-pretty', image ? 'text-white/85' : 'text-muted-foreground')}>{content.body}</p>
                     <div className="mt-8 flex flex-wrap items-center gap-3">
                         <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass('primary', 'md', 'h-12 px-6 text-base')}>
                             <MessageCircle className="size-4" /> {content.cta}
                         </a>
-                        <a href="#harga" className={buttonClass('outline', 'md', 'h-12 px-6 text-base')}>
+                        <a href="#harga" className={buttonClass('outline', 'md', cn('h-12 px-6 text-base', image && 'border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white/20 hover:text-white'))}>
                             {content.secondary_cta} <ArrowRight className="size-4" />
                         </a>
                     </div>
-                    <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                    <ul className={cn('mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm', image ? 'text-white/85' : 'text-muted-foreground')}>
                         {content.highlights.map((item) => (
                             <li key={item} className="flex items-center gap-1.5">
-                                <Check className="size-4 text-emerald-600" /> {item}
+                                <Check className={cn('size-4', image ? 'text-emerald-400' : 'text-emerald-600')} /> {item}
                             </li>
                         ))}
                     </ul>
                 </div>
 
+                {!image && (
                 <div className="relative mx-auto aspect-square w-full max-w-md" aria-hidden="true">
-                    {image ? (
-                        <img src={image.url} alt="" className="absolute inset-0 size-full rounded-[2.5rem] object-cover shadow-2xl shadow-indigo-500/30" />
-                    ) : (
                         <>
                             <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 shadow-2xl shadow-indigo-500/30" />
                             <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-white">
@@ -74,8 +80,6 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                                 <circle cx="100" cy="150" r="7" fill="currentColor" />
                             </svg>
                         </>
-                    )}
-                    {image?.is_ai && <span className="absolute right-4 bottom-4 rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Ilustrasi</span>}
                     <div className="absolute top-6 -left-3 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-left-6">
                         <span className="mr-1.5 inline-block size-2 rounded-full bg-emerald-500" /> Sinyal merata
                     </div>
@@ -86,6 +90,7 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                         <Headphones className="mr-1.5 inline size-3.5 text-primary" /> Support WhatsApp
                     </div>
                 </div>
+                )}
             </div>
         </section>
     );

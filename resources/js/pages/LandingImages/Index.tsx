@@ -13,14 +13,31 @@ type Slot = { slot: string; label: string; aspect: string; default_prompt: strin
 function SlotCard({ item, configured }: { item: Slot; configured: boolean }) {
     const [prompt, setPrompt] = useState(item.prompt);
     const [busy, setBusy] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     const generate = () =>
         router.post(`/ilustrasi-landing/${item.slot}/generate`, { prompt }, { preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
 
-    const upload = (file: File | undefined) => {
-        if (file) {
-            router.post(`/ilustrasi-landing/${item.slot}/upload`, { image: file }, { preserveScroll: true, forceFormData: true });
+    const upload = (input: HTMLInputElement) => {
+        const file = input.files?.[0];
+        input.value = '';
+
+        if (!file) {
+            return;
         }
+
+        setUploadError(null);
+        router.post(
+            `/ilustrasi-landing/${item.slot}/upload`,
+            { image: file },
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onStart: () => setBusy(true),
+                onFinish: () => setBusy(false),
+                onError: (errors) => setUploadError(Object.values(errors)[0] ?? 'Unggahan gagal.'),
+            },
+        );
     };
 
     return (
@@ -41,13 +58,15 @@ function SlotCard({ item, configured }: { item: Slot; configured: boolean }) {
                 <Textarea rows={4} value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={1000} />
             </Field>
 
+            {uploadError && <p className="text-sm text-red-600 dark:text-red-400">{uploadError}</p>}
+
             <div className="flex flex-wrap items-center gap-2">
                 <Button onClick={generate} disabled={busy || !configured || prompt.trim().length < 10}>
                     <Sparkles className="size-4" /> {busy ? 'Membuat (bisa 1 menit)...' : 'Buat dengan AI'}
                 </Button>
                 <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-medium hover:bg-muted">
                     <ImagePlus className="size-4" /> Unggah sendiri
-                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => upload(event.target.files?.[0])} />
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => upload(event.currentTarget)} />
                 </label>
                 <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setPrompt(item.default_prompt)}>
                     Prompt bawaan
