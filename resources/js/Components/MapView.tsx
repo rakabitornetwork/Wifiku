@@ -42,6 +42,20 @@ function handleIcon(kind: 'vertex' | 'mid'): L.DivIcon {
     });
 }
 
+/**
+ * Titik pelanggan sebagai penanda HTML berukuran tetap, bukan lingkaran vektor SVG: Leaflet menskalakan vektor selama animasi
+ * zoom lalu menggambarnya ulang, sehingga titik tampak membengkak atau menciut. Penanda HTML hanya berpindah posisi.
+ */
+function customerIcon(color: string): L.DivIcon {
+    return L.divIcon({
+        className: '',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+        popupAnchor: [0, -8],
+        html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>`,
+    });
+}
+
 /** Popup dibangun dari node DOM (textContent) agar nama pelanggan/ODP tidak pernah ditafsirkan sebagai HTML. */
 function popup(title: string, lines: string[]): HTMLElement {
     const root = document.createElement('div');
@@ -151,11 +165,16 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
         });
 
         instance.doubleClickZoom.disable();
+
+        // Ukuran wadah berubah tanpa peristiwa jendela (sidebar diciutkan, transisi halaman): tanpa ini penanda dan ubin bergeser.
+        const resize = new ResizeObserver(() => instance.invalidateSize({ animate: false }));
+        resize.observe(container.current);
         layer.current = L.layerGroup().addTo(instance);
         handles.current = L.layerGroup().addTo(instance);
         map.current = instance;
 
         return () => {
+            resize.disconnect();
             instance.remove();
             map.current = null;
             fitted.current = false;
@@ -201,7 +220,7 @@ export function MapView({ odps, customers, showCustomers, showLines, pickMode, o
                 points.push(position);
                 const color = statusColor[customer.status] ?? '#6366f1';
 
-                L.circleMarker(position, { radius: 5, color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 0.95 })
+                L.marker(position, { icon: customerIcon(color), keyboard: false })
                     .bindPopup(popup(customer.name, [customer.customer_code, customer.status === 'isolated' ? 'Terisolir' : 'Aktif']))
                     .addTo(group);
 

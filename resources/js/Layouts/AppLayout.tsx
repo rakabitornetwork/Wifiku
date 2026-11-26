@@ -168,7 +168,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 {sidebar(false)}
             </aside>
 
-            <div className={cn('transition-[padding] duration-200', collapsed ? 'lg:pl-[68px]' : 'lg:pl-64')}>
+            <div className={cn('flex min-h-screen flex-col transition-[padding] duration-200', collapsed ? 'lg:pl-[68px]' : 'lg:pl-64')}>
                 <header className="glass bg-navbar-gradient sticky top-0 z-20 flex h-16 items-center gap-3 border-b px-4 shadow-[0_10px_28px_-22px_rgba(79,70,229,0.55)] after:pointer-events-none after:absolute after:inset-x-0 after:bottom-[-1px] after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/60 after:to-transparent sm:px-6">
                     <Button variant="ghost" size="icon" className="rounded-xl border border-border/70 bg-card/60 shadow-xs hover:bg-card lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Buka menu">
                         <Menu className="size-5" />
@@ -207,9 +207,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         </Button>
                     </div>
                 </header>
-                <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+                <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
                     {navigating ? <PageSkeleton /> : <div className="animate-fade-in">{children}</div>}
                 </main>
+
+                <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-md">
+                    <p className="px-4 py-3 text-center text-xs text-muted-foreground">
+                        © {new Date().getFullYear()} <span className="font-semibold text-foreground">{brand.name}</span> · Manajemen ISP
+                    </p>
+                </footer>
             </div>
             <Toaster />
         </div>
