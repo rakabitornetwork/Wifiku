@@ -155,6 +155,21 @@ class CustomerNotifier
         ]));
     }
 
+    /**
+     * Kode OTP login portal pelanggan; dikirim ke nomor WhatsApp yang tersimpan pada data pelanggan.
+     */
+    public function loginCode(Customer $customer, string $code, int $ttlMinutes): void
+    {
+        $this->send($customer, WhatsappMessageType::AccountSecurity, implode("\n", [
+            "Halo {$customer->name},",
+            '',
+            "Kode masuk portal pelanggan {$this->company()}: *{$code}*",
+            "Berlaku {$ttlMinutes} menit. Jangan bagikan kode ini kepada siapa pun, termasuk petugas.",
+            '',
+            'Abaikan pesan ini bila Anda tidak memintanya.',
+        ]));
+    }
+
     private function send(Customer $customer, WhatsappMessageType $type, string $body): void
     {
         // Pelanggan hasil migrasi bisa belum punya nomor WhatsApp.

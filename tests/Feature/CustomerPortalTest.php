@@ -1,0 +1,253 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\AssetStatus;
+use App\Enums\CustomerStatus;
+use App\Enums\InvoiceStatus;
+use App\Models\Asset;
+use App\Models\Customer;
+use App\Models\CustomerLoginCode;
+use App\Models\Invoice;
+use App\Models\WhatsappMessage;
+use App\Services\Settings\SettingService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Activitylog\Models\Activity;
+use Tests\TestCase;
+
+class CustomerPortalTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Queue::fake();
+        $this->withoutMiddleware(ThrottleRequests::class);
+    }
+
+    private function customer(array $attributes = []): Customer
+    {
+        return Customer::factory()->create(['customer_code' => 'TT-0001-0001', 'whatsapp' => '6281234567890', ...$attributes]);
+    }
+
+    private function lastOtp(): string
+    {
+        preg_match('/\*(\d{6})\*/', (string) WhatsappMessage::latest('id')->value('body'), $match);
+
+        return $match[1] ?? '';
+    }
+
+    private function login(Customer $customer): void
+    {
+        $this->post('/pelanggan/masuk', ['customer_code' => $customer->customer_code]);
+        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
+    }
+
+    private function configureGenieAcs(): void
+    {
+        $settings = new SettingService;
+        $settings->set('genieacs', 'base_url', 'http://acs.local:7557');
+    }
+
+    private function ont(Customer $customer): Asset
+    {
+        return Asset::factory()->create(['customer_id' => $customer->id, 'status' => AssetStatus::Installed, 'genieacs_device_id' => 'dev-1']);
+    }
+
+    public function test_otp_login_sends_a_six_digit_code_to_the_registered_whatsapp_and_opens_the_portal(): void
+    {
+        $customer = $this->customer();
+
+        $this->post('/pelanggan/masuk', ['customer_code' => 'tt-0001-0001'])->assertRedirect('/pelanggan/masuk');
+
+        $message = WhatsappMessage::sole();
+        $this->assertSame('6281234567890', $message->phone);
+        $this->assertMatchesRegularExpression('/\*\d{6}\*/', $message->body);
+        $this->assertNotSame($this->lastOtp(), CustomerLoginCode::sole()->code_hash);
+
+        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
+        $this->assertSame(0, CustomerLoginCode::count());
+        $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Portal/Dashboard')->where('customer.customer_code', $customer->customer_code));
+    }
+
+    public function test_unknown_inactive_or_phoneless_customers_get_the_same_response_but_no_code(): void
+    {
+        $this->customer(['customer_code' => 'TT-OFF', 'status' => CustomerStatus::Inactive]);
+        $this->customer(['customer_code' => 'TT-NOWA', 'whatsapp' => '']);
+
+        foreach (['TT-NOPE', 'TT-OFF', 'TT-NOWA'] as $code) {
+            $this->post('/pelanggan/masuk', ['customer_code' => $code])->assertRedirect('/pelanggan/masuk')->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(0, WhatsappMessage::count());
+        $this->post('/pelanggan/verifikasi', ['otp' => '123456'])->assertSessionHasErrors('otp');
+    }
+
+    public function test_wrong_codes_are_limited_and_resend_is_throttled(): void
+    {
+        $this->customer();
+        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
+        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
+        $this->assertSame(1, WhatsappMessage::count());
+
+        $real = $this->lastOtp();
+        $wrong = $real === '000000' ? '111111' : '000000';
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/pelanggan/verifikasi', ['otp' => $wrong])->assertSessionHasErrors('otp');
+        }
+
+        $this->post('/pelanggan/verifikasi', ['otp' => $real])->assertSessionHasErrors('otp');
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+    }
+
+    public function test_expired_code_is_rejected(): void
+    {
+        $this->customer();
+        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
+        $otp = $this->lastOtp();
+        CustomerLoginCode::query()->update(['expires_at' => now()->subMinute()]);
+
+        $this->post('/pelanggan/verifikasi', ['otp' => $otp])->assertSessionHasErrors('otp');
+    }
+
+    public function test_portal_requires_login_and_ends_when_account_is_deactivated_or_session_is_too_old(): void
+    {
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->getJson('/pelanggan/onu')->assertUnauthorized();
+
+        $customer = $this->customer();
+        $this->login($customer);
+        $this->get('/pelanggan')->assertOk();
+
+        $this->travel(13)->hours();
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->travelBack();
+
+        $this->login($customer);
+        $customer->update(['status' => CustomerStatus::Inactive]);
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+    }
+
+    public function test_dashboard_only_shows_own_invoices_and_never_secrets(): void
+    {
+        $customer = $this->customer();
+        $mine = Invoice::factory()->create(['customer_id' => $customer->id, 'total' => 150000]);
+        Invoice::factory()->create(['customer_id' => $customer->id, 'status' => InvoiceStatus::Cancelled, 'period_start' => now()->subMonth()->startOfMonth()]);
+        $other = Invoice::factory()->create(['total' => 999000]);
+        $this->login($customer);
+
+        $response = $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('invoices', 1)
+            ->where('invoices.0.invoice_number', $mine->invoice_number)
+            ->where('outstanding', 150000));
+
+        $content = $response->getContent();
+        $this->assertStringNotContainsString($other->invoice_number, $content);
+        $this->assertStringNotContainsString($customer->pppoe_username, $content);
+        $this->assertStringNotContainsString('pppoe_password', $content);
+    }
+
+    public function test_pay_rejects_invoices_of_other_customers(): void
+    {
+        $customer = $this->customer();
+        $other = Invoice::factory()->create();
+        $this->login($customer);
+
+        $this->post('/pelanggan/bayar', ['invoice_number' => $other->invoice_number, 'channel' => 'QRIS'])->assertNotFound();
+    }
+
+    public function test_onu_status_comes_from_genieacs_without_exposing_the_wifi_password(): void
+    {
+        $this->configureGenieAcs();
+        $customer = $this->customer();
+        $this->ont($customer);
+        Asset::factory()->create(['customer_id' => null, 'status' => AssetStatus::Installed, 'genieacs_device_id' => 'dev-other']);
+        Http::fake(['acs.local:7557/devices*' => Http::response([[
+            '_id' => 'dev-1',
+            '_lastInform' => now()->subMinutes(2)->toIso8601String(),
+            'VirtualParameters' => ['RXPower' => ['_value' => '-22.4']],
+            'InternetGatewayDevice' => ['LANDevice' => ['1' => ['WLANConfiguration' => ['1' => [
+                'SSID' => ['_value' => 'WifiRumah'],
+                'KeyPassphrase' => ['_value' => 'rahasia-wifi-lama'],
+            ]]]]],
+        ]])]);
+        $this->login($customer);
+
+        $response = $this->getJson('/pelanggan/onu')->assertOk()->assertJson(['available' => true, 'online' => true, 'rx_power' => -22.4, 'rx_quality' => 'good', 'ssid' => 'WifiRumah']);
+
+        $this->assertStringNotContainsString('rahasia-wifi-lama', $response->getContent());
+        Http::assertSent(fn (Request $request) => str_contains(urldecode($request->url()), 'dev-1'));
+        Http::assertNotSent(fn (Request $request) => str_contains(urldecode($request->url()), 'dev-other'));
+    }
+
+    public function test_onu_status_degrades_gracefully_when_genieacs_is_down_or_there_is_no_ont(): void
+    {
+        $this->configureGenieAcs();
+        $customer = $this->customer();
+        $this->login($customer);
+
+        $this->getJson('/pelanggan/onu')->assertOk()->assertJson(['available' => false, 'online' => null]);
+
+        $this->ont($customer);
+        Http::fake(['*' => Http::response('error', 500)]);
+
+        $this->getJson('/pelanggan/onu')->assertOk()->assertJson(['available' => false])->assertJsonPath('message', fn ($message) => is_string($message));
+    }
+
+    public function test_customer_can_change_wifi_on_their_own_ont_only(): void
+    {
+        $this->configureGenieAcs();
+        $customer = $this->customer();
+        $this->ont($customer);
+        Asset::factory()->create(['customer_id' => null, 'status' => AssetStatus::Installed, 'genieacs_device_id' => 'dev-other']);
+        Http::fake(['*' => Http::response([], 200)]);
+        $this->login($customer);
+
+        $this->post('/pelanggan/wifi', ['ssid' => 'Rumah Baru', 'password' => 'password-baru-1', 'password_confirmation' => 'password-baru-1'])->assertSessionHasNoErrors();
+
+        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+            && str_contains($request->url(), 'dev-1/tasks')
+            && $request['name'] === 'setParameterValues'
+            && collect($request['parameterValues'])->contains(fn ($row) => $row[1] === 'Rumah Baru')
+            && collect($request['parameterValues'])->contains(fn ($row) => $row[1] === 'password-baru-1'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'dev-other'));
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'Portal Pelanggan']);
+        $this->assertStringNotContainsString('password-baru-1', (string) json_encode(Activity::all()->toArray()));
+    }
+
+    public function test_wifi_form_is_validated_and_blocked_for_isolated_customers(): void
+    {
+        $this->configureGenieAcs();
+        $customer = $this->customer();
+        $this->ont($customer);
+        Http::fake(['*' => Http::response([], 200)]);
+        $this->login($customer);
+
+        $this->post('/pelanggan/wifi', ['ssid' => '', 'password' => 'pendek', 'password_confirmation' => 'beda'])->assertSessionHasErrors(['ssid', 'password']);
+        $this->post('/pelanggan/wifi', ['ssid' => "Bad\nName", 'password' => 'password-baru-1', 'password_confirmation' => 'password-baru-1'])->assertSessionHasErrors('ssid');
+        $this->post('/pelanggan/wifi', ['ssid' => str_repeat('a', 33), 'password' => 'password-baru-1', 'password_confirmation' => 'password-baru-1'])->assertSessionHasErrors('ssid');
+        Http::assertNothingSent();
+
+        $customer->update(['status' => CustomerStatus::Isolated]);
+        $this->post('/pelanggan/wifi', ['ssid' => 'Rumah', 'password' => 'password-baru-1', 'password_confirmation' => 'password-baru-1']);
+        Http::assertNothingSent();
+        $this->get('/pelanggan')->assertInertia(fn (Assert $page) => $page->where('canChangeWifi', false));
+    }
+
+    public function test_logout_clears_the_portal_session_and_admin_login_stays_separate(): void
+    {
+        $customer = $this->customer();
+        $this->login($customer);
+
+        $this->post('/pelanggan/keluar')->assertRedirect('/pelanggan/masuk');
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->get('/dashboard')->assertRedirect('/login');
+    }
+}

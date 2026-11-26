@@ -61,6 +61,9 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Ganti tema">
                             {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                         </Button>
+                        <Link href="/pelanggan/masuk" className={buttonClass('outline', 'sm', 'hidden md:inline-flex')}>
+                            Portal Pelanggan
+                        </Link>
                         <Link href={staff ? '/dashboard' : '/login'} className={buttonClass('ghost', 'sm', 'hidden sm:inline-flex')}>
                             {staff ? 'Dashboard' : 'Login'}
                         </Link>
@@ -90,6 +93,9 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                                     {item.label}
                                 </a>
                             ))}
+                            <Link href="/pelanggan/masuk" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-primary hover:bg-muted">
+                                Portal Pelanggan
+                            </Link>
                             <Link href={staff ? '/dashboard' : '/login'} className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted">
                                 {staff ? 'Dashboard' : 'Login admin'}
                             </Link>

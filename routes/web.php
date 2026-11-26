@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPortalAuthController;
+use App\Http\Controllers\CustomerPortalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
@@ -62,6 +64,21 @@ Route::get('/isolir/{customer:customer_code}', IsolirController::class)
 Route::post('/isolir/{customer:customer_code}/pay', IsolirPaymentController::class)
     ->middleware('throttle:10,1')
     ->name('isolir.pay');
+
+// Portal pelanggan PPPoE: login dengan kode pelanggan + OTP WhatsApp, terpisah dari login admin dan member VPN.
+Route::prefix('pelanggan')->name('portal.')->group(function () {
+    Route::get('/masuk', [CustomerPortalAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
+    Route::post('/masuk', [CustomerPortalAuthController::class, 'sendCode'])->middleware('throttle:5,1')->name('send-code');
+    Route::post('/verifikasi', [CustomerPortalAuthController::class, 'verify'])->middleware('throttle:10,1')->name('verify');
+
+    Route::middleware('portal.customer')->group(function () {
+        Route::get('/', [CustomerPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/onu', [CustomerPortalController::class, 'onu'])->middleware('throttle:20,1')->name('onu');
+        Route::post('/wifi', [CustomerPortalController::class, 'updateWifi'])->middleware('throttle:5,10')->name('wifi');
+        Route::post('/bayar', [CustomerPortalController::class, 'pay'])->middleware('throttle:10,1')->name('pay');
+        Route::post('/keluar', [CustomerPortalAuthController::class, 'logout'])->name('logout');
+    });
+});
 
 // Landing page + portal pelanggan VPN Tunnel (daftar sendiri, login terpisah dari admin).
 Route::prefix('vpn-tunnel')->name('vpn-member.')->group(function () {
