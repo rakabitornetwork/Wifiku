@@ -64,9 +64,11 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                         <Link href="/pelanggan/masuk" className={buttonClass('outline', 'sm', 'hidden md:inline-flex')}>
                             Portal Pelanggan
                         </Link>
-                        <Link href={staff ? '/dashboard' : '/login'} className={buttonClass('ghost', 'sm', 'hidden sm:inline-flex')}>
-                            {staff ? 'Dashboard' : 'Login'}
-                        </Link>
+                        {staff && (
+                            <Link href="/dashboard" className={buttonClass('ghost', 'sm', 'hidden sm:inline-flex')}>
+                                Dashboard
+                            </Link>
+                        )}
                         {chat && (
                             <a href={chat} target="_blank" rel="noreferrer" className={buttonClass('primary', 'sm', 'hidden sm:inline-flex')}>
                                 <MessageCircle className="size-3.5" /> Konsultasi
@@ -96,9 +98,11 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                             <Link href="/pelanggan/masuk" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-primary hover:bg-muted">
                                 Portal Pelanggan
                             </Link>
-                            <Link href={staff ? '/dashboard' : '/login'} className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted">
-                                {staff ? 'Dashboard' : 'Login admin'}
-                            </Link>
+                            {staff && (
+                                <Link href="/dashboard" className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted">
+                                    Dashboard
+                                </Link>
+                            )}
                         </div>
                     </nav>
                 </div>

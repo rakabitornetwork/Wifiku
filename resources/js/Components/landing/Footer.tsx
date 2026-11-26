@@ -61,11 +61,6 @@ export function Footer({ company, body, onLanding = true }: { company: Company; 
                                 Terms of Service
                             </Link>
                         </li>
-                        <li>
-                            <Link href="/login" className="hover:text-foreground">
-                                Login admin
-                            </Link>
-                        </li>
                     </ul>
                 </div>
             </div>
