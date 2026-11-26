@@ -10,12 +10,14 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Router;
 use App\Models\Voucher;
+use App\Services\Dashboard\DashboardWidgets;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(Request $request, DashboardWidgets $widgets): Response
     {
         $customersByStatus = Customer::query()
             ->selectRaw('status, count(*) as total')
@@ -38,6 +40,7 @@ class DashboardController extends Controller
                 'outstanding' => (int) $unpaid->outstanding,
                 'vouchers_unused' => Voucher::where('status', VoucherStatus::Unused)->count(),
             ],
+            'widgets' => $widgets->for($request->user()),
             'routers' => Router::query()->orderBy('name')->get(['id', 'name', 'host', 'status', 'last_checked_at']),
         ]);
     }

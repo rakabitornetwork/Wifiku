@@ -1,5 +1,6 @@
 import { AlertTriangle, Receipt, Router, Ticket, UserCheck, Users } from 'lucide-react';
 
+import { ActivityWidget, AttentionWidget, CollectionWidget, FinanceWidget, OverdueWidget, WeakSignalWidget, type Widgets } from '@/Components/dashboard/Widgets';
 import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardHeader, StatCard } from '@/Components/ui/Card';
 import { StatusBadge } from '@/Components/ui/Badge';
@@ -18,10 +19,11 @@ type Props = {
         outstanding: number;
         vouchers_unused: number;
     };
+    widgets: Widgets;
     routers: { id: number; name: string; host: string; status: string; last_checked_at: string | null }[];
 };
 
-export default function Dashboard({ stats, routers }: Props) {
+export default function Dashboard({ stats, widgets, routers }: Props) {
     const sort = useClientSort(routers, { name: (row) => row.name, host: (row) => row.host, status: (row) => row.status, last_checked: (row) => row.last_checked_at });
     return (
         <>
@@ -33,6 +35,21 @@ export default function Dashboard({ stats, routers }: Props) {
                 <StatCard tone="blue" label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
                 <StatCard tone="amber" label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
             </div>
+
+            {(widgets.finance || widgets.collection) && (
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                    {widgets.finance && <FinanceWidget data={widgets.finance} />}
+                    {widgets.collection && <CollectionWidget data={widgets.collection} />}
+                </div>
+            )}
+
+            {(widgets.overdue || widgets.weak_signal || widgets.attention) && (
+                <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
+                    {widgets.overdue && <OverdueWidget data={widgets.overdue} />}
+                    {widgets.weak_signal && <WeakSignalWidget data={widgets.weak_signal} />}
+                    {widgets.attention && <AttentionWidget items={widgets.attention} />}
+                </div>
+            )}
 
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
                 <Card className="lg:col-span-2">
@@ -76,6 +93,12 @@ export default function Dashboard({ stats, routers }: Props) {
                     />
                 </div>
             </div>
+
+            {widgets.activity && (
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                    <ActivityWidget items={widgets.activity} />
+                </div>
+            )}
         </>
     );
 }
