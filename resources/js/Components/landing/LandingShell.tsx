@@ -33,7 +33,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
             <header className="sticky top-0 z-30 border-b bg-background/75 shadow-sm shadow-indigo-500/5 backdrop-blur-xl">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
-                        <Icon3D name="wifi" className="size-10 drop-shadow-md" />
+                        {company.logo ? <img src={company.logo} alt="" className="h-10 w-auto max-w-40 object-contain" /> : <Icon3D name="wifi" className="size-10 drop-shadow-md" />}
                         {company.name}
                     </Link>
 

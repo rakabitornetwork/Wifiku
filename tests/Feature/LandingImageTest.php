@@ -102,4 +102,34 @@ class LandingImageTest extends TestCase
         $this->actingAs($this->owner())->get('/ilustrasi-landing')->assertOk()->assertInertia(fn (Assert $page) => $page->where('geminiConfigured', true));
         $this->assertStringNotContainsString('kunci-rahasia', $this->get('/')->getContent());
     }
+
+    public function test_logo_keeps_transparency_and_appears_in_company_props(): void
+    {
+        $owner = $this->owner();
+        $image = imagecreatetruecolor(200, 80);
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        imagefill($image, 0, 0, (int) imagecolorallocatealpha($image, 0, 0, 0, 127));
+        ob_start();
+        imagepng($image);
+        $file = UploadedFile::fake()->createWithContent('logo.png', (string) ob_get_clean());
+
+        $this->actingAs($owner)->post('/ilustrasi-landing/logo', ['logo' => $file])->assertSessionDoesntHaveErrors();
+
+        $stored = imagecreatefromstring(Storage::disk('local')->get(LandingImage::where('slot', 'logo')->sole()->path));
+        $this->assertSame(127, (imagecolorat($stored, 5, 5) >> 24) & 0x7F);
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->whereType('company.logo', 'string')->where('images.hero', null));
+        $this->get('/gambar-landing/logo')->assertOk();
+
+        $this->actingAs($owner)->delete('/ilustrasi-landing/logo');
+        $this->assertSame(0, LandingImage::count());
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('company.logo', null));
+    }
+
+    public function test_logo_upload_rejects_non_images_and_non_managers(): void
+    {
+        $this->actingAs($this->owner())->post('/ilustrasi-landing/logo', ['logo' => UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf')])->assertSessionHasErrors('logo');
+        $this->actingAs($this->userWithRole('Teknisi'))->post('/ilustrasi-landing/logo', ['logo' => UploadedFile::fake()->image('logo.png', 200, 100)])->assertForbidden();
+        $this->assertSame(0, LandingImage::count());
+    }
 }

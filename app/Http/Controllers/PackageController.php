@@ -97,6 +97,18 @@ class PackageController extends Controller
         return back();
     }
 
+    /**
+     * Tampilkan atau sembunyikan paket di bagian Harga landing page tanpa menyentuh profile PPP di router.
+     */
+    public function toggleLanding(Package $package): RedirectResponse
+    {
+        $package->update(['show_on_landing' => ! $package->show_on_landing]);
+
+        Toast::success($package->show_on_landing ? "{$package->name} sekarang tampil di landing page." : "{$package->name} disembunyikan dari landing page.");
+
+        return back();
+    }
+
     public function destroy(Package $package): RedirectResponse
     {
         if ($package->customers()->exists()) {

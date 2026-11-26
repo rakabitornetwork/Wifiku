@@ -54,12 +54,13 @@ class GalleryPhotoService
 
     /**
      * Dekode bytes gambar apa pun yang didukung lalu simpan ulang sebagai WebP (sisi terpanjang maksimal $maxSide).
+     * Dengan $keepAlpha, transparansi (mis. logo PNG) dipertahankan; tanpa itu latar transparan menjadi hitam.
      *
      * @throws ValidationException
      */
-    public function normalize(string $raw, int $maxSide = self::FULL): string
+    public function normalize(string $raw, int $maxSide = self::FULL, bool $keepAlpha = false): string
     {
-        return $this->encode($this->decodeRaw($raw, null), $maxSide);
+        return $this->encode($this->decodeRaw($raw, null), $maxSide, $keepAlpha);
     }
 
     private function decode(UploadedFile $file): GdImage
@@ -104,7 +105,7 @@ class GalleryPhotoService
         return $image;
     }
 
-    private function encode(GdImage $source, int $maxSide): string
+    private function encode(GdImage $source, int $maxSide, bool $keepAlpha = false): string
     {
         $width = imagesx($source);
         $height = imagesy($source);
@@ -113,6 +114,13 @@ class GalleryPhotoService
         $newHeight = max(1, (int) round($height * $scale));
 
         $output = imagecreatetruecolor($newWidth, $newHeight);
+
+        if ($keepAlpha) {
+            imagealphablending($output, false);
+            imagesavealpha($output, true);
+            imagefill($output, 0, 0, (int) imagecolorallocatealpha($output, 0, 0, 0, 127));
+        }
+
         imagecopyresampled($output, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
         ob_start();

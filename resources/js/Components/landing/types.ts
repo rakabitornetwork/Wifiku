@@ -1,5 +1,6 @@
 export type Company = {
     name: string;
+    logo: string | null;
     tagline: string | null;
     whatsapp: string | null;
     whatsapp_display: string | null;

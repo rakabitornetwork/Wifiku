@@ -26,6 +26,7 @@ class LandingImageController extends Controller
 
         return Inertia::render('LandingImages/Index', [
             'geminiConfigured' => $gemini->isConfigured(),
+            'logo' => isset($images[LandingImage::LOGO_SLOT]) ? route('landing-image.show', [LandingImage::LOGO_SLOT, 'v' => $images[LandingImage::LOGO_SLOT]->updated_at?->timestamp]) : null,
             'slots' => collect(LandingImage::SLOTS)->map(fn (array $slot, string $name) => [
                 'slot' => $name,
                 'label' => $slot['label'],
@@ -71,9 +72,21 @@ class LandingImageController extends Controller
         return back();
     }
 
+    public function uploadLogo(Request $request, GalleryPhotoService $images): RedirectResponse
+    {
+        $request->validate(['logo' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:min_width=64,min_height=64']]);
+
+        $encoded = $images->normalize((string) file_get_contents($request->file('logo')->getRealPath()), 512, true);
+        $this->store(LandingImage::LOGO_SLOT, $encoded, null, false);
+        activity('Landing')->causedBy($request->user())->log('Mengganti logo perusahaan');
+        Toast::success('Logo diperbarui.');
+
+        return back();
+    }
+
     public function destroy(Request $request, string $slot): RedirectResponse
     {
-        abort_unless(isset(LandingImage::SLOTS[$slot]), 404);
+        abort_unless(isset(LandingImage::SLOTS[$slot]) || $slot === LandingImage::LOGO_SLOT, 404);
 
         if ($image = LandingImage::where('slot', $slot)->first()) {
             Storage::disk('local')->delete($image->path);
@@ -81,7 +94,7 @@ class LandingImageController extends Controller
             activity('Landing')->causedBy($request->user())->log("Menghapus gambar {$slot}");
         }
 
-        Toast::success('Gambar dihapus; landing kembali memakai ilustrasi bawaan.');
+        Toast::success($slot === LandingImage::LOGO_SLOT ? 'Logo dihapus; landing kembali memakai ikon bawaan.' : 'Gambar dihapus; landing kembali memakai ilustrasi bawaan.');
 
         return back();
     }

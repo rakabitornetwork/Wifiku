@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['slot', 'path', 'prompt', 'is_ai'])]
 class LandingImage extends Model
 {
+    /** Logo perusahaan memakai tabel yang sama tetapi bukan slot ilustrasi (tanpa prompt AI). */
+    public const LOGO_SLOT = 'logo';
+
     public const SLOTS = [
         'hero' => [
             'label' => 'Hero (bagian paling atas)',

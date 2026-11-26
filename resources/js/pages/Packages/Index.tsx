@@ -153,6 +153,7 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                                     <SortTh column="price" state={sort} className="text-right">Harga / bulan</SortTh>
                                     <SortTh column="customers" state={sort}>Pelanggan</SortTh>
                                     <SortTh column="status" state={sort}>Status</SortTh>
+                                    <Th>Di landing</Th>
                                     <Th className="text-right">Aksi</Th>
                                 </tr>
                             </thead>
@@ -166,6 +167,16 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                                         <Td className="num text-right font-medium">{formatRupiah(item.price)}</Td>
                                         <Td className="num">{item.customers_count}</Td>
                                         <Td>{item.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}</Td>
+                                        <Td>
+                                            <button
+                                                type="button"
+                                                onClick={() => router.patch(`/packages/${item.id}/landing`, {}, { preserveScroll: true })}
+                                                aria-label={item.show_on_landing ? `Sembunyikan ${item.name} dari landing page` : `Tampilkan ${item.name} di landing page`}
+                                                title="Klik untuk mengubah"
+                                            >
+                                                {item.show_on_landing ? <Badge tone="blue">Tampil</Badge> : <Badge>Tersembunyi</Badge>}
+                                            </button>
+                                        </Td>
                                         <Td>
                                             <div className="flex justify-end gap-1">
                                                 <Button variant="edit" size="icon" onClick={() => openEdit(item)} aria-label="Ubah">

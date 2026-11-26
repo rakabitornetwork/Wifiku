@@ -140,6 +140,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:settings.manage')->prefix('ilustrasi-landing')->name('landing-images.')->group(function () {
         Route::get('/', [LandingImageController::class, 'index'])->name('index');
+        Route::post('/logo', [LandingImageController::class, 'uploadLogo'])->middleware('throttle:20,1')->name('logo');
         Route::post('/{slot}/generate', [LandingImageController::class, 'generate'])->middleware('throttle:6,1')->name('generate');
         Route::post('/{slot}/upload', [LandingImageController::class, 'upload'])->middleware('throttle:20,1')->name('upload');
         Route::delete('/{slot}', [LandingImageController::class, 'destroy'])->name('destroy');
@@ -162,6 +163,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/packages/routers/{router}/ppp-profiles', [PackageController::class, 'pppProfiles'])->name('packages.ppp-profiles')->middleware('can:packages.manage');
+    Route::patch('/packages/{package}/landing', [PackageController::class, 'toggleLanding'])->name('packages.landing')->middleware('can:packages.manage');
     Route::resource('packages', PackageController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('can:packages.manage');
 
     Route::middleware('can:customers.view')->group(function () {

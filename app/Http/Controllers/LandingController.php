@@ -54,15 +54,17 @@ class LandingController extends Controller
     /**
      * Identitas dan kontak perusahaan dari Pengaturan; nilai kosong tetap null agar bagian terkait disembunyikan.
      *
-     * @return array{name: string, tagline: string|null, whatsapp: string|null, whatsapp_display: string|null, email: string|null, address: string|null, hours: string|null, instagram: string|null, facebook: string|null}
+     * @return array{name: string, logo: string|null, tagline: string|null, whatsapp: string|null, whatsapp_display: string|null, email: string|null, address: string|null, hours: string|null, instagram: string|null, facebook: string|null}
      */
     private function company(SettingService $settings): array
     {
         $whatsapp = preg_replace('/\D+/', '', (string) $settings->get('company', 'cs_whatsapp')) ?: null;
+        $logo = LandingImage::where('slot', LandingImage::LOGO_SLOT)->first();
         $value = fn (string $key): ?string => filled($settings->get('company', $key)) ? (string) $settings->get('company', $key) : null;
 
         return [
             'name' => (string) $settings->get('company', 'name', config('app.name')),
+            'logo' => $logo ? route('landing-image.show', [LandingImage::LOGO_SLOT, 'v' => $logo->updated_at?->timestamp]) : null,
             'tagline' => $value('tagline'),
             'whatsapp' => $whatsapp,
             // 6287778888820 → 087778888820 (format telepon lokal)
