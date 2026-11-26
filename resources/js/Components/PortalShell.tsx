@@ -52,7 +52,7 @@ export function PortalShell({ company, children, loggedIn = false, hero }: Props
                 </header>
                 <div className={cn('relative mx-auto max-w-5xl px-4', hero ? 'pt-8 pb-20' : 'pt-10 pb-24')}>{hero}</div>
             </div>
-            <main className="-mt-14 flex-1">{children}</main>
+            <main className="relative z-10 -mt-14 flex-1">{children}</main>
             <footer className="py-8 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} {company.name}</footer>
             <Toaster />
         </div>
