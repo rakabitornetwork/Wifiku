@@ -13,5 +13,15 @@ createInertiaApp({
 
         return AppLayout;
     },
+    // Judul tab: "Judul halaman — Nama perusahaan" (nama dari Pengaturan, ikut berubah tanpa muat ulang).
+    title: (title, page) => {
+        const name = (page.props as { brand?: { name?: string } }).brand?.name ?? '';
+
+        if (!name) {
+            return title;
+        }
+
+        return !title || title.toLowerCase().includes(name.toLowerCase()) ? title || name : `${title} — ${name}`;
+    },
     progress: { color: '#6366f1' },
 });

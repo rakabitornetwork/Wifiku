@@ -11,10 +11,15 @@
                 document.documentElement.classList.toggle('dark', dark);
             } catch (e) {}
         </script>
+        @php($brand = \App\Support\CompanyBranding::data(app(\App\Services\Settings\SettingService::class)))
+        @if ($brand['logo'])
+            <link rel="icon" type="image/webp" href="{{ $brand['logo'] }}">
+            <link rel="apple-touch-icon" href="{{ $brand['logo'] }}">
+        @endif
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx'])
         <x-inertia::head>
-            <title>{{ config('app.name') }}</title>
+            <title>{{ $brand['name'] }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

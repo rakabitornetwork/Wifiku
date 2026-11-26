@@ -1,7 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, Wifi, X } from 'lucide-react';
+import { LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
+import { BrandLogo, useBrand } from '@/Components/BrandLogo';
 import { LiveStatus } from '@/Components/LiveStatus';
 import { Toaster } from '@/Components/Toaster';
 import { Avatar } from '@/Components/ui/Avatar';
@@ -60,6 +61,7 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
 export function AppLayout({ children }: { children: ReactNode }) {
     const { url, props } = usePage();
     const user = props.auth?.user;
+    const brand = useBrand();
     const permissions = user?.permissions ?? [];
     const { theme, toggleTheme } = useTheme();
 
@@ -108,12 +110,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     const sidebar = (compact: boolean) => (
         <div className="flex h-full flex-col">
             <div className={cn('flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4', compact && 'justify-center px-0')}>
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20">
-                    <Wifi className="size-4" />
-                </div>
+                <BrandLogo size="sm" square={compact} className="shadow-lg shadow-indigo-500/30" />
                 {!compact && (
                     <div className="leading-tight">
-                        <div className="text-sm font-semibold">{props.appName}</div>
+                        <div className="text-sm font-semibold">{brand.name}</div>
                         <div className="text-[11px] text-muted-foreground">Manajemen ISP</div>
                     </div>
                 )}
@@ -169,28 +169,41 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </aside>
 
             <div className={cn('transition-[padding] duration-200', collapsed ? 'lg:pl-[68px]' : 'lg:pl-64')}>
-                <header className="glass bg-navbar-gradient sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-[-1px] after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/50 after:to-transparent sm:px-6">
-                    <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Buka menu">
+                <header className="glass bg-navbar-gradient sticky top-0 z-20 flex h-16 items-center gap-3 border-b px-4 shadow-[0_10px_28px_-22px_rgba(79,70,229,0.55)] after:pointer-events-none after:absolute after:inset-x-0 after:bottom-[-1px] after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/60 after:to-transparent sm:px-6">
+                    <Button variant="ghost" size="icon" className="rounded-xl border border-border/70 bg-card/60 shadow-xs hover:bg-card lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Buka menu">
                         <Menu className="size-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="hidden lg:inline-flex" onClick={toggleCollapsed} aria-label="Ciutkan sidebar">
+                    <Button variant="ghost" size="icon" className="hidden rounded-xl border border-border/70 bg-card/60 shadow-xs hover:bg-card lg:inline-flex" onClick={toggleCollapsed} aria-label="Ciutkan sidebar">
                         {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
                     </Button>
-                    <div className="ml-auto flex items-center gap-1.5">
+                    <div className="ml-auto flex items-center gap-2.5">
                         <LiveStatus />
-                        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Ganti tema">
-                            {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+                        <Button variant="ghost" size="icon" className="rounded-full border border-border/70 bg-card/60 shadow-xs hover:bg-card" onClick={toggleTheme} aria-label="Ganti tema">
+                            {theme === 'dark' ? <Sun className="size-[18px] text-amber-400" /> : <Moon className="size-[18px] text-indigo-500" />}
                         </Button>
-                        <div className="mx-1 hidden h-6 w-px bg-border sm:block" />
-                        <Link href="/profil" className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-muted" title="Akun saya" aria-label="Akun saya">
-                            <span className="hidden text-right leading-tight sm:block">
-                                <span className="block text-sm font-medium">{user?.name}</span>
-                                <span className="block text-[11px] text-muted-foreground">{user?.roles.join(', ')}</span>
+                        <div className="mx-0.5 hidden h-7 w-px bg-gradient-to-b from-transparent via-border to-transparent sm:block" />
+                        <Link
+                            href="/profil"
+                            className="flex items-center gap-2.5 rounded-full border border-border/70 bg-card/60 py-1 pr-1 pl-1 shadow-xs transition hover:border-primary/40 hover:bg-card sm:pr-4"
+                            title="Akun saya"
+                            aria-label="Akun saya"
+                        >
+                            <span className="rounded-full ring-2 ring-primary/30 ring-offset-2 ring-offset-card">
+                                <Avatar name={user?.name ?? ''} url={user?.avatar_url} />
                             </span>
-                            <Avatar name={user?.name ?? ''} url={user?.avatar_url} />
+                            <span className="hidden text-left leading-tight sm:block">
+                                <span className="block text-sm font-semibold">{user?.name}</span>
+                                <span className="block text-[11px] font-medium text-primary">{user?.roles.join(', ')}</span>
+                            </span>
                         </Link>
-                        <Button variant="danger" size="icon" onClick={() => router.post('/logout')} aria-label="Keluar dari akun">
-                            <LogOut className="size-[18px]" />
+                        <Button
+                            size="sm"
+                            className="h-9 gap-1.5 rounded-full border-0 bg-gradient-to-br from-rose-500 to-red-700 px-3.5 font-semibold text-white shadow-md shadow-red-500/25 hover:from-rose-600 hover:to-red-800 hover:opacity-100"
+                            onClick={() => router.post('/logout')}
+                            aria-label="Keluar dari akun"
+                        >
+                            <LogOut className="size-4" />
+                            Keluar
                         </Button>
                     </div>
                 </header>

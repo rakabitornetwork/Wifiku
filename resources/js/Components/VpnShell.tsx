@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Moon, ShieldCheck, Sun } from 'lucide-react';
 import { type ReactNode } from 'react';
 
+import { BrandLogo } from '@/Components/BrandLogo';
 import { Toaster } from '@/Components/Toaster';
 import { buttonClass, Button } from '@/Components/ui/Button';
 import { useTheme } from '@/Hooks/useTheme';
@@ -30,9 +31,7 @@ export function VpnShell({ company, children, member = false, showAuthLinks = tr
             <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
                 <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
                     <Link href="/vpn-tunnel" className="flex items-center gap-2.5 text-sm font-semibold">
-                        <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
-                            <ShieldCheck className="size-4" />
-                        </span>
+                        <BrandLogo size="sm" icon={ShieldCheck} />
                         {company} <span className="font-normal text-muted-foreground">VPN Tunnel</span>
                     </Link>
                     <div className="flex items-center gap-1.5">

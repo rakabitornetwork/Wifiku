@@ -132,4 +132,22 @@ class LandingImageTest extends TestCase
         $this->actingAs($this->userWithRole('Teknisi'))->post('/ilustrasi-landing/logo', ['logo' => UploadedFile::fake()->image('logo.png', 200, 100)])->assertForbidden();
         $this->assertSame(0, LandingImage::count());
     }
+
+    public function test_uploaded_logo_is_shared_with_every_page_and_used_as_favicon(): void
+    {
+        $this->get('/login')->assertOk()->assertInertia(fn (Assert $page) => $page->where('brand.logo', null)->has('brand.name'))->assertDontSee('rel="icon"', false);
+
+        $this->actingAs($this->owner())->post('/ilustrasi-landing/logo', ['logo' => UploadedFile::fake()->image('logo.png', 200, 100)]);
+        auth()->logout();
+
+        $this->get('/login')->assertOk()->assertInertia(fn (Assert $page) => $page->whereType('brand.logo', 'string'))->assertSee('rel="icon"', false);
+        $this->get('/isolir/TT-X')->assertNotFound();
+    }
+
+    public function test_default_page_title_follows_the_company_name_setting(): void
+    {
+        app(SettingService::class)->set('company', 'name', 'Teslatech Net');
+
+        $this->get('/login')->assertOk()->assertSee('<title>Teslatech Net</title>', false)->assertInertia(fn (Assert $page) => $page->where('brand.name', 'Teslatech Net'));
+    }
 }

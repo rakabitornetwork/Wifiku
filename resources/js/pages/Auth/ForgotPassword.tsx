@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Wifi } from 'lucide-react';
 import { type FormEvent } from 'react';
 
+import { BrandLogo } from '@/Components/BrandLogo';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Field, Input } from '@/Components/ui/Field';
@@ -21,9 +21,7 @@ export default function ForgotPassword() {
             <Head title="Lupa Password" />
             <div className="w-full max-w-sm">
                 <div className="mb-6 flex flex-col items-center gap-3 text-center">
-                    <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg">
-                        <Wifi className="size-6" />
-                    </div>
+                    <BrandLogo size="lg" />
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight">Lupa password</h1>
                         <p className="text-sm text-muted-foreground">Tautan untuk membuat password baru dikirim ke WhatsApp yang terdaftar pada akun Anda.</p>

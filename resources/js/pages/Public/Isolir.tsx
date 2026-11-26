@@ -1,7 +1,8 @@
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, MessageCircle, Wifi } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, MessageCircle } from 'lucide-react';
 
+import { BrandLogo } from '@/Components/BrandLogo';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
@@ -36,9 +37,7 @@ export default function Isolir({ company, title, message, customer, invoices, ou
             <Head title={isolated ? 'Layanan Diisolir' : 'Status Layanan'} />
             <div className="mx-auto max-w-lg space-y-4">
                 <div className="flex items-center justify-center gap-2.5 text-sm font-semibold">
-                    <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
-                        <Wifi className="size-4" />
-                    </span>
+                    <BrandLogo size="sm" />
                     {company}
                 </div>
 

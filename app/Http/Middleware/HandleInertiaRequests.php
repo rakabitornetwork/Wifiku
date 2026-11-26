@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Settings\SettingService;
+use App\Support\CompanyBranding;
 use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,6 +41,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appName' => config('app.name'),
+            'brand' => fn (): array => CompanyBranding::data(app(SettingService::class)),
             'auth' => $request->user('web')
                 ? [
                     'user' => [
