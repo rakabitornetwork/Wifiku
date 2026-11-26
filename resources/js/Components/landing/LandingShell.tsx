@@ -1,10 +1,11 @@
 import { Link } from '@inertiajs/react';
 import { Menu, MessageCircle, Moon, Sun, X } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import { Toaster } from '@/Components/Toaster';
 import { Button, buttonClass } from '@/Components/ui/Button';
 import { useTheme } from '@/Hooks/useTheme';
+import { cn } from '@/lib/utils';
 
 import { Icon3D } from './Icon3D';
 import { type Company, waLink } from './types';
@@ -25,6 +26,17 @@ type Props = { company: Company; staff: boolean; onLanding?: boolean; children: 
 export function LandingShell({ company, staff, onLanding = true, children }: Props) {
     const { theme, toggleTheme } = useTheme();
     const [open, setOpen] = useState(false);
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
+        window.addEventListener('keydown', onKey);
+
+        return () => window.removeEventListener('keydown', onKey);
+    }, [open]);
+
     const href = (id: string) => (onLanding ? `#${id}` : `/#${id}`);
     const chat = waLink(company.whatsapp, `Halo ${company.name}, saya ingin konsultasi pemasangan WiFi.`);
 
@@ -57,15 +69,22 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                                 <MessageCircle className="size-3.5" /> Konsultasi
                             </a>
                         )}
-                        <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open}>
+                        <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="menu-seluler">
                             {open ? <X className="size-4" /> : <Menu className="size-4" />}
                         </Button>
                     </div>
                 </div>
 
-                {open && (
-                    <nav className="border-t bg-background px-4 py-3 lg:hidden" aria-label="Navigasi seluler">
-                        <div className="mx-auto grid max-w-6xl gap-1">
+                <div
+                    id="menu-seluler"
+                    aria-hidden={!open}
+                    className={cn(
+                        'absolute inset-x-0 top-full grid transition-[grid-template-rows,opacity,visibility] duration-300 ease-out motion-reduce:transition-none lg:hidden',
+                        open ? 'visible grid-rows-[1fr] opacity-100' : 'invisible grid-rows-[0fr] opacity-0',
+                    )}
+                >
+                    <nav className="overflow-hidden border-b bg-background/95 shadow-lg shadow-indigo-500/5 backdrop-blur-xl" aria-label="Navigasi seluler">
+                        <div className="mx-auto grid max-w-6xl gap-1 px-4 py-3">
                             {nav.map((item) => (
                                 <a key={item.id} href={href(item.id)} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted">
                                     {item.label}
@@ -76,7 +95,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                             </Link>
                         </div>
                     </nav>
-                )}
+                </div>
             </header>
 
             <main className="flex-1">{children}</main>
