@@ -25,7 +25,7 @@ export function PortalShell({ company, children, loggedIn = false, hero }: Props
             <div className="relative overflow-hidden bg-[#0b1026] text-white">
                 <div className="pointer-events-none absolute -top-32 -right-24 size-[28rem] rounded-full bg-indigo-500/25 blur-3xl" />
                 <header className="relative border-b border-white/10">
-                    <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4">
+                    <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem]">
                         <Link href="/" className="flex min-w-0 items-center gap-3 text-sm font-semibold">
                             {company.logo ? (
                                 <span className="flex h-9 items-center rounded-lg bg-white px-2">
@@ -50,9 +50,9 @@ export function PortalShell({ company, children, loggedIn = false, hero }: Props
                         </div>
                     </div>
                 </header>
-                <div className={cn('relative mx-auto max-w-5xl px-4', hero ? 'pt-8 pb-20' : 'pt-10 pb-24')}>{hero}</div>
+                <div className={cn('relative mx-auto max-w-6xl px-4', hero ? 'pt-8 pb-20 lg:pt-12 lg:pb-24' : 'pt-10 pb-24')}>{hero}</div>
             </div>
-            <main className="relative z-10 -mt-14 flex-1">{children}</main>
+            <main className="relative z-10 -mt-14 flex-1 lg:-mt-16">{children}</main>
             <footer className="py-8 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} {company.name}</footer>
             <Toaster />
         </div>

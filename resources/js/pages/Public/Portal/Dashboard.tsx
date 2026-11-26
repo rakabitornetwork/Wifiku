@@ -236,7 +236,7 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                         </div>
                     </div>
 
-                    <dl className="mt-6 grid gap-x-6 gap-y-4 border-t border-slate-100 pt-5 sm:grid-cols-2 dark:border-white/10">
+                    <dl className="mt-6 grid gap-x-6 gap-y-4 border-t border-slate-100 pt-5 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/10">
                         <Detail label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
                         <Detail label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'} />
                         <Detail label="Serial number" value={onu.serial_number} />
@@ -291,8 +291,8 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" />
                 <span>Setelah disimpan, semua perangkat yang tersambung akan terputus dan harus menyambung lagi dengan nama dan password baru. Catat password baru Anda; password yang sedang aktif bisa dilihat di kartu Status ONU.</span>
             </p>
-            <form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Field label="Nama WiFi (SSID)" error={form.errors.ssid} hint="Maksimal 32 karakter." className="sm:col-span-2">
+            <form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                <Field label="Nama WiFi (SSID)" error={form.errors.ssid} hint="Maksimal 32 karakter." className="sm:col-span-2 lg:col-span-1">
                     <Input value={form.data.ssid} onChange={(event) => form.setData('ssid', event.target.value)} maxLength={32} required />
                 </Field>
                 <Field label="Password baru" error={form.errors.password} hint="8–63 karakter.">
@@ -301,7 +301,7 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
                 <Field label="Ulangi password baru" error={form.errors.password_confirmation}>
                     <Input type="password" value={form.data.password_confirmation} onChange={(event) => form.setData('password_confirmation', event.target.value)} minLength={8} maxLength={63} autoComplete="new-password" required />
                 </Field>
-                <Button type="submit" className="h-11 bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100 sm:col-span-2" disabled={form.processing}>
+                <Button type="submit" className="h-11 bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100 sm:col-span-2 lg:col-span-1" disabled={form.processing}>
                     {form.processing ? 'Mengirim ke ONU...' : 'Simpan pengaturan WiFi'}
                 </Button>
             </form>
@@ -311,9 +311,9 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
 
 function HeroStat({ label, children }: { label: string; children: React.ReactNode }) {
     return (
-        <div className="min-w-0 px-4 first:pl-0 last:pr-0">
-            <div className="text-xs whitespace-nowrap text-indigo-200/75">{label}</div>
-            <div className="num mt-1.5 truncate text-lg font-semibold whitespace-nowrap sm:text-2xl">{children}</div>
+        <div className="min-w-0 px-4 first:pl-0 last:pr-0 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-white/[0.06] lg:px-6 lg:py-5 lg:first:pl-6 lg:last:pr-6">
+            <div className="text-xs whitespace-nowrap text-indigo-200/75 lg:text-sm">{label}</div>
+            <div className="num mt-1.5 truncate text-lg font-semibold whitespace-nowrap sm:text-2xl lg:mt-2 lg:text-3xl">{children}</div>
         </div>
     );
 }
@@ -358,8 +358,8 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                     <p className="text-sm text-indigo-200/80">Selamat datang,</p>
-                    <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{customer.name}</h1>
-                    <p className="num mt-2 text-sm text-indigo-100/80">
+                    <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">{customer.name}</h1>
+                    <p className="num mt-2 text-sm text-indigo-100/80 lg:mt-3 lg:text-base">
                         {customer.customer_code}
                         {customer.package && ` · Paket ${customer.package}`}
                     </p>
@@ -376,7 +376,7 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
                 </div>
             </div>
 
-            <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-6">
+            <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-6 lg:mt-10 lg:gap-5 lg:divide-x-0 lg:border-t-0 lg:pt-0">
                 <HeroStat label="Tagihan">{outstanding > 0 ? <span className="text-amber-300">{formatRupiah(outstanding)}</span> : <span className="text-emerald-300">Lunas</span>}</HeroStat>
                 <HeroStat label="Koneksi">
                     {!onu ? '-' : loading && !live ? SKELETON : live?.online == null ? '-' : <span className={live.online ? 'text-emerald-300' : 'text-rose-300'}>{live.online ? 'Online' : 'Offline'}</span>}
@@ -391,7 +391,7 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
     return (
         <PortalShell company={company} loggedIn hero={hero}>
             <Head title="Portal Pelanggan" />
-            <div className="mx-auto w-full max-w-5xl space-y-5 px-4 pb-4">
+            <div className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-4 lg:space-y-6">
                 {customer.status === 'isolated' && (
                     <div className="flex items-start gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 shadow-sm dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-100">
                         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-rose-600 dark:text-rose-300" />
@@ -403,16 +403,22 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
                     </div>
                 )}
 
-                <div className="grid items-start gap-5 lg:grid-cols-2">
-                    <BillingCard invoices={invoices} outstanding={outstanding} payment={payment} />
-                    <OnuCard onu={onu} live={live} loading={loading} refresh={() => void load()} />
+                {/* Seluler: Tagihan, Status ONU, lalu WiFi berurutan. Desktop: Tagihan + WiFi menumpuk di kiri, Status ONU memanjang di kanan. */}
+                <div className="grid items-start gap-5 lg:grid-cols-[5fr_7fr] lg:gap-6">
+                    <div className="lg:col-start-1 lg:row-start-1">
+                        <BillingCard invoices={invoices} outstanding={outstanding} payment={payment} />
+                    </div>
+                    <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+                        <OnuCard onu={onu} live={live} loading={loading} refresh={() => void load()} />
+                    </div>
+                    {canChangeWifi ? (
+                        <div className="lg:col-start-1 lg:row-start-2">
+                            <WifiCard currentSsid={live?.ssid ?? null} />
+                        </div>
+                    ) : onu && customer.status !== 'active' ? (
+                        <Card className={cn('p-5 text-sm text-muted-foreground lg:col-start-1 lg:row-start-2', panel)}>Pengaturan WiFi hanya tersedia saat layanan aktif.</Card>
+                    ) : null}
                 </div>
-
-                {canChangeWifi ? (
-                    <WifiCard currentSsid={live?.ssid ?? null} />
-                ) : onu && customer.status !== 'active' ? (
-                    <Card className={cn('p-5 text-sm text-muted-foreground', panel)}>Pengaturan WiFi hanya tersedia saat layanan aktif.</Card>
-                ) : null}
 
                 {whatsappUrl && (
                     <div className="pt-2 text-center">
