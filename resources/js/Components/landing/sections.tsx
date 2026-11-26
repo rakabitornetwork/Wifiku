@@ -3,7 +3,7 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, Headphones, MessageCircle
 import { type FormEvent, useEffect, useState } from 'react';
 
 import { buttonClass } from '@/Components/ui/Button';
-import { Card } from '@/Components/ui/Card';
+import { Card, cardSurface } from '@/Components/ui/Card';
 import { Field, Input, Textarea } from '@/Components/ui/Field';
 import { cn, formatRupiah } from '@/lib/utils';
 
@@ -177,7 +177,7 @@ export function Process({ content }: { content: Sections['process'] }) {
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
             <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.steps.map((step, index) => (
-                    <li key={step.title} className="relative rounded-xl border bg-card p-6">
+                    <li key={step.title} className={cn(cardSurface, 'relative p-6')}>
                         <span className="num flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-sm font-semibold text-white shadow-md shadow-indigo-500/25">
                             {String(index + 1).padStart(2, '0')}
                         </span>
@@ -336,7 +336,7 @@ export function VpnSection({ content, vpn }: { content: Sections['vpn']; vpn: { 
                 </div>
                 <ol className="space-y-3">
                     {content.steps.map((step, index) => (
-                        <li key={step.title} className="flex gap-4 rounded-xl border bg-card p-5">
+                        <li key={step.title} className={cn(cardSurface, 'flex gap-4 p-5')}>
                             <span className="num flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-sm font-semibold text-white">{index + 1}</span>
                             <span>
                                 <span className="block font-semibold">{step.title}</span>

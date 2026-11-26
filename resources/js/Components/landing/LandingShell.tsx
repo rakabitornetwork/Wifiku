@@ -42,39 +42,45 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
 
     return (
         <div className="flex min-h-screen flex-col">
-            <header className="sticky top-0 z-30 border-b bg-background/75 shadow-sm shadow-indigo-500/5 backdrop-blur-xl">
+            <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0b1026]/90 text-white shadow-lg shadow-indigo-950/20 backdrop-blur-xl">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
-                        {company.logo ? <img src={company.logo} alt="" className="h-10 w-auto max-w-40 object-contain" /> : <Icon3D name="wifi" className="size-10 drop-shadow-md" />}
+                        {company.logo ? (
+                            <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-sm ring-1 ring-white/10">
+                                <img src={company.logo} alt="" className="h-7 w-auto max-w-36 object-contain" />
+                            </span>
+                        ) : (
+                            <Icon3D name="wifi" className="size-10 drop-shadow-md" />
+                        )}
                         {company.name}
                     </Link>
 
                     <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
                         {nav.map((item) => (
-                            <a key={item.id} href={href(item.id)} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">
+                            <a key={item.id} href={href(item.id)} className="rounded-lg px-3 py-2 text-sm font-medium text-indigo-100/75 transition hover:bg-white/10 hover:text-white">
                                 {item.label}
                             </a>
                         ))}
                     </nav>
 
                     <div className="flex items-center gap-1.5">
-                        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Ganti tema">
+                        <Button variant="ghost" size="icon" className="text-white/80 hover:bg-white/10 hover:text-white" onClick={toggleTheme} aria-label="Ganti tema">
                             {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                         </Button>
-                        <Link href="/portal" className={buttonClass('outline', 'sm', 'hidden md:inline-flex')}>
+                        <Link href="/portal" className={buttonClass('ghost', 'sm', 'hidden border border-white/25 text-white hover:bg-white/10 hover:text-white md:inline-flex')}>
                             Portal Pelanggan
                         </Link>
                         {staff && (
-                            <Link href="/dashboard" className={buttonClass('ghost', 'sm', 'hidden sm:inline-flex')}>
+                            <Link href="/dashboard" className={buttonClass('ghost', 'sm', 'hidden text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex')}>
                                 Dashboard
                             </Link>
                         )}
                         {chat && (
-                            <a href={chat} target="_blank" rel="noreferrer" className={buttonClass('primary', 'sm', 'hidden sm:inline-flex')}>
+                            <a href={chat} target="_blank" rel="noreferrer" className={buttonClass('primary', 'sm', 'hidden bg-white text-indigo-700 shadow-sm hover:bg-white/90 hover:brightness-100 sm:inline-flex')}>
                                 <MessageCircle className="size-3.5" /> Konsultasi
                             </a>
                         )}
-                        <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="menu-seluler">
+                        <Button variant="ghost" size="icon" className="border border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Tutup menu' : 'Buka menu'} aria-expanded={open} aria-controls="menu-seluler">
                             {open ? <X className="size-4" /> : <Menu className="size-4" />}
                         </Button>
                     </div>
@@ -88,18 +94,18 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                         open ? 'visible grid-rows-[1fr] opacity-100' : 'invisible grid-rows-[0fr] opacity-0',
                     )}
                 >
-                    <nav className="overflow-hidden border-b bg-background/95 shadow-lg shadow-indigo-500/5 backdrop-blur-xl" aria-label="Navigasi seluler">
+                    <nav className="overflow-hidden border-b border-white/10 bg-[#0b1026]/95 text-white shadow-lg shadow-indigo-950/30 backdrop-blur-xl" aria-label="Navigasi seluler">
                         <div className="mx-auto grid max-w-6xl gap-1 px-4 py-3">
                             {nav.map((item) => (
-                                <a key={item.id} href={href(item.id)} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted">
+                                <a key={item.id} href={href(item.id)} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-indigo-50/90 hover:bg-white/10">
                                     {item.label}
                                 </a>
                             ))}
-                            <Link href="/portal" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-primary hover:bg-muted">
+                            <Link href="/portal" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-indigo-300 hover:bg-white/10">
                                 Portal Pelanggan
                             </Link>
                             {staff && (
-                                <Link href="/dashboard" className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted">
+                                <Link href="/dashboard" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10">
                                     Dashboard
                                 </Link>
                             )}

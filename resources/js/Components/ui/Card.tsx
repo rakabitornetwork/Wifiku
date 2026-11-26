@@ -2,10 +2,13 @@ import { type HTMLAttributes, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
+/** Permukaan kartu bersama; dipakai juga oleh elemen bergaya kartu di luar komponen Card (mis. langkah proses di landing). */
+export const cardSurface = 'rounded-2xl border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,0.05),0_14px_30px_-18px_rgba(15,23,42,0.22)] dark:shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]';
+
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
         <div
-            className={cn('rounded-2xl border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,0.05),0_14px_30px_-18px_rgba(15,23,42,0.22)] dark:shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]', className)}
+            className={cn(cardSurface, className)}
             {...props}
         />
     );
