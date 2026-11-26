@@ -1,6 +1,8 @@
 import { Head, router } from '@inertiajs/react';
+import { Home } from 'lucide-react';
 import { useState } from 'react';
 
+import { IconBadge } from '@/Components/IconBadge';
 import { PortalShell } from '@/Components/PortalShell';
 import { Badge } from '@/Components/ui/Badge';
 import { Card } from '@/Components/ui/Card';
@@ -31,8 +33,9 @@ export default function Choose({ company, accounts }: { company: { name: string;
                                 className="w-full text-left transition focus-visible:outline-none"
                             >
                                 <Card className="p-4 transition hover:border-primary/50 hover:shadow-md focus-visible:ring-2">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
+                                    <div className="flex items-start gap-3">
+                                        <IconBadge icon={Home} tone={account.status === 'active' ? 'emerald' : 'rose'} />
+                                        <div className="min-w-0 flex-1">
                                             <div className="font-medium">{account.name}</div>
                                             <div className="num text-xs text-muted-foreground">
                                                 {account.customer_code}

@@ -1,6 +1,8 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { MessageCircle, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
+import { IconBadge } from '@/Components/IconBadge';
 import { PortalShell } from '@/Components/PortalShell';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
@@ -40,7 +42,8 @@ export default function Login({ company, pendingPhone, resendSeconds }: Props) {
         <PortalShell company={company}>
             <Head title="Masuk Portal Pelanggan" />
             <div className="mx-auto w-full max-w-sm px-4 py-12">
-                <div className="mb-6 text-center">
+                <div className="mb-6 flex flex-col items-center text-center">
+                    <IconBadge icon={pendingPhone ? ShieldCheck : MessageCircle} tone={pendingPhone ? 'indigo' : 'emerald'} size="lg" className="mb-3" />
                     <h1 className="text-xl font-semibold tracking-tight">Masuk ke portal pelanggan</h1>
                     <p className="mt-1 text-sm text-muted-foreground">Lihat tagihan, cek status ONU, dan ganti nama serta password WiFi Anda.</p>
                 </div>

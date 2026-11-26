@@ -28,7 +28,7 @@ export function PortalShell({ company, children, loggedIn = false }: Props) {
                             {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                         </Button>
                         {loggedIn && (
-                            <Button variant="outline" size="sm" onClick={() => router.post('/pelanggan/keluar')}>
+                            <Button size="sm" className="border-0 bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-sm shadow-red-500/25 hover:from-rose-600 hover:to-red-800 hover:text-white" onClick={() => router.post('/pelanggan/keluar')}>
                                 <LogOut className="size-3.5" /> Keluar
                             </Button>
                         )}
