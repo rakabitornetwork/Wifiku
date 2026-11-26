@@ -44,14 +44,14 @@ const quality = {
     bad: { label: 'Lemah', className: 'text-red-600 dark:text-red-400' },
 } as const;
 
+/** Satu baris informasi: label di kiri, nilai di kanan; keduanya tidak pernah turun ke baris kedua (nilai panjang bisa digeser). */
 function Stat({ label, value, icon, tone = 'indigo', className }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone; className?: string }) {
     return (
-        <div className="flex items-start gap-3">
-            <IconBadge icon={icon} tone={tone} size="sm" className="mt-0.5" />
-            <div className="min-w-0">
-                <dt className="text-xs text-muted-foreground">{label}</dt>
-                <dd className={cn('num mt-0.5 text-sm font-medium break-words', className)}>{value}</dd>
-            </div>
+        <div className="flex items-center justify-between gap-4 py-2.5">
+            <dt className="flex shrink-0 items-center gap-2.5 text-sm whitespace-nowrap text-muted-foreground">
+                <IconBadge icon={icon} tone={tone} size="sm" /> {label}
+            </dt>
+            <dd className={cn('num min-w-0 overflow-x-auto text-right text-sm font-medium whitespace-nowrap', className)}>{value}</dd>
         </div>
     );
 }
@@ -180,7 +180,7 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                 <p className="mt-4 text-sm text-muted-foreground">Belum ada ONU yang tercatat untuk akun Anda. Hubungi CS bila ini keliru.</p>
             ) : (
                 <>
-                    <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <dl className="mt-3 divide-y">
                         <Stat icon={Cpu} tone="sky" label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
                         <Stat icon={Hash} tone="slate" label="Serial number" value={onu.serial_number} />
                         <Stat icon={Network} tone="cyan" label="MAC" value={onu.mac_address ?? '-'} />
