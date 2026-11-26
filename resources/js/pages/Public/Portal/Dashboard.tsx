@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Check, Copy, Cpu, Eye, EyeOff, KeyRound, MessageCircle, Receipt, RefreshCw, Wifi } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
@@ -30,6 +30,7 @@ type Props = {
     outstanding: number;
     payment: { available: boolean; channels: string[] };
     onu: Onu | null;
+    hasMultipleAccounts: boolean;
     canChangeWifi: boolean;
     whatsappUrl: string | null;
 };
@@ -250,7 +251,7 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
     );
 }
 
-export default function Dashboard({ company, customer, invoices, outstanding, payment, onu, canChangeWifi, whatsappUrl }: Props) {
+export default function Dashboard({ company, customer, invoices, outstanding, payment, onu, hasMultipleAccounts, canChangeWifi, whatsappUrl }: Props) {
     const [live, setLive] = useState<Live | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -294,7 +295,14 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
                             {customer.package && ` · Paket ${customer.package}`}
                         </p>
                     </div>
-                    <Badge tone={statusTone[customer.status as keyof typeof statusTone] ?? 'slate'}>{statusLabel[customer.status as keyof typeof statusLabel] ?? customer.status}</Badge>
+                    <div className="flex items-center gap-2">
+                        {hasMultipleAccounts && (
+                            <Link href="/pelanggan/pilih" className={buttonClass('outline', 'sm')}>
+                                Ganti sambungan
+                            </Link>
+                        )}
+                        <Badge tone={statusTone[customer.status as keyof typeof statusTone] ?? 'slate'}>{statusLabel[customer.status as keyof typeof statusLabel] ?? customer.status}</Badge>
+                    </div>
                 </div>
 
                 {customer.status === 'isolated' && (

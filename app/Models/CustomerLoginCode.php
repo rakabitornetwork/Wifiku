@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['customer_id', 'code_hash', 'attempts', 'sent_at', 'expires_at'])]
+/**
+ * Kode OTP login portal pelanggan untuk satu nomor WhatsApp (format 62xxx); disimpan sebagai hash.
+ */
+#[Fillable(['phone', 'code_hash', 'attempts', 'sent_at', 'expires_at'])]
 #[Hidden(['code_hash'])]
 class CustomerLoginCode extends Model
 {
@@ -21,13 +23,5 @@ class CustomerLoginCode extends Model
             'sent_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
-    }
-
-    /**
-     * @return BelongsTo<Customer, $this>
-     */
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class);
     }
 }

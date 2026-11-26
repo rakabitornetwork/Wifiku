@@ -6,11 +6,13 @@ use App\Actions\Payment\CreateOnlinePayment;
 use App\Drivers\Payment\Exceptions\PaymentGatewayException;
 use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
+use App\Http\Middleware\EnsureCustomerPortalSession;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\PaymentGateway;
 use App\Services\GenieAcs\GenieAcsException;
 use App\Services\GenieAcs\GenieAcsService;
+use App\Services\Portal\CustomerLoginService;
 use App\Services\Portal\CustomerOnuService;
 use App\Services\Settings\SettingService;
 use App\Support\CompanyBranding;
@@ -29,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class CustomerPortalController extends Controller
 {
-    public function dashboard(Request $request, CustomerOnuService $onu, SettingService $settings): Response
+    public function dashboard(Request $request, CustomerOnuService $onu, SettingService $settings, CustomerLoginService $login): Response
     {
         $customer = $this->customer($request);
         $asset = $onu->assetFor($customer);
@@ -66,6 +68,7 @@ class CustomerPortalController extends Controller
                 'installed_at' => $customer->installed_at?->toDateString(),
                 'promise_to_pay_until' => $customer->promise_to_pay_until?->toDateString(),
             ],
+            'hasMultipleAccounts' => $login->customersFor((string) $request->session()->get(EnsureCustomerPortalSession::PHONE_KEY))->count() > 1,
             'invoices' => $invoices,
             'outstanding' => $invoices->where('status', '!=', InvoiceStatus::Paid->value)->sum('outstanding'),
             'payment' => [

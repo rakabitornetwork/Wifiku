@@ -70,6 +70,9 @@ Route::prefix('pelanggan')->name('portal.')->group(function () {
     Route::get('/masuk', [CustomerPortalAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
     Route::post('/masuk', [CustomerPortalAuthController::class, 'sendCode'])->middleware('throttle:5,1')->name('send-code');
     Route::post('/verifikasi', [CustomerPortalAuthController::class, 'verify'])->middleware('throttle:10,1')->name('verify');
+    Route::post('/kirim-ulang', [CustomerPortalAuthController::class, 'resend'])->middleware('throttle:5,1')->name('resend');
+    Route::get('/pilih', [CustomerPortalAuthController::class, 'choose'])->name('choose');
+    Route::post('/pilih', [CustomerPortalAuthController::class, 'select'])->middleware('throttle:20,1')->name('select');
 
     Route::middleware('portal.customer')->group(function () {
         Route::get('/', [CustomerPortalController::class, 'dashboard'])->name('dashboard');

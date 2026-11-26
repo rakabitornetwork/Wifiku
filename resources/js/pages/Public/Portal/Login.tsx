@@ -6,27 +6,30 @@ import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Field, Input } from '@/Components/ui/Field';
 
-type Props = { company: { name: string; logo: string | null }; pendingCode: string | null; resendSeconds: number };
+type Props = { company: { name: string; logo: string | null }; pendingPhone: string | null; resendSeconds: number };
 
-export default function Login({ company, pendingCode, resendSeconds }: Props) {
-    const codeForm = useForm({ customer_code: pendingCode ?? '' });
+export default function Login({ company, pendingPhone, resendSeconds }: Props) {
+    const phoneForm = useForm({ whatsapp: '' });
+    const resendForm = useForm({});
     const otpForm = useForm({ otp: '' });
     const [wait, setWait] = useState(resendSeconds);
 
     useEffect(() => {
-        if (!pendingCode || wait <= 0) {
+        if (!pendingPhone || wait <= 0) {
             return;
         }
 
         const timer = window.setTimeout(() => setWait((value) => value - 1), 1000);
 
         return () => window.clearTimeout(timer);
-    }, [pendingCode, wait]);
+    }, [pendingPhone, wait]);
 
-    const requestCode = (event?: FormEvent) => {
-        event?.preventDefault();
-        codeForm.post('/pelanggan/masuk', { onSuccess: () => setWait(resendSeconds) });
+    const requestCode = (event: FormEvent) => {
+        event.preventDefault();
+        phoneForm.post('/pelanggan/masuk', { onSuccess: () => setWait(resendSeconds) });
     };
+
+    const resend = () => resendForm.post('/pelanggan/kirim-ulang', { preserveScroll: true, onSuccess: () => setWait(resendSeconds) });
 
     const verify = (event: FormEvent) => {
         event.preventDefault();
@@ -42,10 +45,10 @@ export default function Login({ company, pendingCode, resendSeconds }: Props) {
                     <p className="mt-1 text-sm text-muted-foreground">Lihat tagihan, cek status ONU, dan ganti nama serta password WiFi Anda.</p>
                 </div>
                 <Card className="glass p-6">
-                    {pendingCode ? (
+                    {pendingPhone ? (
                         <form onSubmit={verify} className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Kode masuk 6 digit dikirim ke WhatsApp yang terdaftar untuk <span className="num font-medium text-foreground">{pendingCode}</span>. Berlaku 10 menit.
+                                Jika nomor <span className="num font-medium text-foreground">{pendingPhone}</span> terdaftar, kode masuk 6 digit dikirim ke WhatsApp-nya. Berlaku 10 menit.
                             </p>
                             <Field label="Kode dari WhatsApp" error={otpForm.errors.otp}>
                                 <Input
@@ -63,21 +66,21 @@ export default function Login({ company, pendingCode, resendSeconds }: Props) {
                                 {otpForm.processing ? 'Memeriksa...' : 'Masuk'}
                             </Button>
                             <div className="flex items-center justify-between text-sm">
-                                <button type="button" className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline" onClick={() => requestCode()} disabled={wait > 0 || codeForm.processing}>
+                                <button type="button" className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline" onClick={resend} disabled={wait > 0 || resendForm.processing}>
                                     {wait > 0 ? `Kirim ulang (${wait} dtk)` : 'Kirim ulang kode'}
                                 </button>
                                 <Link href="/pelanggan/masuk?ganti=1" className="text-muted-foreground hover:text-foreground hover:underline">
-                                    Ganti kode pelanggan
+                                    Ganti nomor
                                 </Link>
                             </div>
                         </form>
                     ) : (
                         <form onSubmit={requestCode} className="space-y-4">
-                            <Field label="Kode pelanggan" error={codeForm.errors.customer_code} hint="Tercantum di pesan tagihan WhatsApp dan tautan pembayaran Anda. Tidak tahu? Tanya admin.">
-                                <Input value={codeForm.data.customer_code} onChange={(event) => codeForm.setData('customer_code', event.target.value)} className="num uppercase" autoComplete="username" autoFocus required />
+                            <Field label="Nomor WhatsApp" error={phoneForm.errors.whatsapp} hint="Nomor yang terdaftar di data pelanggan kami, misalnya 08123456789.">
+                                <Input type="tel" value={phoneForm.data.whatsapp} onChange={(event) => phoneForm.setData('whatsapp', event.target.value)} inputMode="tel" placeholder="08123456789" className="num" autoComplete="tel" autoFocus required />
                             </Field>
-                            <Button type="submit" className="w-full" disabled={codeForm.processing || codeForm.data.customer_code.trim() === ''}>
-                                {codeForm.processing ? 'Mengirim...' : 'Kirim kode ke WhatsApp'}
+                            <Button type="submit" className="w-full" disabled={phoneForm.processing || phoneForm.data.whatsapp.trim() === ''}>
+                                {phoneForm.processing ? 'Mengirim...' : 'Kirim kode ke WhatsApp'}
                             </Button>
                         </form>
                     )}

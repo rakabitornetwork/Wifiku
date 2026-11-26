@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\CustomerLoginCode;
 use App\Models\Invoice;
 use App\Models\WhatsappMessage;
+use App\Services\Portal\CustomerLoginService;
 use App\Services\Settings\SettingService;
 use App\Services\Whatsapp\CustomerNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +47,7 @@ class CustomerPortalTest extends TestCase
 
     private function login(Customer $customer): void
     {
-        $this->post('/pelanggan/masuk', ['customer_code' => $customer->customer_code]);
+        $this->post('/pelanggan/masuk', ['whatsapp' => $customer->whatsapp]);
         $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
     }
 
@@ -61,29 +62,51 @@ class CustomerPortalTest extends TestCase
         return Asset::factory()->create(['customer_id' => $customer->id, 'status' => AssetStatus::Installed, 'genieacs_device_id' => 'dev-1']);
     }
 
-    public function test_otp_login_sends_a_six_digit_code_to_the_registered_whatsapp_and_opens_the_portal(): void
+    public function test_otp_login_sends_a_six_digit_code_to_the_whatsapp_number_and_opens_the_portal(): void
     {
         $customer = $this->customer();
 
-        $this->post('/pelanggan/masuk', ['customer_code' => 'tt-0001-0001'])->assertRedirect('/pelanggan/masuk');
+        $this->post('/pelanggan/masuk', ['whatsapp' => '0812-3456-7890'])->assertRedirect('/pelanggan/masuk');
 
         $message = WhatsappMessage::sole();
         $this->assertSame('6281234567890', $message->phone);
         $this->assertMatchesRegularExpression('/\*\d{6}\*/', $message->body);
         $this->assertNotSame($this->lastOtp(), CustomerLoginCode::sole()->code_hash);
+        $this->get('/pelanggan/masuk')->assertInertia(fn (Assert $page) => $page->where('pendingPhone', '0812****7890'));
 
         $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
         $this->assertSame(0, CustomerLoginCode::count());
-        $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Portal/Dashboard')->where('customer.customer_code', $customer->customer_code));
+        $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Portal/Dashboard')->where('customer.customer_code', $customer->customer_code)->where('hasMultipleAccounts', false));
     }
 
-    public function test_unknown_inactive_or_phoneless_customers_get_the_same_response_but_no_code(): void
+    public function test_phone_numbers_are_normalised_and_invalid_ones_rejected(): void
     {
-        $this->customer(['customer_code' => 'TT-OFF', 'status' => CustomerStatus::Inactive]);
-        $this->customer(['customer_code' => 'TT-NOWA', 'whatsapp' => '']);
+        $this->assertSame('6281234567890', CustomerLoginService::normalizePhone('081234567890'));
+        $this->assertSame('6281234567890', CustomerLoginService::normalizePhone('+62 812-3456-7890'));
+        $this->assertSame('6281234567890', CustomerLoginService::normalizePhone('81234567890'));
+        $this->assertNull(CustomerLoginService::normalizePhone('12345'));
+        $this->assertNull(CustomerLoginService::normalizePhone('abc'));
 
-        foreach (['TT-NOPE', 'TT-OFF', 'TT-NOWA'] as $code) {
-            $this->post('/pelanggan/masuk', ['customer_code' => $code])->assertRedirect('/pelanggan/masuk')->assertSessionHasNoErrors();
+        $this->post('/pelanggan/masuk', ['whatsapp' => '12345'])->assertSessionHasErrors('whatsapp');
+        $this->assertSame(0, WhatsappMessage::count());
+    }
+
+    public function test_numbers_stored_in_local_format_still_match(): void
+    {
+        $this->customer(['whatsapp' => '0812-3456-7890']);
+
+        $this->post('/pelanggan/masuk', ['whatsapp' => '6281234567890']);
+
+        $this->assertSame(1, WhatsappMessage::count());
+    }
+
+    public function test_unknown_inactive_or_blank_numbers_get_the_same_response_but_no_code(): void
+    {
+        $this->customer(['whatsapp' => '6281111111111', 'status' => CustomerStatus::Inactive]);
+        $this->customer(['customer_code' => 'TT-B', 'whatsapp' => '']);
+
+        foreach (['082222222222', '081111111111'] as $number) {
+            $this->post('/pelanggan/masuk', ['whatsapp' => $number])->assertRedirect('/pelanggan/masuk')->assertSessionHasNoErrors();
         }
 
         $this->assertSame(0, WhatsappMessage::count());
@@ -93,8 +116,9 @@ class CustomerPortalTest extends TestCase
     public function test_wrong_codes_are_limited_and_resend_is_throttled(): void
     {
         $this->customer();
-        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
-        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
+        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+        $this->post('/pelanggan/kirim-ulang');
         $this->assertSame(1, WhatsappMessage::count());
 
         $real = $this->lastOtp();
@@ -108,14 +132,57 @@ class CustomerPortalTest extends TestCase
         $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
     }
 
+    public function test_resend_after_the_wait_sends_again_but_codes_per_hour_are_capped(): void
+    {
+        $this->customer();
+        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->travel(61)->seconds();
+            $this->post('/pelanggan/kirim-ulang');
+        }
+
+        $this->assertSame(5, WhatsappMessage::count());
+    }
+
     public function test_expired_code_is_rejected(): void
     {
         $this->customer();
-        $this->post('/pelanggan/masuk', ['customer_code' => 'TT-0001-0001']);
+        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
         $otp = $this->lastOtp();
         CustomerLoginCode::query()->update(['expires_at' => now()->subMinute()]);
 
         $this->post('/pelanggan/verifikasi', ['otp' => $otp])->assertSessionHasErrors('otp');
+    }
+
+    public function test_one_number_with_several_connections_chooses_one_and_cannot_pick_foreign_ones(): void
+    {
+        $first = $this->customer(['name' => 'Rumah Utama']);
+        $second = $this->customer(['customer_code' => 'TT-0002-0002', 'name' => 'Ruko']);
+        $foreign = $this->customer(['customer_code' => 'TT-9', 'whatsapp' => '6289999999999']);
+
+        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan/pilih');
+
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/pilih');
+        $this->get('/pelanggan/pilih')->assertOk()->assertInertia(fn (Assert $page) => $page->has('accounts', 2)->where('accounts.0.name', 'Ruko'));
+        $this->post('/pelanggan/pilih', ['customer_id' => $foreign->id])->assertNotFound();
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/pilih');
+
+        $this->post('/pelanggan/pilih', ['customer_id' => $second->id])->assertRedirect('/pelanggan');
+        $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page->where('customer.name', 'Ruko')->where('hasMultipleAccounts', true));
+        $this->assertNotSame($first->id, $second->id);
+    }
+
+    public function test_session_ends_when_the_customers_number_no_longer_matches(): void
+    {
+        $customer = $this->customer();
+        $this->login($customer);
+        $this->get('/pelanggan')->assertOk();
+
+        $customer->update(['whatsapp' => '6285555555555']);
+
+        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
     }
 
     public function test_portal_requires_login_and_ends_when_account_is_deactivated_or_session_is_too_old(): void

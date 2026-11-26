@@ -42,7 +42,7 @@ class CustomerNotifier
             "Kode pelanggan: {$customer->customer_code}",
             '',
             "Bayar online (QRIS/VA): {$this->portalUrl($customer)}",
-            'Cek status ONU & ganti WiFi: '.route('portal.login').' (masuk dengan kode pelanggan di atas)',
+            'Cek status ONU & ganti WiFi: '.route('portal.login').' (masuk dengan nomor WhatsApp ini)',
             'Terima kasih.',
         ]));
     }
@@ -159,12 +159,12 @@ class CustomerNotifier
     }
 
     /**
-     * Kode OTP login portal pelanggan; dikirim ke nomor WhatsApp yang tersimpan pada data pelanggan.
+     * Kode OTP login portal pelanggan; dikirim ke nomor WhatsApp yang sedang masuk (sudah dicocokkan dengan data pelanggan).
      */
-    public function loginCode(Customer $customer, string $code, int $ttlMinutes): void
+    public function loginCode(string $phone, string $code, int $ttlMinutes): void
     {
-        $this->send($customer, WhatsappMessageType::AccountSecurity, implode("\n", [
-            "Halo {$customer->name},",
+        $this->whatsapp->queue($phone, WhatsappMessageType::AccountSecurity, implode("\n", [
+            'Halo,',
             '',
             "Kode masuk portal pelanggan {$this->company()}: *{$code}*",
             "Berlaku {$ttlMinutes} menit. Jangan bagikan kode ini kepada siapa pun, termasuk petugas.",

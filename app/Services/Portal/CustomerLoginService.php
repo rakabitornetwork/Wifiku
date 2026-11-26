@@ -6,12 +6,14 @@ use App\Enums\CustomerStatus;
 use App\Models\Customer;
 use App\Models\CustomerLoginCode;
 use App\Services\Whatsapp\CustomerNotifier;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
- * Login portal pelanggan tanpa password: kode OTP 6 digit dikirim ke nomor WhatsApp yang tersimpan pada data pelanggan.
- * Hasil permintaan sengaja tidak membedakan kode pelanggan yang ada dan tidak ada agar kode tidak bisa ditebak.
+ * Login portal pelanggan tanpa password: kode OTP 6 digit dikirim ke nomor WhatsApp yang dimasukkan, dan hanya
+ * bila nomor itu terdaftar pada data pelanggan. Hasil permintaan sengaja tidak membedakan nomor yang terdaftar dan tidak
+ * agar daftar pelanggan tidak bisa ditelusuri. Satu nomor boleh dipakai beberapa sambungan.
  */
 class CustomerLoginService
 {
@@ -21,72 +23,102 @@ class CustomerLoginService
 
     public const RESEND_SECONDS = 60;
 
+    public const MAX_CODES_PER_HOUR = 5;
+
     public function __construct(private readonly CustomerNotifier $notifier) {}
 
-    public function normalize(string $customerCode): string
+    /**
+     * "0812-3456-7890", "+62 812 3456 7890", dan "812..." menjadi "6281234567890"; null bila bukan nomor yang masuk akal.
+     */
+    public static function normalizePhone(?string $input): ?string
     {
-        return Str::upper(trim($customerCode));
+        $digits = preg_replace('/\D+/', '', (string) $input) ?? '';
+
+        $phone = match (true) {
+            str_starts_with($digits, '62') => $digits,
+            str_starts_with($digits, '0') => '62'.substr($digits, 1),
+            str_starts_with($digits, '8') => '62'.$digits,
+            default => '',
+        };
+
+        return preg_match('/^62\d{8,13}$/', $phone) === 1 ? $phone : null;
     }
 
     /**
-     * Pelanggan yang boleh login: bukan nonaktif dan punya nomor WhatsApp untuk menerima kode.
+     * "6281234567890" menjadi "0812****7890" untuk ditampilkan kembali kepada pengunjung.
      */
-    public function findEligible(string $customerCode): ?Customer
+    public static function mask(string $phone): string
     {
-        $customer = Customer::query()->whereRaw('UPPER(customer_code) = ?', [$this->normalize($customerCode)])->first();
+        $local = '0'.substr($phone, 2);
 
-        if ($customer === null || $customer->status === CustomerStatus::Inactive || blank($customer->whatsapp)) {
-            return null;
-        }
-
-        return $customer;
+        return substr($local, 0, 4).str_repeat('*', max(0, strlen($local) - 8)).substr($local, -4);
     }
 
     /**
-     * Kirim kode baru bila pelanggan ada dan jeda kirim ulang sudah lewat; selain itu tidak melakukan apa pun.
+     * Pelanggan yang boleh login dengan nomor ini: bukan nonaktif, nomor WhatsApp-nya sama setelah dinormalkan.
+     *
+     * @return Collection<int, Customer>
      */
-    public function send(string $customerCode): void
+    public function customersFor(string $phone): Collection
     {
-        $customer = $this->findEligible($customerCode);
+        $tail = substr($phone, -8);
 
-        if ($customer === null) {
+        return Customer::query()
+            ->with('package:id,name')
+            ->where('status', '!=', CustomerStatus::Inactive)
+            ->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(whatsapp, '-', ''), ' ', ''), '+', ''), '.', '') LIKE ?", ['%'.$tail])
+            ->orderBy('name')
+            ->get()
+            ->filter(fn (Customer $customer): bool => self::normalizePhone($customer->whatsapp) === $phone)
+            ->values();
+    }
+
+    /**
+     * Kirim kode baru bila nomor terdaftar, jeda kirim ulang sudah lewat, dan batas per jam belum habis; selain itu diam.
+     */
+    public function send(string $phone): void
+    {
+        if ($this->customersFor($phone)->isEmpty()) {
             return;
         }
 
-        $pending = CustomerLoginCode::query()->where('customer_id', $customer->id)->first();
+        $pending = CustomerLoginCode::query()->where('phone', $phone)->first();
 
         if ($pending !== null && $pending->sent_at->diffInSeconds(now(), true) < self::RESEND_SECONDS) {
             return;
         }
 
+        if (! RateLimiter::attempt('portal-otp:'.$phone, self::MAX_CODES_PER_HOUR, fn (): bool => true, 3600)) {
+            return;
+        }
+
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        CustomerLoginCode::query()->updateOrCreate(['customer_id' => $customer->id], [
+        CustomerLoginCode::query()->updateOrCreate(['phone' => $phone], [
             'code_hash' => Hash::make($code),
             'attempts' => 0,
             'sent_at' => now(),
             'expires_at' => now()->addMinutes(self::TTL_MINUTES),
         ]);
 
-        $this->notifier->loginCode($customer, $code, self::TTL_MINUTES);
+        $this->notifier->loginCode($phone, $code, self::TTL_MINUTES);
     }
 
     /**
-     * Periksa kode; mengembalikan pelanggan bila benar. Kode dipakai sekali, dan dibatalkan setelah MAX_ATTEMPTS salah.
+     * Periksa kode untuk nomor ini. Kode dipakai sekali, dan dibatalkan setelah MAX_ATTEMPTS salah.
      */
-    public function verify(string $customerCode, string $code): ?Customer
+    public function verify(string $phone, string $code): bool
     {
-        $customer = $this->findEligible($customerCode);
-        $pending = $customer === null ? null : CustomerLoginCode::query()->where('customer_id', $customer->id)->first();
+        $pending = CustomerLoginCode::query()->where('phone', $phone)->first();
 
-        if ($customer === null || $pending === null) {
-            return null;
+        if ($pending === null) {
+            return false;
         }
 
         if ($pending->expires_at->isPast()) {
             $pending->delete();
 
-            return null;
+            return false;
         }
 
         if (! Hash::check(trim($code), $pending->code_hash)) {
@@ -96,11 +128,11 @@ class CustomerLoginService
                 $pending->delete();
             }
 
-            return null;
+            return false;
         }
 
         $pending->delete();
 
-        return $customer;
+        return $this->customersFor($phone)->isNotEmpty();
     }
 }
