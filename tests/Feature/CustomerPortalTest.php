@@ -11,6 +11,7 @@ use App\Models\CustomerLoginCode;
 use App\Models\Invoice;
 use App\Models\WhatsappMessage;
 use App\Services\Settings\SettingService;
+use App\Services\Whatsapp\CustomerNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -163,7 +164,7 @@ class CustomerPortalTest extends TestCase
         $this->post('/pelanggan/bayar', ['invoice_number' => $other->invoice_number, 'channel' => 'QRIS'])->assertNotFound();
     }
 
-    public function test_onu_status_comes_from_genieacs_without_exposing_the_wifi_password(): void
+    public function test_onu_status_comes_from_genieacs_including_the_current_wifi_password_but_never_cached(): void
     {
         $this->configureGenieAcs();
         $customer = $this->customer();
@@ -180,9 +181,11 @@ class CustomerPortalTest extends TestCase
         ]])]);
         $this->login($customer);
 
-        $response = $this->getJson('/pelanggan/onu')->assertOk()->assertJson(['available' => true, 'online' => true, 'rx_power' => -22.4, 'rx_quality' => 'good', 'ssid' => 'WifiRumah']);
+        $response = $this->getJson('/pelanggan/onu')->assertOk()->assertJson(['available' => true, 'online' => true, 'rx_power' => -22.4, 'rx_quality' => 'good', 'ssid' => 'WifiRumah', 'wifi_password' => 'rahasia-wifi-lama']);
 
-        $this->assertStringNotContainsString('rahasia-wifi-lama', $response->getContent());
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $this->get('/pelanggan')->assertOk();
+        $this->assertStringNotContainsString('rahasia-wifi-lama', $this->get('/pelanggan')->getContent());
         Http::assertSent(fn (Request $request) => str_contains(urldecode($request->url()), 'dev-1'));
         Http::assertNotSent(fn (Request $request) => str_contains(urldecode($request->url()), 'dev-other'));
     }
@@ -249,5 +252,19 @@ class CustomerPortalTest extends TestCase
         $this->post('/pelanggan/keluar')->assertRedirect('/pelanggan/masuk');
         $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
         $this->get('/dashboard')->assertRedirect('/login');
+    }
+
+    public function test_invoice_and_reminder_messages_include_the_customer_code_and_portal_link(): void
+    {
+        $customer = $this->customer();
+        $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
+
+        app(CustomerNotifier::class)->invoiceIssued($invoice);
+        app(CustomerNotifier::class)->invoiceReminder($invoice);
+
+        $bodies = WhatsappMessage::orderBy('id')->pluck('body');
+        $this->assertCount(2, $bodies);
+        $bodies->each(fn (string $body) => $this->assertStringContainsString('Kode pelanggan: TT-0001-0001', $body));
+        $this->assertStringContainsString(route('portal.login'), $bodies[0]);
     }
 }

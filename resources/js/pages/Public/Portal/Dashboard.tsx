@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Cpu, KeyRound, MessageCircle, Receipt, RefreshCw, Wifi } from 'lucide-react';
+import { Check, Copy, Cpu, Eye, EyeOff, KeyRound, MessageCircle, Receipt, RefreshCw, Wifi } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
 import { PortalShell } from '@/Components/PortalShell';
@@ -19,6 +19,7 @@ type Live = {
     rx_quality: 'good' | 'warning' | 'bad' | null;
     last_inform: string | null;
     ssid: string | null;
+    wifi_password: string | null;
     devices: { hostname: string | null; ip_address: string | null; mac_address: string | null; interface: string | null }[];
 };
 
@@ -47,6 +48,41 @@ function Stat({ label, value, className }: { label: string; value: React.ReactNo
             <dt className="text-xs text-muted-foreground">{label}</dt>
             <dd className={cn('num mt-0.5 text-sm font-medium break-words', className)}>{value}</dd>
         </div>
+    );
+}
+
+function WifiPassword({ password, loading }: { password: string | null | undefined; loading: boolean }) {
+    const [visible, setVisible] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    if (loading && password === undefined) {
+        return <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />;
+    }
+
+    if (!password) {
+        return <>-</>;
+    }
+
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(password);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1500);
+        } catch {
+            setVisible(true);
+        }
+    };
+
+    return (
+        <span className="inline-flex items-center gap-1.5">
+            <span className="select-all">{visible ? password : '•'.repeat(Math.min(password.length, 12))}</span>
+            <button type="button" onClick={() => setVisible(!visible)} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={visible ? 'Sembunyikan password WiFi' : 'Tampilkan password WiFi'}>
+                {visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+            </button>
+            <button type="button" onClick={() => void copy()} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Salin password WiFi">
+                {copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+            </button>
+        </span>
     );
 }
 
@@ -150,6 +186,7 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                         <Stat label="Kualitas sinyal" value={live?.rx_quality ? quality[live.rx_quality].label : '-'} className={live?.rx_quality ? quality[live.rx_quality].className : undefined} />
                         <Stat label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-'} />
                         <Stat label="Nama WiFi (SSID)" value={live?.ssid ?? '-'} />
+                        <Stat label="Password WiFi" value={<WifiPassword password={live ? live.wifi_password : undefined} loading={loading} />} />
                         <Stat label="Terpasang sejak" value={formatDate(onu.installed_at)} />
                     </dl>
 
@@ -194,7 +231,7 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
             <h2 className="flex items-center gap-2 font-semibold">
                 <KeyRound className="size-4 text-primary" /> Ganti nama dan password WiFi
             </h2>
-            <p className="mt-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">Setelah disimpan, semua perangkat yang tersambung akan terputus dan harus menyambung lagi dengan nama dan password baru. Catat password baru Anda; password lama tidak ditampilkan di sini.</p>
+            <p className="mt-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">Setelah disimpan, semua perangkat yang tersambung akan terputus dan harus menyambung lagi dengan nama dan password baru. Catat password baru Anda; password yang sedang aktif bisa dilihat di kartu Status ONU.</p>
             <form onSubmit={submit} className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Field label="Nama WiFi (SSID)" error={form.errors.ssid} hint="Maksimal 32 karakter." className="sm:col-span-2">
                     <Input value={form.data.ssid} onChange={(event) => form.setData('ssid', event.target.value)} maxLength={32} required />
@@ -233,9 +270,9 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
                 return;
             }
 
-            setLive(response.ok ? await response.json() : { available: false, message: 'Status ONU belum dapat dimuat. Coba lagi.', online: null, rx_power: null, rx_quality: null, last_inform: null, ssid: null, devices: [] });
+            setLive(response.ok ? await response.json() : { available: false, message: 'Status ONU belum dapat dimuat. Coba lagi.', online: null, rx_power: null, rx_quality: null, last_inform: null, ssid: null, wifi_password: null, devices: [] });
         } catch {
-            setLive({ available: false, message: 'Koneksi terputus saat memuat status ONU.', online: null, rx_power: null, rx_quality: null, last_inform: null, ssid: null, devices: [] });
+            setLive({ available: false, message: 'Koneksi terputus saat memuat status ONU.', online: null, rx_power: null, rx_quality: null, last_inform: null, ssid: null, wifi_password: null, devices: [] });
         } finally {
             setLoading(false);
         }

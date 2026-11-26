@@ -91,7 +91,7 @@ class CustomerPortalController extends Controller
      */
     public function onu(Request $request, CustomerOnuService $onu): JsonResponse
     {
-        return response()->json($onu->live($this->customer($request)));
+        return response()->json($onu->live($this->customer($request)), headers: ['Cache-Control' => 'no-store, private']);
     }
 
     public function updateWifi(Request $request, CustomerOnuService $onu, GenieAcsService $genieAcs): RedirectResponse

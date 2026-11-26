@@ -39,8 +39,10 @@ class CustomerNotifier
             "No. invoice: {$invoice->invoice_number}",
             "Total: {$this->rupiah($invoice->total)}",
             "Jatuh tempo: {$this->date($invoice->due_date)}",
+            "Kode pelanggan: {$customer->customer_code}",
             '',
             "Bayar online (QRIS/VA): {$this->portalUrl($customer)}",
+            'Cek status ONU & ganti WiFi: '.route('portal.login').' (masuk dengan kode pelanggan di atas)',
             'Terima kasih.',
         ]));
     }
@@ -60,6 +62,7 @@ class CustomerNotifier
             '',
             "Mengingatkan tagihan {$invoice->invoice_number} sebesar {$this->rupiah($invoice->total - $invoice->amount_paid)} jatuh tempo pada {$this->date($invoice->due_date)}.",
             'Mohon lakukan pembayaran sebelum jatuh tempo agar layanan tidak terisolir otomatis.',
+            "Kode pelanggan: {$customer->customer_code}",
             '',
             "Bayar online: {$this->portalUrl($customer)}",
         ]));

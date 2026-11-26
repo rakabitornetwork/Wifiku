@@ -11,7 +11,7 @@ use App\Services\GenieAcs\GenieAcsService;
 
 /**
  * Data ONU untuk portal pelanggan: perangkat milik pelanggan itu sendiri, dibaca langsung dari GenieACS.
- * Password Wi-Fi sengaja tidak pernah dikirim ke browser.
+ * Password Wi-Fi saat ini ikut dikirim (hanya ke pemilik akun yang sudah login OTP); respons tidak boleh disimpan cache.
  */
 class CustomerOnuService
 {
@@ -35,11 +35,11 @@ class CustomerOnuService
     }
 
     /**
-     * @return array{available: bool, message: string|null, online: bool|null, rx_power: float|null, rx_quality: 'good'|'warning'|'bad'|null, last_inform: string|null, ssid: string|null, devices: list<array{hostname: string|null, ip_address: string|null, mac_address: string|null, interface: string|null}>}
+     * @return array{available: bool, message: string|null, online: bool|null, rx_power: float|null, rx_quality: 'good'|'warning'|'bad'|null, last_inform: string|null, ssid: string|null, wifi_password: string|null, devices: list<array{hostname: string|null, ip_address: string|null, mac_address: string|null, interface: string|null}>}
      */
     public function live(Customer $customer): array
     {
-        $empty = ['available' => false, 'message' => null, 'online' => null, 'rx_power' => null, 'rx_quality' => null, 'last_inform' => null, 'ssid' => null, 'devices' => []];
+        $empty = ['available' => false, 'message' => null, 'online' => null, 'rx_power' => null, 'rx_quality' => null, 'last_inform' => null, 'ssid' => null, 'wifi_password' => null, 'devices' => []];
         $asset = $this->assetFor($customer);
 
         if ($asset === null) {
@@ -67,6 +67,7 @@ class CustomerOnuService
             'rx_quality' => self::quality($status['rx_power']),
             'last_inform' => $lastInform?->toIso8601String(),
             'ssid' => $wifi['ssid'],
+            'wifi_password' => $wifi['password'],
             'devices' => $wifi['devices'],
         ];
     }
