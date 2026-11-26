@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Activity, AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Cpu, Eye, EyeOff, Gauge, Hash, KeyRound, MessageCircle, Network, Receipt, RefreshCw, ShieldCheck, Smartphone, UserRound, Wifi, type LucideIcon } from 'lucide-react';
+import { Activity, AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Cpu, Eye, EyeOff, Gauge, Hash, KeyRound, MessageCircle, Network, Receipt, RefreshCw, Smartphone, UserRound, Wifi, type LucideIcon } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
 import { IconBadge, type IconTone } from '@/Components/IconBadge';
@@ -44,14 +44,35 @@ const quality = {
     bad: { label: 'Lemah', className: 'text-red-600 dark:text-red-400' },
 } as const;
 
-/** Satu baris informasi: label di kiri, nilai di kanan; keduanya tidak pernah turun ke baris kedua (nilai panjang bisa digeser). */
-function Stat({ label, value, icon, tone = 'indigo', className }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone; className?: string }) {
+const tileTone = {
+    good: 'border-emerald-500/30 bg-emerald-500/10',
+    warning: 'border-amber-500/35 bg-amber-500/10',
+    bad: 'border-rose-500/35 bg-rose-500/10',
+    neutral: 'bg-muted/40',
+} as const;
+
+/** Kotak angka penting; nilainya satu baris dan tidak pernah dipecah. */
+function Metric({ label, value, icon, tone = 'indigo', tile = 'neutral', valueClassName, hint }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone; tile?: keyof typeof tileTone; valueClassName?: string; hint?: React.ReactNode }) {
     return (
-        <div className="flex items-center justify-between gap-4 py-2.5">
-            <dt className="flex shrink-0 items-center gap-2.5 text-sm whitespace-nowrap text-muted-foreground">
+        <div className={cn('min-w-0 rounded-xl border p-3.5', tileTone[tile])}>
+            <div className="flex items-center gap-2 text-xs whitespace-nowrap text-muted-foreground">
                 <IconBadge icon={icon} tone={tone} size="sm" /> {label}
-            </dt>
-            <dd className={cn('num min-w-0 overflow-x-auto text-right text-sm font-medium whitespace-nowrap', className)}>{value}</dd>
+            </div>
+            <div className={cn('num mt-2 overflow-x-auto text-lg font-semibold whitespace-nowrap', valueClassName)}>{value}</div>
+            {hint && <div className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground">{hint}</div>}
+        </div>
+    );
+}
+
+/** Informasi pendukung: label kecil di atas, nilai satu baris di bawahnya (nilai sangat panjang bisa digeser). */
+function Detail({ label, value, icon, tone = 'slate' }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone }) {
+    return (
+        <div className="flex min-w-0 items-start gap-2.5">
+            <IconBadge icon={icon} tone={tone} size="sm" className="mt-0.5" />
+            <div className="min-w-0">
+                <dt className="text-xs whitespace-nowrap text-muted-foreground">{label}</dt>
+                <dd className="num mt-0.5 overflow-x-auto text-sm font-medium whitespace-nowrap">{value}</dd>
+            </div>
         </div>
     );
 }
@@ -180,22 +201,32 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                 <p className="mt-4 text-sm text-muted-foreground">Belum ada ONU yang tercatat untuk akun Anda. Hubungi CS bila ini keliru.</p>
             ) : (
                 <>
-                    <dl className="mt-3 divide-y">
-                        <Stat icon={Cpu} tone="sky" label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
-                        <Stat icon={Hash} tone="slate" label="Serial number" value={onu.serial_number} />
-                        <Stat icon={Network} tone="cyan" label="MAC" value={onu.mac_address ?? '-'} />
-                        <Stat icon={Activity} tone={live?.online === false ? 'rose' : 'emerald'} label="Koneksi" value={loading && !live ? <span className="inline-block h-4 w-16 animate-pulse rounded bg-muted" /> : live?.online === null || live?.online === undefined ? '-' : <Badge tone={live.online ? 'green' : 'red'}>{live.online ? 'Online' : 'Offline'}</Badge>} />
-                        <Stat
-                            icon={Gauge}
-                            tone="violet"
-                            label="Redaman (RX)"
-                            value={loading && !live ? <span className="inline-block h-4 w-16 animate-pulse rounded bg-muted" /> : live?.rx_power != null ? `${live.rx_power.toFixed(2)} dBm` : '-'}
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                        <Metric
+                            icon={Activity}
+                            tone={live?.online === false ? 'rose' : 'emerald'}
+                            label="Koneksi"
+                            value={loading && !live ? <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" /> : live?.online === null || live?.online === undefined ? '-' : <Badge tone={live.online ? 'green' : 'red'}>{live.online ? 'Online' : 'Offline'}</Badge>}
                         />
-                        <Stat icon={ShieldCheck} tone={live?.rx_quality === 'bad' ? 'rose' : live?.rx_quality === 'warning' ? 'amber' : 'emerald'} label="Kualitas sinyal" value={live?.rx_quality ? quality[live.rx_quality].label : '-'} className={live?.rx_quality ? quality[live.rx_quality].className : undefined} />
-                        <Stat icon={Clock} tone="amber" label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-'} />
-                        <Stat icon={Wifi} tone="indigo" label="Nama WiFi (SSID)" value={live?.ssid ?? '-'} />
-                        <Stat icon={KeyRound} tone="rose" label="Password WiFi" value={<WifiPassword password={live ? live.wifi_password : undefined} loading={loading} />} />
-                        <Stat icon={CalendarDays} tone="slate" label="Terpasang sejak" value={formatDate(onu.installed_at)} />
+                        <Metric
+                            icon={Gauge}
+                            tone={live?.rx_quality === 'bad' ? 'rose' : live?.rx_quality === 'warning' ? 'amber' : live?.rx_quality === 'good' ? 'emerald' : 'violet'}
+                            tile={live?.rx_quality ?? 'neutral'}
+                            label="Redaman (RX)"
+                            value={loading && !live ? <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" /> : live?.rx_power != null ? `${live.rx_power.toFixed(2)} dBm` : '-'}
+                            valueClassName={live?.rx_quality ? quality[live.rx_quality].className : undefined}
+                            hint={live?.rx_quality ? <span className={cn('font-medium', quality[live.rx_quality].className)}>{quality[live.rx_quality].label}</span> : undefined}
+                        />
+                        <Metric icon={Clock} tone="amber" label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'} />
+                        <Metric icon={Wifi} tone="indigo" label="Nama WiFi (SSID)" value={live?.ssid ?? '-'} />
+                    </div>
+
+                    <dl className="mt-4 grid gap-x-4 gap-y-3 border-t pt-4 sm:grid-cols-2">
+                        <Detail icon={Cpu} tone="sky" label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
+                        <Detail icon={Hash} label="Serial number" value={onu.serial_number} />
+                        <Detail icon={Network} tone="cyan" label="MAC" value={onu.mac_address ?? '-'} />
+                        <Detail icon={KeyRound} tone="rose" label="Password WiFi" value={<WifiPassword password={live ? live.wifi_password : undefined} loading={loading} />} />
+                        <Detail icon={CalendarDays} label="Terpasang sejak" value={formatDate(onu.installed_at)} />
                     </dl>
 
                     {live?.message && <p className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">{live.message}</p>}
