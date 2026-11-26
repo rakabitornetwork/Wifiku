@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Services\Portal\CustomerLoginService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\ConnectionInterface;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * Menyalin tanggal tagihan dan nomor WhatsApp pelanggan dari database aplikasi lama ke pelanggan yang sudah ada di sini.
@@ -14,6 +15,8 @@ use Illuminate\Database\ConnectionInterface;
  * whatsapp (hanya bila di sini masih kosong), billing_day, dan installed_at. Kolom installed_at di sini berfungsi sebagai
  * awal penagihan (hasil impor PPP), jadi saat tanggal tagihan berubah ia dipindah ke kemunculan berikutnya tanggal itu,
  * agar invoice pertama berupa siklus penuh pada tanggal tagihan, bukan prorata di tanggal acak.
+ * Pelanggan yang pernah diubah oleh pengguna (Audit Log memuat perubahan dengan pelaku) tidak ditimpa tanggal tagihannya,
+ * sehingga perintah ini aman dijalankan ulang setelah impor PPP tanpa membatalkan pilihan manual.
  */
 class LegacyBillingContactSync
 {
@@ -28,6 +31,7 @@ class LegacyBillingContactSync
         'tanggal_tagihan_diubah' => 0,
         'tanggal_tagihan_sama' => 0,
         'dilewati_sudah_punya_invoice' => 0,
+        'dilewati_diubah_manual' => 0,
         'dilewati_username_ganda' => 0,
         'tidak_ada_di_database_lama' => 0,
     ];
@@ -43,6 +47,7 @@ class LegacyBillingContactSync
     {
         $today = ($this->today ?? CarbonImmutable::now())->startOfDay();
         $legacy = $this->legacy->table('pppoe_customers')->get(['username', 'phone', 'billing_day'])->keyBy(fn ($row): string => $this->key($row->username));
+        $editedByUser = Activity::query()->where('subject_type', Customer::class)->where('event', 'updated')->whereNotNull('causer_id')->pluck('subject_id')->flip();
         $duplicates = Customer::query()->get(['pppoe_username'])->countBy(fn (Customer $customer): string => $this->key($customer->pppoe_username))->filter(fn (int $count): bool => $count > 1);
 
         foreach (Customer::query()->orderBy('id')->get() as $customer) {
@@ -79,6 +84,8 @@ class LegacyBillingContactSync
 
             if ($customer->billing_day === $billingDay) {
                 $this->report['tanggal_tagihan_sama']++;
+            } elseif ($editedByUser->has($customer->id)) {
+                $this->report['dilewati_diubah_manual']++;
             } elseif ($customer->invoices()->exists()) {
                 $this->report['dilewati_sudah_punya_invoice']++;
             } else {

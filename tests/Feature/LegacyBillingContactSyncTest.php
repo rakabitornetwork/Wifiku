@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\Legacy\LegacyBillingContactSync;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,5 +123,25 @@ class LegacyBillingContactSyncTest extends TestCase
         $this->artisan('legacy:sync-billing-contacts', ['path' => $this->legacyPath])->assertSuccessful();
         $this->assertSame('6281234567890', $customer->fresh()->whatsapp);
         $this->assertDatabaseHas('activity_log', ['log_name' => 'Pelanggan', 'description' => 'Pelanggan diubah', 'subject_id' => $customer->id]);
+    }
+
+    public function test_billing_day_changed_manually_by_a_user_is_not_overwritten_on_a_rerun(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::factory()->create(['pppoe_username' => 'tio', 'whatsapp' => '', 'billing_day' => 1, 'installed_at' => '2026-12-01']);
+        $this->legacy(1, 'tio', '081234567890', 11);
+
+        $this->sync();
+        $this->assertSame(11, $customer->fresh()->billing_day);
+
+        $this->actingAs($user);
+        $customer->fresh()->update(['billing_day' => 25]);
+        auth()->logout();
+
+        $report = $this->sync();
+
+        $this->assertSame(25, $customer->fresh()->billing_day);
+        $this->assertSame(1, $report['dilewati_diubah_manual']);
+        $this->assertSame(0, $report['tanggal_tagihan_diubah']);
     }
 }
