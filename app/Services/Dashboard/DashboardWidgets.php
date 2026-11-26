@@ -7,16 +7,21 @@ use App\Enums\AssetType;
 use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\OutageStatus;
+use App\Enums\RouterStatus;
+use App\Enums\VoucherStatus;
 use App\Enums\WhatsappMessageStatus;
 use App\Models\Asset;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Outage;
+use App\Models\Router;
 use App\Models\User;
+use App\Models\Voucher;
 use App\Models\WhatsappMessage;
 use App\Services\Reports\ProfitLossReport;
 use App\Support\Permissions;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -49,8 +54,20 @@ class DashboardWidgets
             $widgets['overdue'] = $this->overdue($now);
         }
 
+        if ($user->can(Permissions::INVOICES_VIEW)) {
+            $widgets['upcoming'] = $this->upcoming($now);
+        }
+
         if ($user->can(Permissions::ASSETS_MANAGE)) {
             $widgets['weak_signal'] = $this->weakSignal();
+        }
+
+        if ($user->can(Permissions::ROUTERS_MANAGE)) {
+            $widgets['routers_offline'] = $this->routersOffline();
+        }
+
+        if ($user->can(Permissions::VOUCHERS_MANAGE) || $user->can(Permissions::REPORTS_VIEW)) {
+            $widgets['voucher_today'] = $this->voucherToday($now);
         }
 
         $attention = $this->attention($user, $now);
@@ -139,6 +156,93 @@ class DashboardWidgets
             ])->all();
 
         return ['count' => (int) $summary->total, 'total' => (int) $summary->outstanding, 'items' => $items];
+    }
+
+    /**
+     * Tagihan yang jatuh tempo hari ini sampai 3 hari ke depan, belum lunas.
+     *
+     * @return array{count: int, total: int, items: list<array{invoice_number: string, customer: string, outstanding: int, due_in_days: int}>}
+     */
+    private function upcoming(CarbonImmutable $now): array
+    {
+        $query = fn () => Invoice::query()
+            ->whereNotNull('customer_id')
+            ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::Partial])
+            ->whereDate('due_date', '>=', $now->toDateString())
+            ->whereDate('due_date', '<=', $now->addDays(3)->toDateString());
+
+        $summary = $query()->selectRaw('count(*) as total, coalesce(sum(total - amount_paid), 0) as outstanding')->first();
+
+        $items = $query()
+            ->with('customer:id,name')
+            ->orderBy('due_date')
+            ->limit(6)
+            ->get(['id', 'invoice_number', 'customer_id', 'due_date', 'total', 'amount_paid'])
+            ->map(fn (Invoice $invoice): array => [
+                'invoice_number' => $invoice->invoice_number,
+                'customer' => $invoice->customer?->name ?? '-',
+                'outstanding' => max(0, $invoice->total - $invoice->amount_paid),
+                'due_in_days' => (int) $now->startOfDay()->diffInDays($invoice->due_date->startOfDay(), false),
+            ])->all();
+
+        return ['count' => (int) $summary->total, 'total' => (int) $summary->outstanding, 'items' => $items];
+    }
+
+    /**
+     * Router yang tidak terjangkau beserta sejak kapan; yang terlama offline di urutan teratas.
+     *
+     * @return array{total: int, offline: int, items: list<array{name: string, host: string, offline_since: string|null, error: string|null}>}
+     */
+    private function routersOffline(): array
+    {
+        $offline = Router::query()->where('status', RouterStatus::Offline);
+
+        $items = (clone $offline)
+            ->orderByRaw('offline_since is null')
+            ->orderBy('offline_since')
+            ->limit(6)
+            ->get(['id', 'name', 'host', 'offline_since', 'last_error'])
+            ->map(fn (Router $router): array => [
+                'name' => $router->name,
+                'host' => $router->host,
+                'offline_since' => $router->offline_since?->toIso8601String(),
+                'error' => $router->last_error ? str($router->last_error)->limit(90)->toString() : null,
+            ])->all();
+
+        return ['total' => Router::count(), 'offline' => (clone $offline)->count(), 'items' => $items];
+    }
+
+    /**
+     * Voucher yang terjual hari ini (login pertama, sama dengan definisi laporan penjualan) dibanding kemarin.
+     *
+     * @return array{count: int, revenue: int, yesterday_revenue: int, revenue_change: float|null, top_profiles: list<array{name: string, count: int}>}
+     */
+    private function voucherToday(CarbonImmutable $now): array
+    {
+        $sold = fn (CarbonImmutable $day) => Voucher::query()
+            ->whereIn('status', [VoucherStatus::Active, VoucherStatus::Expired])
+            ->whereBetween('first_login_at', [$day->startOfDay(), $day->endOfDay()]);
+
+        $today = $sold($now)->selectRaw('count(*) as total, coalesce(sum(price), 0) as revenue')->first();
+        $yesterday = (int) $sold($now->subDay())->sum('price');
+        $revenue = (int) $today->revenue;
+
+        $top = $sold($now)
+            ->join('hotspot_profiles', 'hotspot_profiles.id', '=', 'vouchers.hotspot_profile_id')
+            ->groupBy('hotspot_profiles.id', 'hotspot_profiles.name')
+            ->orderByDesc(DB::raw('count(*)'))
+            ->limit(3)
+            ->get(['hotspot_profiles.name', DB::raw('count(*) as total')])
+            ->map(fn ($row): array => ['name' => $row->name, 'count' => (int) $row->total])
+            ->all();
+
+        return [
+            'count' => (int) $today->total,
+            'revenue' => $revenue,
+            'yesterday_revenue' => $yesterday,
+            'revenue_change' => $yesterday > 0 ? round(($revenue - $yesterday) / $yesterday * 100, 1) : null,
+            'top_profiles' => $top,
+        ];
     }
 
     /**

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, CheckCircle2, ChevronRight, Megaphone, MessageSquareWarning, Radio, UserPlus, CalendarClock, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, CalendarClock, CheckCircle2, ChevronRight, Megaphone, MessageSquareWarning, Radio, Ticket, UserPlus, WifiOff, type LucideIcon } from 'lucide-react';
 
 import { Card, CardHeader } from '@/Components/ui/Card';
 import { cn, formatRupiah } from '@/lib/utils';
@@ -8,6 +8,9 @@ export type Widgets = {
     finance?: { trend: { month: string; revenue: number; expenses: number; net_profit: number }[]; current: { revenue: number; expenses: number; net_profit: number }; revenue_change: number | null };
     collection?: { billed: number; collected: number; invoices: number; paid_invoices: number; percent: number };
     overdue?: { count: number; total: number; items: { invoice_number: string; customer: string; customer_code: string; outstanding: number; days_late: number }[] };
+    upcoming?: { count: number; total: number; items: { invoice_number: string; customer: string; outstanding: number; due_in_days: number }[] };
+    routers_offline?: { total: number; offline: number; items: { name: string; host: string; offline_since: string | null; error: string | null }[] };
+    voucher_today?: { count: number; revenue: number; yesterday_revenue: number; revenue_change: number | null; top_profiles: { name: string; count: number }[] };
     weak_signal?: { count: number; critical: number; items: { customer: string; serial_number: string; rx_power: number; level: 'warning' | 'critical' }[] };
     attention?: { key: string; label: string; value: number; tone: 'red' | 'amber' | 'blue' | 'green'; href: string; hint: string | null }[];
     activity?: { description: string; causer: string; log: string | null; at: string }[];
@@ -337,6 +340,143 @@ export function ActivityWidget({ items }: { items: NonNullable<Widgets['activity
                     ))}
                 </ul>
             )}
+        </Card>
+    );
+}
+
+const dueLabel = (days: number) => (days <= 0 ? 'Hari ini' : days === 1 ? 'Besok' : `${days} hari lagi`);
+
+export function UpcomingWidget({ data }: { data: NonNullable<Widgets['upcoming']> }) {
+    return (
+        <Card className="flex flex-col">
+            <CardHeader title="Jatuh tempo 3 hari ke depan" description={data.count > 0 ? `${data.count} invoice · ${formatRupiah(data.total)}` : 'Tagihan yang segera jatuh tempo.'} />
+            {data.items.length === 0 ? (
+                <EmptyNote icon={CalendarClock}>Tidak ada tagihan yang jatuh tempo dalam 3 hari ke depan.</EmptyNote>
+            ) : (
+                <>
+                    <ul className="flex-1 divide-y divide-border/70">
+                        {data.items.map((item) => (
+                            <li key={item.invoice_number} className="row-in flex items-center justify-between gap-3 px-6 py-3 text-sm">
+                                <div className="min-w-0">
+                                    <div className="truncate font-semibold">{item.customer}</div>
+                                    <div className="num truncate text-xs text-muted-foreground">{item.invoice_number}</div>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                    <div className="num font-semibold">{compactRupiah(item.outstanding)}</div>
+                                    <div className={cn('text-xs font-semibold', item.due_in_days <= 0 ? 'text-rose-600 dark:text-rose-400' : item.due_in_days === 1 ? 'text-amber-600 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400')}>{dueLabel(item.due_in_days)}</div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <ViewAll href="/invoices?status=unpaid">Lihat semua tagihan</ViewAll>
+                </>
+            )}
+        </Card>
+    );
+}
+
+/** 135 menit menjadi "2 jam 15 mnt"; 3000 menit menjadi "2 hari 2 jam". Hanya dua satuan terbesar agar singkat. */
+function humanDuration(minutes: number): string {
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
+    const mins = minutes % 60;
+
+    if (days > 0) {
+        return hours > 0 ? `${days} hari ${hours} jam` : `${days} hari`;
+    }
+
+    if (hours > 0) {
+        return mins > 0 ? `${hours} jam ${mins} mnt` : `${hours} jam`;
+    }
+
+    return `${mins} mnt`;
+}
+
+function offlineFor(since: string | null): string {
+    if (!since) {
+        return 'Lama belum diketahui';
+    }
+
+    const minutes = Math.max(1, Math.round((Date.now() - new Date(since).getTime()) / 60000));
+
+    return `Putus ${humanDuration(minutes)}`;
+}
+
+export function RoutersOfflineWidget({ data }: { data: NonNullable<Widgets['routers_offline']> }) {
+    return (
+        <Card className="flex flex-col">
+            <CardHeader title="Router offline" description={data.offline > 0 ? `${data.offline} dari ${data.total} router tidak terjangkau` : `${data.total} router dipantau`} />
+            {data.items.length === 0 ? (
+                <EmptyNote>Semua router terjangkau.</EmptyNote>
+            ) : (
+                <>
+                    <ul className="flex-1 divide-y divide-border/70">
+                        {data.items.map((item) => (
+                            <li key={item.host} className="row-in flex items-center gap-3 px-6 py-3 text-sm">
+                                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/12 text-rose-600 dark:text-rose-300">
+                                    <WifiOff className="size-[18px]" />
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <div className="truncate font-semibold">{item.name}</div>
+                                    <div className="num truncate text-xs text-muted-foreground">{item.error ?? item.host}</div>
+                                </div>
+                                <span className="shrink-0 text-right text-xs font-semibold whitespace-nowrap text-rose-600 dark:text-rose-400">{offlineFor(item.offline_since)}</span>
+                            </li>
+                        ))}
+                    </ul>
+                    <ViewAll href="/routers">Kelola router</ViewAll>
+                </>
+            )}
+        </Card>
+    );
+}
+
+export function VoucherTodayWidget({ data }: { data: NonNullable<Widgets['voucher_today']> }) {
+    const change = data.revenue_change;
+    const topMax = Math.max(1, ...data.top_profiles.map((row) => row.count));
+
+    return (
+        <Card className="flex flex-col">
+            <CardHeader title="Penjualan voucher hari ini" description="Voucher yang dipakai login pertama hari ini." />
+            <div className="px-6 py-5">
+                <div className="flex items-end justify-between gap-3">
+                    <div>
+                        <div className="num text-4xl font-semibold tracking-tight">{data.count}</div>
+                        <div className="text-xs text-muted-foreground">voucher terjual</div>
+                    </div>
+                    <div className="text-right">
+                        <div className="num text-xl font-semibold tracking-tight">{formatRupiah(data.revenue)}</div>
+                        {change !== null ? (
+                            <div className={cn('inline-flex items-center text-xs font-semibold', change >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                                {change >= 0 ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
+                                {Math.abs(change).toLocaleString('id-ID')}% dari kemarin
+                            </div>
+                        ) : (
+                            <div className="text-xs text-muted-foreground">{data.yesterday_revenue === 0 ? 'Kemarin belum ada penjualan' : ''}</div>
+                        )}
+                    </div>
+                </div>
+
+                {data.top_profiles.length === 0 ? (
+                    <div className="mt-5 flex items-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+                        <Ticket className="size-4" /> Belum ada voucher terjual hari ini.
+                    </div>
+                ) : (
+                    <ul className="mt-5 space-y-3">
+                        {data.top_profiles.map((row) => (
+                            <li key={row.name} className="row-in">
+                                <div className="flex justify-between gap-3 text-sm">
+                                    <span className="truncate font-medium">{row.name}</span>
+                                    <span className="num shrink-0 font-semibold">{row.count}</span>
+                                </div>
+                                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                                    <div className="h-full rounded-full bg-violet-500" style={{ width: `${Math.max(6, (row.count / topMax) * 100)}%` }} />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </Card>
     );
 }

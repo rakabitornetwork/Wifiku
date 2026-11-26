@@ -2,26 +2,36 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Router\CheckRouterConnection;
 use App\Enums\AssetStatus;
 use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\RouterStatus;
+use App\Enums\VoucherStatus;
 use App\Enums\WhatsappMessageStatus;
 use App\Models\Asset;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\HotspotProfile;
 use App\Models\Invoice;
 use App\Models\Outage;
 use App\Models\Payment;
+use App\Models\Router;
+use App\Models\Voucher;
+use App\Models\VoucherBatch;
 use App\Models\WhatsappMessage;
+use App\Services\Mikrotik\MikrotikConnectionException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesUsers;
+use Tests\Support\FakesRouterOs;
 use Tests\TestCase;
 
 class DashboardWidgetsTest extends TestCase
 {
     use CreatesUsers;
+    use FakesRouterOs;
     use RefreshDatabase;
 
     public function test_owner_gets_every_widget_with_safe_empty_defaults(): void
@@ -126,5 +136,77 @@ class DashboardWidgetsTest extends TestCase
             ->where('widgets.attention.1.value', 1)
             ->where('widgets.attention.2.value', 1)
             ->where('widgets.attention.3.value', 1));
+    }
+
+    public function test_upcoming_widget_lists_invoices_due_today_through_three_days_ahead_only(): void
+    {
+        $today = Invoice::factory()->create(['total' => 80000, 'status' => InvoiceStatus::Unpaid, 'due_date' => now(), 'period_start' => now()->subMonths(3)->startOfMonth()]);
+        Invoice::factory()->create(['total' => 90000, 'status' => InvoiceStatus::Partial, 'amount_paid' => 40000, 'due_date' => now()->addDays(3), 'period_start' => now()->subMonths(2)->startOfMonth()]);
+        Invoice::factory()->create(['status' => InvoiceStatus::Unpaid, 'due_date' => now()->addDays(4), 'period_start' => now()->subMonth()->startOfMonth()]);
+        Invoice::factory()->create(['status' => InvoiceStatus::Unpaid, 'due_date' => now()->subDay(), 'period_start' => now()->startOfMonth()]);
+        Invoice::factory()->create(['status' => InvoiceStatus::Paid, 'due_date' => now()->addDay(), 'period_start' => now()->subMonths(4)->startOfMonth()]);
+
+        $this->actingAs($this->owner())->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+            ->where('widgets.upcoming.count', 2)
+            ->where('widgets.upcoming.total', 130000)
+            ->where('widgets.upcoming.items.0.invoice_number', $today->invoice_number)
+            ->where('widgets.upcoming.items.0.due_in_days', 0)
+            ->where('widgets.upcoming.items.1.due_in_days', 3));
+    }
+
+    public function test_offline_routers_are_listed_longest_outage_first_with_unknown_start_last(): void
+    {
+        Router::factory()->create(['name' => 'Online', 'status' => RouterStatus::Online]);
+        Router::factory()->create(['name' => 'Baru putus', 'status' => RouterStatus::Offline, 'offline_since' => now()->subMinutes(20)]);
+        Router::factory()->create(['name' => 'Lama putus', 'status' => RouterStatus::Offline, 'offline_since' => now()->subHours(5)]);
+        Router::factory()->create(['name' => 'Belum diketahui', 'status' => RouterStatus::Offline, 'offline_since' => null]);
+
+        $this->actingAs($this->owner())->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+            ->where('widgets.routers_offline.offline', 3)
+            ->where('widgets.routers_offline.total', 4)
+            ->where('widgets.routers_offline.items.0.name', 'Lama putus')
+            ->where('widgets.routers_offline.items.1.name', 'Baru putus')
+            ->where('widgets.routers_offline.items.2.name', 'Belum diketahui')
+            ->where('widgets.routers_offline.items.2.offline_since', null));
+    }
+
+    public function test_router_check_remembers_when_the_outage_started_and_clears_it_on_recovery(): void
+    {
+        $router = Router::factory()->create(['status' => RouterStatus::Online]);
+        $fake = $this->fakeRouterOs($router);
+
+        $this->travelTo(now()->setTime(10, 0));
+        $fake->failWith = new MikrotikConnectionException('timeout');
+        app(CheckRouterConnection::class)->handle($router);
+        $started = $router->fresh()->offline_since;
+        $this->assertNotNull($started);
+
+        $this->travel(15)->minutes();
+        app(CheckRouterConnection::class)->handle($router->fresh());
+        $this->assertTrue($router->fresh()->offline_since->equalTo($started));
+
+        $fake->failWith = null;
+        app(CheckRouterConnection::class)->handle($router->fresh());
+        $this->assertNull($router->fresh()->offline_since);
+        $this->assertSame(RouterStatus::Online, $router->fresh()->status);
+    }
+
+    public function test_voucher_today_widget_counts_todays_first_logins_against_yesterday(): void
+    {
+        $profile = HotspotProfile::factory()->create(['name' => '3 Jam']);
+        $batch = VoucherBatch::factory()->create(['router_id' => $profile->router_id, 'hotspot_profile_id' => $profile->id]);
+        $make = fn (array $attributes) => Voucher::factory()->create([...$attributes, 'voucher_batch_id' => $batch->id, 'router_id' => $profile->router_id, 'hotspot_profile_id' => $profile->id]);
+
+        $make(['status' => VoucherStatus::Active, 'price' => 5000, 'first_login_at' => now()]);
+        $make(['status' => VoucherStatus::Expired, 'price' => 5000, 'first_login_at' => now()]);
+        $make(['status' => VoucherStatus::Unused, 'price' => 5000, 'first_login_at' => null]);
+        $make(['status' => VoucherStatus::Active, 'price' => 5000, 'first_login_at' => now()->subDay()]);
+
+        $this->actingAs($this->owner())->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+            ->where('widgets.voucher_today.count', 2)
+            ->where('widgets.voucher_today.revenue', 10000)
+            ->where('widgets.voucher_today.yesterday_revenue', 5000)
+            ->where('widgets.voucher_today.revenue_change', 100)
+            ->where('widgets.voucher_today.top_profiles.0.name', '3 Jam'));
     }
 }

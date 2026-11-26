@@ -25,9 +25,17 @@ class CheckRouterConnection
             $error = Str::limit($exception->getMessage(), 250);
         }
 
+        // Awal masa offline dicatat sekali dan dipertahankan selama router tetap offline; dikosongkan saat kembali online.
+        $offlineSince = match (true) {
+            $online => null,
+            $router->status === RouterStatus::Offline => $router->offline_since ?? now(),
+            default => now(),
+        };
+
         $router->forceFill([
             'status' => $online ? RouterStatus::Online : RouterStatus::Offline,
             'last_checked_at' => now(),
+            'offline_since' => $offlineSince,
             'last_error' => $error,
         ])->save();
 

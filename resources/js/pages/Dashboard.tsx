@@ -1,6 +1,6 @@
 import { AlertTriangle, Receipt, Router, Ticket, UserCheck, Users } from 'lucide-react';
 
-import { ActivityWidget, AttentionWidget, CollectionWidget, FinanceWidget, OverdueWidget, WeakSignalWidget, type Widgets } from '@/Components/dashboard/Widgets';
+import { ActivityWidget, AttentionWidget, CollectionWidget, FinanceWidget, OverdueWidget, RoutersOfflineWidget, UpcomingWidget, VoucherTodayWidget, WeakSignalWidget, type Widgets } from '@/Components/dashboard/Widgets';
 import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardHeader, StatCard } from '@/Components/ui/Card';
 import { StatusBadge } from '@/Components/ui/Badge';
@@ -40,6 +40,14 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
                 <div className="mt-4 grid gap-4 lg:grid-cols-3">
                     {widgets.finance && <FinanceWidget data={widgets.finance} />}
                     {widgets.collection && <CollectionWidget data={widgets.collection} />}
+                </div>
+            )}
+
+            {(widgets.routers_offline || widgets.upcoming || widgets.voucher_today) && (
+                <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
+                    {widgets.routers_offline && <RoutersOfflineWidget data={widgets.routers_offline} />}
+                    {widgets.upcoming && <UpcomingWidget data={widgets.upcoming} />}
+                    {widgets.voucher_today && <VoucherTodayWidget data={widgets.voucher_today} />}
                 </div>
             )}
 

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'host', 'api_port', 'use_ssl', 'username', 'password', 'isolir_profile', 'webhook_token', 'status', 'last_checked_at', 'last_error', 'notes'])]
+#[Fillable(['name', 'host', 'api_port', 'use_ssl', 'username', 'password', 'isolir_profile', 'webhook_token', 'status', 'last_checked_at', 'offline_since', 'last_error', 'notes'])]
 #[Hidden(['password', 'webhook_token'])]
 class Router extends Model
 {
@@ -46,6 +46,7 @@ class Router extends Model
             'webhook_token' => 'encrypted',
             'status' => RouterStatus::class,
             'last_checked_at' => 'datetime',
+            'offline_since' => 'datetime',
         ];
     }
 
