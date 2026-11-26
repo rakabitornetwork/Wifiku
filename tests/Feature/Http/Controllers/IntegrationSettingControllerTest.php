@@ -36,17 +36,24 @@ class IntegrationSettingControllerTest extends TestCase
     public function test_only_owner_can_open_settings(): void
     {
         $this->actingAs($this->admin())->get('/settings/integrations')->assertForbidden();
-        $this->actingAs($this->owner())->get('/settings/integrations')->assertInertia(fn (Assert $page) => $page->component('Settings/Integrations')->has('groups', 8));
+        $this->actingAs($this->owner())->get('/settings/integrations')->assertInertia(fn (Assert $page) => $page->component('Settings/Integrations')->has('groups', 7));
+        $this->actingAs($this->admin())->get('/settings/notifications')->assertForbidden();
+        $this->actingAs($this->owner())->get('/settings/notifications')->assertInertia(fn (Assert $page) => $page->component('Settings/Notifications')->has('groups', 2)->where('groups.0.group', 'whatsapp')->where('groups.1.group', 'telegram'));
     }
 
     public function test_secret_values_are_never_sent_to_the_browser(): void
     {
         (new SettingService)->set('whatsapp', 'api_key', 'token-sangat-rahasia', encrypted: true);
 
-        $response = $this->actingAs($this->owner())->get('/settings/integrations');
+        (new SettingService)->set('telegram', 'bot_token', '123456789:RAHASIA-TELEGRAM-TOKEN-ABCDEFG', encrypted: true);
+
+        $response = $this->actingAs($this->owner())->get('/settings/notifications');
 
         $this->assertStringNotContainsString('token-sangat-rahasia', $response->getContent());
-        $response->assertInertia(fn (Assert $page) => $page->where('groups.3.fields.3.name', 'whatsapp.api_key')->where('groups.3.fields.3.is_set', true)->where('groups.3.fields.3.value', null));
+        $this->assertStringNotContainsString('RAHASIA-TELEGRAM-TOKEN', $response->getContent());
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('groups.0.fields.3.name', 'whatsapp.api_key')->where('groups.0.fields.3.is_set', true)->where('groups.0.fields.3.value', null)
+            ->where('groups.1.fields.1.name', 'telegram.bot_token')->where('groups.1.fields.1.is_set', true)->where('groups.1.fields.1.value', null));
     }
 
     public function test_saves_values_and_encrypts_secrets(): void
@@ -130,7 +137,35 @@ class IntegrationSettingControllerTest extends TestCase
         WhatsappMessage::factory()->create(['status' => 'queued']);
         WhatsappMessage::factory()->create(['status' => 'sent', 'created_at' => now()->subMinutes(5)]);
 
-        $this->actingAs($this->owner())->get('/settings/integrations')
+        $this->actingAs($this->owner())->get('/settings/notifications')
             ->assertInertia(fn (Assert $page) => $page->where('whatsappQueue.stalled', 1)->has('whatsappQueue.oldest_at'));
+    }
+
+    public function test_each_settings_page_saves_only_its_own_groups(): void
+    {
+        $settings = new SettingService;
+        $settings->set('company', 'name', 'Nama Lama');
+        $settings->set('whatsapp', 'base_url', 'http://evo.local:8080');
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->put('/settings/integrations', ['settings' => ['telegram' => ['enabled' => '1', 'chat_id' => '-100123456789', 'bot_token' => '123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ']]])->assertSessionDoesntHaveErrors();
+
+        $this->assertSame('Nama Lama', $settings->get('company', 'name'));
+        $this->assertSame('http://evo.local:8080', $settings->get('whatsapp', 'base_url'));
+        $this->assertSame('-100123456789', $settings->get('telegram', 'chat_id'));
+        $this->assertSame('123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ', $settings->get('telegram', 'bot_token'));
+        $this->assertNotSame('123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ', Setting::where('key', 'bot_token')->value('value'));
+
+        $this->actingAs($owner)->put('/settings/integrations', ['settings' => ['company' => ['name' => 'Nama Baru', 'tagline' => 'x']]])->assertSessionDoesntHaveErrors();
+
+        $this->assertSame('Nama Baru', $settings->get('company', 'name'));
+        $this->assertSame('-100123456789', $settings->get('telegram', 'chat_id'));
+        $this->assertSame('http://evo.local:8080', $settings->get('whatsapp', 'base_url'));
+    }
+
+    public function test_telegram_values_are_validated(): void
+    {
+        $this->actingAs($this->owner())->put('/settings/integrations', ['settings' => ['telegram' => ['bot_token' => 'bukan-token', 'chat_id' => 'abc']]])
+            ->assertSessionHasErrors(['settings.telegram.bot_token', 'settings.telegram.chat_id']);
     }
 }

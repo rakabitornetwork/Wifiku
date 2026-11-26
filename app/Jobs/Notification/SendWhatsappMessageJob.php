@@ -3,6 +3,7 @@
 namespace App\Jobs\Notification;
 
 use App\Models\WhatsappMessage;
+use App\Services\Telegram\TelegramNotifier;
 use App\Services\Whatsapp\WhatsappNotificationService;
 use DateTime;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -59,5 +60,13 @@ class SendWhatsappMessageJob implements ShouldQueue
     public function handle(WhatsappNotificationService $whatsapp): void
     {
         $whatsapp->send($this->whatsappMessage->fresh() ?? $this->whatsappMessage);
+    }
+
+    /**
+     * Setelah semua percobaan habis, beri tahu admin lewat Telegram (bila diaktifkan).
+     */
+    public function failed(?\Throwable $exception): void
+    {
+        app(TelegramNotifier::class)->whatsappFailed($this->whatsappMessage->fresh() ?? $this->whatsappMessage);
     }
 }

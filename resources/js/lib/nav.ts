@@ -1,5 +1,6 @@
 import {
     Activity,
+    Bell,
     Boxes,
     Images,
     Sparkles,
@@ -79,6 +80,7 @@ export const navigation: NavGroup[] = [
             { label: 'Ilustrasi Landing', href: '/ilustrasi-landing', icon: Sparkles, match: '/ilustrasi-landing', permission: 'settings.manage' },
             { label: 'Galeri Landing', href: '/galeri-landing', icon: Images, match: '/galeri-landing', permission: 'settings.manage' },
             { label: 'Payment Gateway', href: '/settings/payment-gateways', icon: CreditCard, match: '/settings/payment-gateways', permission: 'settings.manage' },
+            { label: 'Notifikasi & Webhook', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', permission: 'settings.manage' },
             { label: 'Pengaturan', href: '/settings/integrations', icon: Settings, match: '/settings/integrations', permission: 'settings.manage' },
         ],
     },

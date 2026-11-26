@@ -42,6 +42,7 @@ class AccessControlTest extends TestCase
             'audit log' => ['/audit-log', ['Owner']],
             'payment gateways' => ['/settings/payment-gateways', ['Owner']],
             'integrations' => ['/settings/integrations', ['Owner']],
+            'notifikasi' => ['/settings/notifications', ['Owner']],
         ];
     }
 

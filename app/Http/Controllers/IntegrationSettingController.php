@@ -28,18 +28,56 @@ class IntegrationSettingController extends Controller
         'isolir' => 'Template Isolir',
         'billing' => 'Penagihan',
         'whatsapp' => 'WhatsApp Gateway',
+        'telegram' => 'Telegram',
         'genieacs' => 'GenieACS (TR-069)',
         'hotspot' => 'Hotspot',
         'vpn' => 'VPN Tunnel (pendaftaran member)',
         'gemini' => 'Gemini (ilustrasi AI)',
     ];
 
+    /**
+     * Grup yang dipindah ke halaman Notifikasi & Webhook.
+     *
+     * @var list<string>
+     */
+    private const NOTIFICATION_GROUPS = ['whatsapp', 'telegram'];
+
     public function index(SettingService $settings): Response
+    {
+        return Inertia::render('Settings/Integrations', [
+            'groups' => $this->groups($settings, fn (string $group): bool => ! in_array($group, self::NOTIFICATION_GROUPS, true)),
+        ]);
+    }
+
+    /**
+     * Halaman Notifikasi & Webhook: WhatsApp (Evolution API) dan Telegram.
+     */
+    public function notifications(SettingService $settings): Response
+    {
+        // Pesan yang tertahan lebih dari semenit menandakan queue worker tidak berjalan.
+        $stalled = WhatsappMessage::query()->where('status', WhatsappMessageStatus::Queued)->where('created_at', '<=', now()->subMinute());
+
+        return Inertia::render('Settings/Notifications', [
+            'groups' => $this->groups($settings, fn (string $group): bool => in_array($group, self::NOTIFICATION_GROUPS, true)),
+            'whatsappQueue' => ['stalled' => $stalled->count(), 'oldest_at' => $stalled->min('created_at')],
+        ]);
+    }
+
+    /**
+     * @param  callable(string): bool  $include
+     * @return list<array{group: string, title: string, fields: list<array<string, mixed>>}>
+     */
+    private function groups(SettingService $settings, callable $include): array
     {
         $groups = [];
 
         foreach (SettingDefinitions::ALL as $name => $definition) {
             [$group, $key] = explode('.', $name);
+
+            if (! $include($group)) {
+                continue;
+            }
+
             $secret = $definition['secret'] ?? false;
             $value = $settings->get($group, $key);
 
@@ -56,21 +94,23 @@ class IntegrationSettingController extends Controller
             ];
         }
 
-        // Pesan yang tertahan lebih dari semenit menandakan queue worker tidak berjalan.
-        $stalled = WhatsappMessage::query()->where('status', WhatsappMessageStatus::Queued)->where('created_at', '<=', now()->subMinute());
-
-        return Inertia::render('Settings/Integrations', [
-            'groups' => array_values($groups),
-            'whatsappQueue' => ['stalled' => $stalled->count(), 'oldest_at' => $stalled->min('created_at')],
-        ]);
+        return array_values($groups);
     }
 
     public function update(IntegrationSettingRequest $request, SettingService $settings): RedirectResponse
     {
         $changed = [];
 
+        $sent = array_keys((array) $request->input('settings', []));
+
         foreach (SettingDefinitions::ALL as $name => $definition) {
             [$group, $key] = explode('.', $name);
+
+            // Halaman pengaturan hanya mengirim grupnya sendiri; grup lain tidak boleh ikut terhapus.
+            if (! in_array($group, $sent, true)) {
+                continue;
+            }
+
             $value = $request->input("settings.{$group}.{$key}");
             $secret = $definition['secret'] ?? false;
 

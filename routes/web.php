@@ -35,6 +35,7 @@ use App\Http\Controllers\RouterConnectionController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\RouterImportController;
 use App\Http\Controllers\RouterTrafficController;
+use App\Http\Controllers\TelegramSettingController;
 use App\Http\Controllers\TopologyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
@@ -267,6 +268,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/payment-gateways/{paymentGateway}', [PaymentGatewayController::class, 'update'])->name('payment-gateways.update');
         Route::get('/payment-gateways/{paymentGateway}/channels', [PaymentGatewayController::class, 'channels'])->name('payment-gateways.channels');
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
+        Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
+        Route::post('/telegram/status', [TelegramSettingController::class, 'status'])->middleware('throttle:20,1')->name('telegram.status');
+        Route::post('/telegram/test', [TelegramSettingController::class, 'test'])->middleware('throttle:10,1')->name('telegram.test');
         Route::put('/integrations', [IntegrationSettingController::class, 'update'])->name('integrations.update');
         Route::post('/integrations/whatsapp-status', [IntegrationSettingController::class, 'whatsappStatus'])->name('integrations.whatsapp-status');
         Route::post('/integrations/whatsapp-connect', [IntegrationSettingController::class, 'whatsappConnect'])->name('integrations.whatsapp-connect');

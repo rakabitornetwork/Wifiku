@@ -24,8 +24,14 @@ class IntegrationSettingRequest extends FormRequest
     public function rules(): array
     {
         $rules = [];
+        // Tiap halaman pengaturan hanya mengirim grupnya sendiri; grup yang tidak dikirim tidak divalidasi dan tidak diubah.
+        $sent = array_keys((array) $this->input('settings', []));
 
         foreach (SettingDefinitions::ALL as $name => $definition) {
+            if (! in_array(explode('.', $name)[0], $sent, true)) {
+                continue;
+            }
+
             // Rahasia yang dikosongkan berarti "tidak diubah", jadi selalu boleh kosong.
             $rules["settings.{$name}"] = ($definition['secret'] ?? false)
                 ? ['nullable', ...array_diff($definition['rules'], ['required', 'nullable'])]

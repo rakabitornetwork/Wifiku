@@ -9,11 +9,14 @@ use App\Models\Customer;
 use App\Models\Odp;
 use App\Models\Outage;
 use App\Models\User;
+use App\Services\Telegram\TelegramNotifier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 class BroadcastOutage
 {
+    public function __construct(private readonly TelegramNotifier $telegram) {}
+
     /**
      * Catat gangguan pada satu ODP lalu antrekan pengumuman WhatsApp ke seluruh pelanggan di ODP itu.
      * Satu ODP hanya boleh punya satu gangguan terbuka agar pelanggan tidak menerima pengumuman ganda.
@@ -32,6 +35,7 @@ class BroadcastOutage
         ]);
 
         BroadcastOutageJob::dispatch($outage, resolved: false);
+        $this->telegram->outageOpened($outage);
 
         return $outage;
     }
