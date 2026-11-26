@@ -33,7 +33,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
                 <StatCard tone="blue" label="Total pelanggan" value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<Users className="size-4" />} />
                 <StatCard tone="green" label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint="Layanan berjalan normal" icon={<UserCheck className="size-4" />} />
                 <StatCard tone="red" label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />
-                <StatCard tone="blue" label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
+                <StatCard tone="cyan" label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
                 <StatCard tone="amber" label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
                 <StatCard tone="violet" label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} hint="Stok voucher hotspot" icon={<Ticket className="size-4" />} />
             </div>

@@ -23,11 +23,11 @@ export function CardHeader({ title, description, action }: { title: string; desc
     );
 }
 
-type StatTone = 'default' | 'green' | 'red' | 'blue' | 'amber' | 'violet' | 'slate';
+type StatTone = 'default' | 'green' | 'red' | 'blue' | 'amber' | 'violet' | 'slate' | 'cyan';
 
 /**
  * Kartu angka ringkas dengan isian gradasi yang menyampaikan makna: hijau = baik/pemasukan, merah = masalah/pengeluaran,
- * kuning = perlu perhatian, biru = netral/informasi, ungu = harga/nilai, abu = belum diketahui.
+ * kuning = perlu perhatian, biru = netral/informasi, ungu = harga/nilai, aqua = konektivitas perangkat, abu = belum diketahui.
  */
 const solid = 'border-transparent text-white';
 
@@ -37,6 +37,7 @@ const statTones: Record<StatTone, { card: string; icon: string }> = {
     red: { card: `${solid} bg-gradient-to-br from-rose-500 to-red-700 shadow-lg shadow-rose-600/25`, icon: 'bg-white/20 text-white' },
     blue: { card: `${solid} bg-gradient-to-br from-sky-500 to-indigo-700 shadow-lg shadow-sky-600/25`, icon: 'bg-white/20 text-white' },
     amber: { card: `${solid} bg-gradient-to-br from-amber-500 to-orange-700 shadow-lg shadow-amber-600/25`, icon: 'bg-white/20 text-white' },
+    cyan: { card: `${solid} bg-gradient-to-br from-cyan-500 to-cyan-800 shadow-lg shadow-cyan-600/25`, icon: 'bg-white/20 text-white' },
     violet: { card: `${solid} bg-gradient-to-br from-violet-500 to-fuchsia-700 shadow-lg shadow-violet-600/25`, icon: 'bg-white/20 text-white' },
     slate: { card: `${solid} bg-gradient-to-br from-slate-500 to-slate-700 shadow-lg shadow-slate-600/20`, icon: 'bg-white/20 text-white' },
 };
