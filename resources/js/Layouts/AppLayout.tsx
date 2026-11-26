@@ -24,16 +24,16 @@ function readCollapsed(): boolean {
 
 function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; collapsed: boolean; active: boolean; onNavigate: () => void }) {
     const Icon = item.icon;
-    const base = 'group flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm font-medium transition';
+    const base = 'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition';
 
     if (!item.href) {
         return (
-            <div className={cn(base, 'cursor-not-allowed text-muted-foreground/50')} title={`${item.label} (segera hadir)`}>
+            <div className={cn(base, 'cursor-not-allowed text-slate-500')} title={`${item.label} (segera hadir)`}>
                 <Icon className="size-[18px] shrink-0" />
                 {!collapsed && (
                     <>
                         <span className="truncate">{item.label}</span>
-                        <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">Segera</span>
+                        <span className="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-slate-300">Segera</span>
                     </>
                 )}
             </div>
@@ -48,8 +48,8 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
             className={cn(
                 base,
                 active
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25'
-                    : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground',
+                    ? 'bg-white/[0.1] text-white before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-indigo-400'
+                    : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
             )}
         >
             <Icon className="size-[18px] shrink-0" />
@@ -109,12 +109,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
     const sidebar = (compact: boolean) => (
         <div className="flex h-full flex-col">
-            <div className={cn('flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4', compact && 'justify-center px-0')}>
+            <div className={cn('flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4 text-white', compact && 'justify-center px-0')}>
                 <BrandLogo size="sm" square={compact} className="shadow-lg shadow-indigo-500/30" />
                 {!compact && (
                     <div className="leading-tight">
                         <div className="text-sm font-semibold">{brand.name}</div>
-                        <div className="text-[11px] text-muted-foreground">Manajemen ISP</div>
+                        <div className="text-[11px] text-slate-400">Manajemen ISP</div>
                     </div>
                 )}
             </div>
@@ -129,7 +129,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     return (
                         <div key={group.title}>
                             {!compact && (
-                                <div className="mb-1.5 px-2.5 text-[11px] font-semibold tracking-wide text-muted-foreground/70 uppercase">{group.title}</div>
+                                <div className="mb-2 px-3 text-xs font-semibold text-slate-400">{group.title}</div>
                             )}
                             {compact && <div className="mx-2 mb-1.5 border-t border-sidebar-border" />}
                             <div className="space-y-0.5">
@@ -162,7 +162,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     mobileOpen ? 'translate-x-0' : '-translate-x-full',
                 )}
             >
-                <Button variant="ghost" size="icon" className="absolute top-3 right-3" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
+                <Button variant="ghost" size="icon" className="absolute top-3.5 right-3 text-slate-300 hover:bg-white/10 hover:text-white" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
                     <X className="size-4" />
                 </Button>
                 {sidebar(false)}

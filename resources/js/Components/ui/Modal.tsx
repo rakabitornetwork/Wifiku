@@ -36,16 +36,16 @@ export function Modal({ open, title, description, onClose, children, footer, siz
 
     return (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
-            <div className="absolute inset-0 animate-fade-in bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
+            <div className="absolute inset-0 animate-fade-in bg-[#0b1026]/60 backdrop-blur-[3px]" onClick={onClose} />
             <div
                 className={cn(
-                    'glass relative flex max-h-[92vh] w-full animate-fade-in flex-col rounded-t-2xl border shadow-2xl sm:rounded-2xl',
+                    'relative flex max-h-[92vh] w-full animate-fade-in flex-col rounded-t-2xl border bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.5)] sm:rounded-2xl',
                     size === 'lg' ? 'sm:max-w-2xl' : 'sm:max-w-lg',
                 )}
             >
                 <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
                     <div>
-                        <h2 className="text-base font-semibold">{title}</h2>
+                        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
                         {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
                     </div>
                     <Button variant="ghost" size="icon" onClick={onClose} aria-label="Tutup">

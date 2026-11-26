@@ -24,8 +24,8 @@ export default function VoucherSales({ month, report }: Props) {
             />
 
             <div className="mb-4 grid gap-4 sm:grid-cols-2">
-                <StatCard label="Voucher terjual" value={formatNumber(report.total_count)} icon={<Ticket className="size-4" />} />
-                <StatCard label="Pendapatan voucher" value={formatRupiah(report.total_revenue)} icon={<Wallet className="size-4" />} />
+                <StatCard tone="blue" label="Voucher terjual" value={formatNumber(report.total_count)} icon={<Ticket className="size-4" />} />
+                <StatCard tone="green" label="Pendapatan voucher" value={formatRupiah(report.total_revenue)} icon={<Wallet className="size-4" />} />
             </div>
 
             <Card>

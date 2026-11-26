@@ -67,8 +67,9 @@ export default function Dashboard({ stats, routers }: Props) {
                     )}
                 </Card>
                 <div className="space-y-4">
-                    <StatCard label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} icon={<Ticket className="size-4" />} />
+                    <StatCard tone="violet" label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} icon={<Ticket className="size-4" />} />
                     <StatCard
+                        tone="blue"
                         label="Total pelanggan"
                         value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)}
                         icon={<Users className="size-4" />}

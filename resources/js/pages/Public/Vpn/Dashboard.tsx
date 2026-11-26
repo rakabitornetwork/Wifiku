@@ -116,8 +116,8 @@ export default function Dashboard({ company, member, accounts, maxAccounts, pric
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <StatCard label="Akun VPN" value={`${accounts.length} / ${maxAccounts}`} hint={full ? 'Batas akun tercapai' : `${maxAccounts - accounts.length} slot tersisa`} icon={<ShieldCheck className="size-4" />} />
-                    <StatCard label="Harga per akun" value={formatRupiah(price)} hint="per bulan" icon={<Wallet className="size-4" />} />
+                    <StatCard tone={full ? 'amber' : 'blue'} label="Akun VPN" value={`${accounts.length} / ${maxAccounts}`} hint={full ? 'Batas akun tercapai' : `${maxAccounts - accounts.length} slot tersisa`} icon={<ShieldCheck className="size-4" />} />
+                    <StatCard tone="violet" label="Harga per akun" value={formatRupiah(price)} hint="per bulan" icon={<Wallet className="size-4" />} />
                 </div>
 
                 {protocols.length === 0 && <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">Layanan sedang tidak tersedia. Silakan hubungi CS.</p>}

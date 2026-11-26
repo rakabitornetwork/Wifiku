@@ -122,10 +122,10 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
             )}
 
             <div className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard label="ONT terpasang" value={String(summary.total)} icon={<Activity className="size-4" />} />
-                <StatCard label="Sinyal baik" value={String(summary.good)} hint="≥ -25 dBm" icon={<CheckCircle2 className="size-4" />} />
-                <StatCard label="Perlu perhatian" value={String(summary.warning + summary.critical)} hint={`${summary.critical} kritis (< -27 dBm)`} icon={<AlertTriangle className="size-4" />} />
-                <StatCard label="Belum terbaca" value={String(summary.unknown)} icon={<HelpCircle className="size-4" />} />
+                <StatCard tone="blue" label="ONT terpasang" value={String(summary.total)} icon={<Activity className="size-4" />} />
+                <StatCard tone="green" label="Sinyal baik" value={String(summary.good)} hint="≥ -25 dBm" icon={<CheckCircle2 className="size-4" />} />
+                <StatCard tone={summary.critical > 0 ? 'red' : 'amber'} label="Perlu perhatian" value={String(summary.warning + summary.critical)} hint={`${summary.critical} kritis (< -27 dBm)`} icon={<AlertTriangle className="size-4" />} />
+                <StatCard tone="slate" label="Belum terbaca" value={String(summary.unknown)} icon={<HelpCircle className="size-4" />} />
             </div>
 
             <Card>

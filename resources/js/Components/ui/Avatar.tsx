@@ -19,7 +19,7 @@ export function Avatar({ name, url, size = 'md', className }: { name: string; ur
     return url ? (
         <img src={url} alt={name} className={cn('shrink-0 rounded-full border object-cover', sizes[size], className)} />
     ) : (
-        <span aria-label={name} className={cn('flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 font-semibold text-white', sizes[size], className)}>
+        <span aria-label={name} className={cn('flex shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground', sizes[size], className)}>
             {initials(name)}
         </span>
     );

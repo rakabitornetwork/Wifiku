@@ -44,10 +44,10 @@ export default function ProfitLoss({ report, trend }: { report: Report; trend: T
             />
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <StatCard label="Pendapatan" value={formatRupiah(report.revenue.total)} icon={<TrendingUp className="size-4" />} />
-                <StatCard label="Pengeluaran (OPEX)" value={formatRupiah(report.expenses.total)} icon={<TrendingDown className="size-4" />} />
-                <StatCard label={profitable ? 'Laba bersih' : 'Rugi bersih'} value={formatRupiah(report.net_profit)} hint={report.margin !== null ? `Margin ${report.margin.toLocaleString('id-ID')}%` : undefined} icon={<PiggyBank className="size-4" />} />
-                <StatCard label="Tagihan internet" value={formatRupiah(report.revenue.billing)} hint={`Voucher ${formatRupiah(report.revenue.vouchers)}`} icon={<Banknote className="size-4" />} />
+                <StatCard tone="green" label="Pendapatan" value={formatRupiah(report.revenue.total)} icon={<TrendingUp className="size-4" />} />
+                <StatCard tone="red" label="Pengeluaran (OPEX)" value={formatRupiah(report.expenses.total)} icon={<TrendingDown className="size-4" />} />
+                <StatCard tone={profitable ? 'green' : 'red'} label={profitable ? 'Laba bersih' : 'Rugi bersih'} value={formatRupiah(report.net_profit)} hint={report.margin !== null ? `Margin ${report.margin.toLocaleString('id-ID')}%` : undefined} icon={<PiggyBank className="size-4" />} />
+                <StatCard tone="blue" label="Tagihan internet" value={formatRupiah(report.revenue.billing)} hint={`Voucher ${formatRupiah(report.revenue.vouchers)}`} icon={<Banknote className="size-4" />} />
             </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-2">

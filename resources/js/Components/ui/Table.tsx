@@ -38,11 +38,11 @@ export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>)
 export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
     const cleaned = className?.replace(/\btext-(left|right|start|end)\b/g, '').trim();
 
-    return <th className={cn('border-b bg-muted/50 px-4 py-2.5 text-center text-xs font-medium whitespace-nowrap text-muted-foreground', cleaned)} {...props} />;
+    return <th className={cn('border-b bg-muted px-4 py-3 text-center text-xs font-semibold whitespace-nowrap text-muted-foreground', cleaned)} {...props} />;
 }
 
 export function Td({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-    return <td className={cn('border-b px-4 py-3 align-middle', className)} {...props} />;
+    return <td className={cn('border-b border-border/70 px-4 py-3.5 align-middle', className)} {...props} />;
 }
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
@@ -65,7 +65,7 @@ export function SortTh({ column, state, className, children }: { column: string;
             <button
                 type="button"
                 onClick={() => state.toggle(column)}
-                className={cn('inline-flex items-center gap-1 font-medium hover:text-foreground', active && 'text-foreground')}
+                className={cn('inline-flex items-center gap-1 font-semibold hover:text-foreground', active && 'text-foreground')}
             >
                 {children}
                 <Icon className={cn('size-3.5', !active && 'opacity-50')} />

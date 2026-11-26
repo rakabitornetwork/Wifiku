@@ -67,7 +67,7 @@ export default function Billing({ company, member, open, outstanding, history, p
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <StatCard label="Belum dibayar" value={formatRupiah(outstanding)} hint={open.length > 0 ? `${open.length} tagihan` : 'Tidak ada tagihan'} icon={<Wallet className="size-4" />} tone={open.length > 0 ? 'amber' : 'green'} />
-                    <StatCard label="Riwayat tagihan" value={String(history.total)} hint="lunas atau dibatalkan" icon={<CheckCircle2 className="size-4" />} />
+                    <StatCard tone="blue" label="Riwayat tagihan" value={String(history.total)} hint="lunas atau dibatalkan" icon={<CheckCircle2 className="size-4" />} />
                 </div>
 
                 <Card>
