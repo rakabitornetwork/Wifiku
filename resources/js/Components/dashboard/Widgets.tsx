@@ -60,7 +60,7 @@ function timeAgo(iso: string): string {
 
 function EmptyNote({ icon: Icon = CheckCircle2, children }: { icon?: LucideIcon; children: React.ReactNode }) {
     return (
-        <div className="flex flex-col items-center gap-2 px-6 py-10 text-center text-sm text-muted-foreground">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-10 text-center text-sm text-muted-foreground">
             <Icon className="size-7 text-emerald-500" />
             {children}
         </div>
@@ -93,7 +93,7 @@ export function FinanceWidget({ data }: { data: NonNullable<Widgets['finance']> 
     const profitable = data.current.net_profit >= 0;
 
     return (
-        <Card className="lg:col-span-2">
+        <Card className="flex flex-col lg:col-span-2">
             <CardHeader
                 title="Pendapatan dan pengeluaran"
                 description="Enam bulan terakhir, uang yang benar-benar diterima."
@@ -180,9 +180,9 @@ export function CollectionWidget({ data }: { data: NonNullable<Widgets['collecti
     const text = data.invoices === 0 ? 'text-muted-foreground' : data.percent >= 80 ? 'text-emerald-600 dark:text-emerald-400' : data.percent >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
 
     return (
-        <Card>
+        <Card className="flex flex-col">
             <CardHeader title="Penagihan bulan ini" description="Tagihan yang terbit bulan ini dan sudah tertagih." />
-            <div className="flex flex-col items-center px-6 py-6">
+            <div className="flex flex-1 flex-col items-center justify-center px-6 py-6">
                 <div className="relative size-40">
                     <svg viewBox="0 0 140 140" className="size-full -rotate-90" aria-hidden="true">
                         <circle cx="70" cy="70" r={radius} fill="none" strokeWidth="13" className="stroke-muted" />
@@ -282,7 +282,7 @@ const attentionTone = {
 
 export function AttentionWidget({ items }: { items: NonNullable<Widgets['attention']> }) {
     return (
-        <Card>
+        <Card className="flex flex-col">
             <CardHeader title="Perlu perhatian" description="Yang menunggu tindakan Anda hari ini." />
             <ul className="divide-y divide-border/70">
                 {items.map((item) => {
@@ -311,7 +311,7 @@ export function AttentionWidget({ items }: { items: NonNullable<Widgets['attenti
 
 export function ActivityWidget({ items }: { items: NonNullable<Widgets['activity']> }) {
     return (
-        <Card className="lg:col-span-2">
+        <Card className="flex flex-col">
             <CardHeader
                 title="Aktivitas terbaru"
                 description="Perubahan terakhir yang dilakukan tim."
@@ -438,7 +438,7 @@ export function VoucherTodayWidget({ data }: { data: NonNullable<Widgets['vouche
     return (
         <Card className="flex flex-col">
             <CardHeader title="Penjualan voucher hari ini" description="Voucher yang dipakai login pertama hari ini." />
-            <div className="px-6 py-5">
+            <div className="flex-1 px-6 py-5">
                 <div className="flex items-end justify-between gap-3">
                     <div>
                         <div className="num text-4xl font-semibold tracking-tight">{data.count}</div>

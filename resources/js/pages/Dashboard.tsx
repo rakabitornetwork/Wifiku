@@ -29,11 +29,13 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
         <>
             <PageHeader title="Dashboard" description="Ringkasan operasional jaringan dan pelanggan." />
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <StatCard tone="green" label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<UserCheck className="size-4" />} />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <StatCard tone="blue" label="Total pelanggan" value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<Users className="size-4" />} />
+                <StatCard tone="green" label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint="Layanan berjalan normal" icon={<UserCheck className="size-4" />} />
                 <StatCard tone="red" label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />
                 <StatCard tone="blue" label="Router online" value={`${stats.routers_online}/${stats.routers_total}`} hint="Status koneksi API" icon={<Router className="size-4" />} />
                 <StatCard tone="amber" label="Tagihan tertunggak" value={formatRupiah(stats.outstanding)} hint={`${formatNumber(stats.invoices_unpaid)} invoice`} icon={<Receipt className="size-4" />} />
+                <StatCard tone="violet" label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} hint="Stok voucher hotspot" icon={<Ticket className="size-4" />} />
             </div>
 
             {(widgets.finance || widgets.collection) && (
@@ -44,7 +46,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
             )}
 
             {(widgets.routers_offline || widgets.upcoming || widgets.voucher_today) && (
-                <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
                     {widgets.routers_offline && <RoutersOfflineWidget data={widgets.routers_offline} />}
                     {widgets.upcoming && <UpcomingWidget data={widgets.upcoming} />}
                     {widgets.voucher_today && <VoucherTodayWidget data={widgets.voucher_today} />}
@@ -52,7 +54,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
             )}
 
             {(widgets.overdue || widgets.weak_signal || widgets.attention) && (
-                <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
                     {widgets.overdue && <OverdueWidget data={widgets.overdue} />}
                     {widgets.weak_signal && <WeakSignalWidget data={widgets.weak_signal} />}
                     {widgets.attention && <AttentionWidget items={widgets.attention} />}
@@ -60,7 +62,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
             )}
 
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                <Card className="lg:col-span-2">
+                <Card className={widgets.activity ? 'lg:col-span-2' : 'lg:col-span-3'}>
                     <CardHeader title="Status router" description="Multi-NAS yang terhubung ke sistem." />
                     {routers.length === 0 ? (
                         <EmptyState title="Belum ada router" description="Tambahkan router MikroTik pertama di menu Manajemen Router." />
@@ -91,22 +93,8 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
                         </TableWrap>
                     )}
                 </Card>
-                <div className="space-y-4">
-                    <StatCard tone="violet" label="Voucher belum dipakai" value={formatNumber(stats.vouchers_unused)} icon={<Ticket className="size-4" />} />
-                    <StatCard
-                        tone="blue"
-                        label="Total pelanggan"
-                        value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)}
-                        icon={<Users className="size-4" />}
-                    />
-                </div>
+                {widgets.activity && <ActivityWidget items={widgets.activity} />}
             </div>
-
-            {widgets.activity && (
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                    <ActivityWidget items={widgets.activity} />
-                </div>
-            )}
         </>
     );
 }

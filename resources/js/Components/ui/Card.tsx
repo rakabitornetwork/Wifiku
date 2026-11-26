@@ -41,11 +41,11 @@ const statTones: Record<StatTone, { card: string; icon: string }> = {
     slate: { card: `${solid} bg-gradient-to-br from-slate-500 to-slate-700 shadow-lg shadow-slate-600/20`, icon: 'bg-white/20 text-white' },
 };
 
-export function StatCard({ label, value, hint, icon, tone = 'default' }: { label: string; value: string; hint?: string; icon: ReactNode; tone?: StatTone }) {
+export function StatCard({ label, value, hint, icon, tone = 'default', className }: { label: string; value: string; hint?: string; icon: ReactNode; tone?: StatTone; className?: string }) {
     const styles = statTones[tone];
 
     return (
-        <Card className={cn('relative overflow-hidden p-5', styles.card)}>
+        <Card className={cn('relative flex flex-col justify-center overflow-hidden p-5', styles.card, className)}>
             <span className="pointer-events-none absolute -top-10 -right-8 size-32 rounded-full bg-white/10" />
             <div className="relative flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-white/85">{label}</span>
