@@ -249,7 +249,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
             <Modal open={manageCategories} onClose={() => setManageCategories(false)} title="Kategori Pengeluaran">
                 <ul className="mb-4 divide-y rounded-lg border">
                     {categories.map((category) => (
-                        <li key={category.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                        <li key={category.id} className="row-in flex items-center justify-between gap-3 px-3 py-2 text-sm">
                             <span>
                                 {category.name} <span className="text-xs text-muted-foreground">· {typeLabels[category.type]} · {category.expenses_count} catatan</span>
                             </span>

@@ -64,7 +64,7 @@ export default function AuditLogIndex({ activities, logNames, filters }: Props) 
                             const hasDetail = keys.length > 0 || (activity.properties && Object.keys(activity.properties).length > 0);
 
                             return (
-                                <li key={activity.id}>
+                                <li key={activity.id} className="row-in">
                                     <details className="group">
                                         <summary className={`flex list-none items-start gap-3 px-4 py-3 ${hasDetail ? 'cursor-pointer hover:bg-muted/40' : ''}`}>
                                             <ChevronRight className={`mt-0.5 size-4 shrink-0 text-muted-foreground transition group-open:rotate-90 ${hasDetail ? '' : 'invisible'}`} />

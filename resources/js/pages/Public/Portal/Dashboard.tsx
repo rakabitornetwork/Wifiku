@@ -148,7 +148,7 @@ function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' 
                         const tone = paid ? 'text-emerald-600 dark:text-emerald-400' : invoice.is_overdue ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400';
 
                         return (
-                            <li key={invoice.invoice_number} className="flex items-center justify-between gap-4 py-3.5 text-sm">
+                            <li key={invoice.invoice_number} className="row-in flex items-center justify-between gap-4 py-3.5 text-sm">
                                 <div className="min-w-0">
                                     <div className="num truncate font-semibold">{invoice.invoice_number}</div>
                                     <div className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground">
@@ -253,7 +253,7 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                             <h3 className="text-sm font-semibold">Perangkat terhubung ({live.devices.length})</h3>
                             <ul className="mt-3 divide-y divide-slate-100 text-sm dark:divide-white/10">
                                 {live.devices.map((device, index) => (
-                                    <li key={`${device.mac_address}-${index}`} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2.5">
+                                    <li key={`${device.mac_address}-${index}`} className="row-in flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2.5">
                                         <span className="flex items-center gap-2 font-medium">
                                             <Smartphone className="size-4 text-indigo-500" /> {device.hostname ?? 'Perangkat tanpa nama'}
                                         </span>

@@ -99,7 +99,7 @@ export default function Billing({ company, member, open, outstanding, history, p
                             {error && <p className="border-b bg-destructive/10 px-5 py-2 text-sm text-destructive">{error}</p>}
                             <ul className="divide-y">
                                 {open.map((invoice) => (
-                                    <li key={invoice.invoice_number} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                                    <li key={invoice.invoice_number} className="row-in flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className="num text-sm font-medium">{invoice.invoice_number}</span>

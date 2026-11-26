@@ -1,11 +1,33 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
-import { type HTMLAttributes, type ReactNode, type TdHTMLAttributes, type ThHTMLAttributes } from 'react';
+import { type HTMLAttributes, type ReactNode, type TdHTMLAttributes, type ThHTMLAttributes, useLayoutEffect, useRef, useState } from 'react';
 
 import type { SortState } from '@/Hooks/useSort';
 import { cn } from '@/lib/utils';
 
+/** Selama animasi baris masuk dari kanan, tabel yang muat di layar tidak boleh memunculkan bilah gulir horizontal; tabel yang memang lebar tetap bisa digulir. */
 export function TableWrap({ children }: { children: ReactNode }) {
-    return <div className="overflow-x-auto">{children}</div>;
+    const ref = useRef<HTMLDivElement>(null);
+    const [clip, setClip] = useState(false);
+
+    useLayoutEffect(() => {
+        const wrapper = ref.current;
+        const table = wrapper?.querySelector('table');
+
+        if (!wrapper || !table || table.offsetWidth > wrapper.clientWidth) {
+            return;
+        }
+
+        setClip(true);
+        const timer = window.setTimeout(() => setClip(false), 1100);
+
+        return () => window.clearTimeout(timer);
+    }, [children]);
+
+    return (
+        <div ref={ref} className={clip ? 'overflow-x-hidden' : 'overflow-x-auto'}>
+            {children}
+        </div>
+    );
 }
 
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {

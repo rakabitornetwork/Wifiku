@@ -31,7 +31,7 @@ export default function Choose({ company, accounts }: { company: { name: string;
                         const status = account.status as keyof typeof label;
 
                         return (
-                            <li key={account.id}>
+                            <li key={account.id} className="row-in">
                                 <button
                                     type="button"
                                     disabled={busy !== null}

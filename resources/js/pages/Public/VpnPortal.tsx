@@ -70,7 +70,7 @@ export default function VpnPortal({ company, account, invoices, outstanding, mem
                         <>
                             <ul className="divide-y">
                                 {invoices.map((invoice) => (
-                                    <li key={invoice.invoice_number} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                                    <li key={invoice.invoice_number} className="row-in flex items-center justify-between gap-3 px-5 py-3.5">
                                         <div className="min-w-0">
                                             <div className="num text-sm font-medium">{invoice.invoice_number}</div>
                                             <div className="text-xs text-muted-foreground">
