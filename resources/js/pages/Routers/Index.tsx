@@ -1,10 +1,11 @@
 import { router as inertia, useForm } from '@inertiajs/react';
-import { Copy, Download, FileCode, Pencil, PlugZap, Plus } from 'lucide-react';
+import { Activity, Copy, Download, FileCode, Pencil, PlugZap, Plus } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { ImportPppModal } from '@/Components/ImportPppModal';
 import { PageHeader } from '@/Components/PageHeader';
+import { RouterTrafficModal } from '@/Components/RouterTrafficModal';
 import { SearchInput } from '@/Components/SearchInput';
 import { StatusBadge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
@@ -41,6 +42,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
     const [editing, setEditing] = useState<RouterRow | null>(null);
     const [open, setOpen] = useState(false);
     const [importing, setImporting] = useState<RouterRow | null>(null);
+    const [traffic, setTraffic] = useState<RouterRow | null>(null);
     const [checking, setChecking] = useState<number | null>(null);
     const [script, setScript] = useState<{ router: RouterRow; text: string | null } | null>(null);
     const form = useForm(emptyForm);
@@ -149,6 +151,9 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                                                 <Button variant="success" size="icon" onClick={() => check(router)} disabled={checking === router.id} aria-label="Cek koneksi" title="Cek koneksi API">
                                                     <PlugZap className={checking === router.id ? 'size-4 animate-pulse' : 'size-4'} />
                                                 </Button>
+                                                <Button variant="secondary" size="icon" onClick={() => setTraffic(router)} aria-label="Live trafik" title="Live trafik interface">
+                                                    <Activity className="size-4" />
+                                                </Button>
                                                 <Button variant="info" size="icon" onClick={() => setImporting(router)} aria-label="Impor pelanggan" title="Impor pelanggan dari PPP secret router">
                                                     <Download className="size-4" />
                                                 </Button>
@@ -225,6 +230,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
             </Modal>
 
             <ImportPppModal router={importing} onClose={() => setImporting(null)} />
+            <RouterTrafficModal router={traffic} onClose={() => setTraffic(null)} />
 
             <Modal
                 open={script !== null}

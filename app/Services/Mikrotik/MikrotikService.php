@@ -35,6 +35,49 @@ class MikrotikService
     }
 
     /**
+     * Interface tetap yang bisa dipantau (ether, bridge, vlan, ...). Sesi dinamis seperti pppoe-in milik pelanggan
+     * dan interface yang dinonaktifkan disembunyikan, karena jumlahnya bisa ratusan.
+     *
+     * @return list<array{name: string, type: string, running: bool, comment: string|null}>
+     */
+    public function interfaces(): array
+    {
+        $interfaces = [];
+
+        foreach ($this->client()->command('/interface/print') as $row) {
+            if (($row['dynamic'] ?? 'false') === 'true' || ($row['disabled'] ?? 'false') === 'true' || blank($row['name'] ?? null)) {
+                continue;
+            }
+
+            $interfaces[] = [
+                'name' => $row['name'],
+                'type' => $row['type'] ?? '',
+                'running' => ($row['running'] ?? 'false') === 'true',
+                'comment' => filled($row['comment'] ?? null) ? $row['comment'] : null,
+            ];
+        }
+
+        return $interfaces;
+    }
+
+    /**
+     * Satu cuplikan trafik langsung (bit dan paket per detik) pada interface; RouterOS menghitungnya dari beberapa saat terakhir.
+     *
+     * @return array{rx_bps: int, tx_bps: int, rx_pps: int, tx_pps: int}
+     */
+    public function trafficSample(string $interface): array
+    {
+        $row = $this->client()->command('/interface/monitor-traffic', ['interface' => $interface, 'once' => ''])[0] ?? [];
+
+        return [
+            'rx_bps' => (int) ($row['rx-bits-per-second'] ?? 0),
+            'tx_bps' => (int) ($row['tx-bits-per-second'] ?? 0),
+            'rx_pps' => (int) ($row['rx-packets-per-second'] ?? 0),
+            'tx_pps' => (int) ($row['tx-packets-per-second'] ?? 0),
+        ];
+    }
+
+    /**
      * Seluruh PPP secret di router (untuk impor pelanggan).
      *
      * @return list<array<string, string>>

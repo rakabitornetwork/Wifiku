@@ -34,6 +34,7 @@ use App\Http\Controllers\ResellerController;
 use App\Http\Controllers\RouterConnectionController;
 use App\Http\Controllers\RouterController;
 use App\Http\Controllers\RouterImportController;
+use App\Http\Controllers\RouterTrafficController;
 use App\Http\Controllers\TopologyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoucherBatchController;
@@ -156,6 +157,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/routers/{router}/import-preview', [RouterImportController::class, 'preview'])->name('routers.import-preview');
         Route::post('/routers/{router}/import', [RouterImportController::class, 'store'])->name('routers.import');
         Route::post('/routers/{router}/check', [RouterConnectionController::class, 'check'])->name('routers.check');
+        Route::get('/routers/{router}/traffic/interfaces', [RouterTrafficController::class, 'interfaces'])->middleware('throttle:30,1')->name('routers.traffic.interfaces');
+        Route::get('/routers/{router}/traffic/stream', [RouterTrafficController::class, 'stream'])->middleware('throttle:20,1')->name('routers.traffic.stream');
+        Route::get('/routers/{router}/traffic', [RouterTrafficController::class, 'sample'])->middleware('throttle:120,1')->name('routers.traffic.sample');
         Route::get('/routers/{router}/hotspot-script', [RouterConnectionController::class, 'hotspotScript'])->name('routers.hotspot-script');
     });
 

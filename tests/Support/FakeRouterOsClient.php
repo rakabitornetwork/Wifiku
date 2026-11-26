@@ -18,6 +18,13 @@ class FakeRouterOsClient implements RouterOsClient
     /** @var array<string, list<array<string, string>>> */
     public array $tables = [];
 
+    /**
+     * Jawaban tetap per perintah (mis. /interface/monitor-traffic) untuk perintah yang bukan print/add/set/remove.
+     *
+     * @var array<string, list<array<string, string>>>
+     */
+    public array $responses = [];
+
     public ?Throwable $failWith = null;
 
     private int $nextId = 1;
@@ -29,6 +36,10 @@ class FakeRouterOsClient implements RouterOsClient
         }
 
         $this->commands[] = ['path' => $path, 'attributes' => $attributes, 'where' => $where];
+
+        if (isset($this->responses[$path])) {
+            return $this->responses[$path];
+        }
 
         $menu = substr($path, 0, strrpos($path, '/'));
         $action = substr($path, strrpos($path, '/') + 1);

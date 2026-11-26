@@ -151,6 +151,72 @@
     animation: fade-in 0.18s ease-out;
 }
 
+/* Jendela dialog: masuk dan keluar dengan gerak yang sama (durasi keluar harus sama dengan CLOSE_MS di Modal.tsx). */
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes modal-out {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+    to {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    }
+}
+
+@keyframes backdrop-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes backdrop-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@utility animate-modal-in {
+    animation: modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-modal-out {
+    animation: modal-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@utility animate-backdrop-in {
+    animation: backdrop-in 0.22s ease-out both;
+}
+
+@utility animate-backdrop-out {
+    animation: backdrop-out 0.2s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-modal-in,
+    .animate-modal-out,
+    .animate-backdrop-in,
+    .animate-backdrop-out {
+        animation-duration: 0.01ms;
+    }
+}
+
 /* Transisi tema: crossfade halaman penuh lewat View Transitions API. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
