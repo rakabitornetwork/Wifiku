@@ -15,7 +15,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Login portal pelanggan PPPoE: nomor WhatsApp terdaftar lalu kode OTP yang dikirim ke nomor itu.
+ * Login portal pelanggan PPPoE (tab Internet Rumah di halaman /portal): nomor WhatsApp terdaftar lalu kode OTP yang dikirim ke nomor itu.
  * Bila satu nomor dipakai beberapa sambungan, pelanggan memilih sambungan setelah OTP benar.
  * Terpisah dari login admin dan member VPN.
  */
@@ -23,9 +23,18 @@ class CustomerPortalAuthController extends Controller
 {
     private const PENDING_KEY = 'portal.pending_phone';
 
+    /**
+     * Halaman masuk bersama. `layanan=vpn` membuka tab VPN Tunnel; selain itu tab Internet Rumah (OTP WhatsApp).
+     */
     public function showLogin(Request $request, SettingService $settings): Response|RedirectResponse
     {
-        if ($request->session()->has(EnsureCustomerPortalSession::SESSION_KEY)) {
+        $service = $request->query('layanan') === 'vpn' ? 'vpn' : 'pppoe';
+
+        if ($service === 'vpn' && $request->user('member') !== null) {
+            return redirect()->route('vpn-member.dashboard');
+        }
+
+        if ($service === 'pppoe' && $request->session()->has(EnsureCustomerPortalSession::SESSION_KEY)) {
             return redirect()->route('portal.dashboard');
         }
 
@@ -37,8 +46,10 @@ class CustomerPortalAuthController extends Controller
 
         return Inertia::render('Public/Portal/Login', [
             'company' => CompanyBranding::data($settings),
+            'service' => $service,
             'pendingPhone' => $pending ? CustomerLoginService::mask($pending) : null,
             'resendSeconds' => CustomerLoginService::RESEND_SECONDS,
+            'vpnRegistrationOpen' => $settings->get('vpn', 'member_registration_open') === '1',
         ]);
     }
 

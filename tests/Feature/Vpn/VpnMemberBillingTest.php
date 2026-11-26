@@ -57,8 +57,8 @@ class VpnMemberBillingTest extends TestCase
 
     public function test_billing_page_requires_a_member_login(): void
     {
-        $this->get('/vpn-tunnel/tagihan')->assertRedirect('/vpn-tunnel/masuk');
-        $this->post('/vpn-tunnel/tagihan/bayar', [])->assertRedirect('/vpn-tunnel/masuk');
+        $this->get('/vpn-tunnel/tagihan')->assertRedirect('/portal?layanan=vpn');
+        $this->post('/vpn-tunnel/tagihan/bayar', [])->assertRedirect('/portal?layanan=vpn');
     }
 
     public function test_lists_open_invoices_and_history_of_only_the_members_own_accounts(): void

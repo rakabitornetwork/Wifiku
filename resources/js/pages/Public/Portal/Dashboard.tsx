@@ -333,7 +333,7 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
             const response = await fetch('/pelanggan/onu', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
 
             if (response.status === 401) {
-                router.visit('/pelanggan/masuk');
+                router.visit('/portal');
 
                 return;
             }

@@ -57,7 +57,7 @@ export function VpnShell({ company, children, member = false, showAuthLinks = tr
                         ) : (
                             showAuthLinks && (
                                 <>
-                                    <Link href="/vpn-tunnel/masuk" className={buttonClass('ghost', 'sm')}>
+                                    <Link href="/portal?layanan=vpn" className={buttonClass('ghost', 'sm')}>
                                         Masuk
                                     </Link>
                                     <Link href="/vpn-tunnel/daftar" className={buttonClass('primary', 'sm')}>

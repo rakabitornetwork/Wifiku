@@ -33,7 +33,7 @@ export default function ForgotPassword({ company }: { company: string }) {
                     </form>
                 </Card>
                 <p className="mt-4 text-center text-sm text-muted-foreground">
-                    <Link href="/vpn-tunnel/masuk" className="font-medium text-primary hover:underline">
+                    <Link href="/portal?layanan=vpn" className="font-medium text-primary hover:underline">
                         Kembali ke halaman masuk
                     </Link>
                 </p>

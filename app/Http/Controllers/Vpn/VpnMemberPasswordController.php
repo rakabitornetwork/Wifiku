@@ -43,7 +43,7 @@ class VpnMemberPasswordController extends Controller
 
         Toast::success('Jika email terdaftar, tautan reset password dikirim ke WhatsApp Anda. Cek pesan masuk dalam beberapa menit.');
 
-        return redirect()->route('vpn-member.login');
+        return redirect()->route('portal.login', ['layanan' => 'vpn']);
     }
 
     public function showReset(Request $request, string $token, SettingService $settings): Response
@@ -79,6 +79,6 @@ class VpnMemberPasswordController extends Controller
 
         Toast::success('Password berhasil diubah. Silakan masuk dengan password baru.');
 
-        return redirect()->route('vpn-member.login');
+        return redirect()->route('portal.login', ['layanan' => 'vpn']);
     }
 }

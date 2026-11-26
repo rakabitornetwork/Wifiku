@@ -46,7 +46,7 @@ export default function Register({ company }: { company: string }) {
                 </Card>
                 <p className="mt-4 text-center text-sm text-muted-foreground">
                     Sudah punya akun?{' '}
-                    <Link href="/vpn-tunnel/masuk" className="font-medium text-primary hover:underline">
+                    <Link href="/portal?layanan=vpn" className="font-medium text-primary hover:underline">
                         Masuk
                     </Link>
                 </p>

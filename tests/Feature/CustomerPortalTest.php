@@ -9,6 +9,7 @@ use App\Models\Asset;
 use App\Models\Customer;
 use App\Models\CustomerLoginCode;
 use App\Models\Invoice;
+use App\Models\VpnMember;
 use App\Models\WhatsappMessage;
 use App\Services\Portal\CustomerLoginService;
 use App\Services\Settings\SettingService;
@@ -47,8 +48,8 @@ class CustomerPortalTest extends TestCase
 
     private function login(Customer $customer): void
     {
-        $this->post('/pelanggan/masuk', ['whatsapp' => $customer->whatsapp]);
-        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
+        $this->post('/portal/kode', ['whatsapp' => $customer->whatsapp]);
+        $this->post('/portal/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
     }
 
     private function configureGenieAcs(): void
@@ -66,15 +67,15 @@ class CustomerPortalTest extends TestCase
     {
         $customer = $this->customer();
 
-        $this->post('/pelanggan/masuk', ['whatsapp' => '0812-3456-7890'])->assertRedirect('/pelanggan/masuk');
+        $this->post('/portal/kode', ['whatsapp' => '0812-3456-7890'])->assertRedirect('/portal');
 
         $message = WhatsappMessage::sole();
         $this->assertSame('6281234567890', $message->phone);
         $this->assertMatchesRegularExpression('/\*\d{6}\*/', $message->body);
         $this->assertNotSame($this->lastOtp(), CustomerLoginCode::sole()->code_hash);
-        $this->get('/pelanggan/masuk')->assertInertia(fn (Assert $page) => $page->where('pendingPhone', '0812****7890'));
+        $this->get('/portal')->assertInertia(fn (Assert $page) => $page->where('pendingPhone', '0812****7890'));
 
-        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
+        $this->post('/portal/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan');
         $this->assertSame(0, CustomerLoginCode::count());
         $this->get('/pelanggan')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Portal/Dashboard')->where('customer.customer_code', $customer->customer_code)->where('hasMultipleAccounts', false));
     }
@@ -87,7 +88,7 @@ class CustomerPortalTest extends TestCase
         $this->assertNull(CustomerLoginService::normalizePhone('12345'));
         $this->assertNull(CustomerLoginService::normalizePhone('abc'));
 
-        $this->post('/pelanggan/masuk', ['whatsapp' => '12345'])->assertSessionHasErrors('whatsapp');
+        $this->post('/portal/kode', ['whatsapp' => '12345'])->assertSessionHasErrors('whatsapp');
         $this->assertSame(0, WhatsappMessage::count());
     }
 
@@ -95,7 +96,7 @@ class CustomerPortalTest extends TestCase
     {
         $this->customer(['whatsapp' => '0812-3456-7890']);
 
-        $this->post('/pelanggan/masuk', ['whatsapp' => '6281234567890']);
+        $this->post('/portal/kode', ['whatsapp' => '6281234567890']);
 
         $this->assertSame(1, WhatsappMessage::count());
     }
@@ -106,40 +107,40 @@ class CustomerPortalTest extends TestCase
         $this->customer(['customer_code' => 'TT-B', 'whatsapp' => '']);
 
         foreach (['082222222222', '081111111111'] as $number) {
-            $this->post('/pelanggan/masuk', ['whatsapp' => $number])->assertRedirect('/pelanggan/masuk')->assertSessionHasNoErrors();
+            $this->post('/portal/kode', ['whatsapp' => $number])->assertRedirect('/portal')->assertSessionHasNoErrors();
         }
 
         $this->assertSame(0, WhatsappMessage::count());
-        $this->post('/pelanggan/verifikasi', ['otp' => '123456'])->assertSessionHasErrors('otp');
+        $this->post('/portal/verifikasi', ['otp' => '123456'])->assertSessionHasErrors('otp');
     }
 
     public function test_wrong_codes_are_limited_and_resend_is_throttled(): void
     {
         $this->customer();
-        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
-        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
-        $this->post('/pelanggan/kirim-ulang');
+        $this->post('/portal/kode', ['whatsapp' => '081234567890']);
+        $this->post('/portal/kode', ['whatsapp' => '081234567890']);
+        $this->post('/portal/kirim-ulang');
         $this->assertSame(1, WhatsappMessage::count());
 
         $real = $this->lastOtp();
         $wrong = $real === '000000' ? '111111' : '000000';
 
         for ($i = 0; $i < 5; $i++) {
-            $this->post('/pelanggan/verifikasi', ['otp' => $wrong])->assertSessionHasErrors('otp');
+            $this->post('/portal/verifikasi', ['otp' => $wrong])->assertSessionHasErrors('otp');
         }
 
-        $this->post('/pelanggan/verifikasi', ['otp' => $real])->assertSessionHasErrors('otp');
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->post('/portal/verifikasi', ['otp' => $real])->assertSessionHasErrors('otp');
+        $this->get('/pelanggan')->assertRedirect('/portal');
     }
 
     public function test_resend_after_the_wait_sends_again_but_codes_per_hour_are_capped(): void
     {
         $this->customer();
-        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+        $this->post('/portal/kode', ['whatsapp' => '081234567890']);
 
         for ($i = 0; $i < 6; $i++) {
             $this->travel(61)->seconds();
-            $this->post('/pelanggan/kirim-ulang');
+            $this->post('/portal/kirim-ulang');
         }
 
         $this->assertSame(5, WhatsappMessage::count());
@@ -148,11 +149,11 @@ class CustomerPortalTest extends TestCase
     public function test_expired_code_is_rejected(): void
     {
         $this->customer();
-        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
+        $this->post('/portal/kode', ['whatsapp' => '081234567890']);
         $otp = $this->lastOtp();
         CustomerLoginCode::query()->update(['expires_at' => now()->subMinute()]);
 
-        $this->post('/pelanggan/verifikasi', ['otp' => $otp])->assertSessionHasErrors('otp');
+        $this->post('/portal/verifikasi', ['otp' => $otp])->assertSessionHasErrors('otp');
     }
 
     public function test_one_number_with_several_connections_chooses_one_and_cannot_pick_foreign_ones(): void
@@ -161,8 +162,8 @@ class CustomerPortalTest extends TestCase
         $second = $this->customer(['customer_code' => 'TT-0002-0002', 'name' => 'Ruko']);
         $foreign = $this->customer(['customer_code' => 'TT-9', 'whatsapp' => '6289999999999']);
 
-        $this->post('/pelanggan/masuk', ['whatsapp' => '081234567890']);
-        $this->post('/pelanggan/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan/pilih');
+        $this->post('/portal/kode', ['whatsapp' => '081234567890']);
+        $this->post('/portal/verifikasi', ['otp' => $this->lastOtp()])->assertRedirect('/pelanggan/pilih');
 
         $this->get('/pelanggan')->assertRedirect('/pelanggan/pilih');
         $this->get('/pelanggan/pilih')->assertOk()->assertInertia(fn (Assert $page) => $page->has('accounts', 2)->where('accounts.0.name', 'Ruko'));
@@ -182,12 +183,12 @@ class CustomerPortalTest extends TestCase
 
         $customer->update(['whatsapp' => '6285555555555']);
 
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->get('/pelanggan')->assertRedirect('/portal');
     }
 
     public function test_portal_requires_login_and_ends_when_account_is_deactivated_or_session_is_too_old(): void
     {
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->get('/pelanggan')->assertRedirect('/portal');
         $this->getJson('/pelanggan/onu')->assertUnauthorized();
 
         $customer = $this->customer();
@@ -195,12 +196,12 @@ class CustomerPortalTest extends TestCase
         $this->get('/pelanggan')->assertOk();
 
         $this->travel(13)->hours();
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->get('/pelanggan')->assertRedirect('/portal');
         $this->travelBack();
 
         $this->login($customer);
         $customer->update(['status' => CustomerStatus::Inactive]);
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->get('/pelanggan')->assertRedirect('/portal');
     }
 
     public function test_dashboard_only_shows_own_invoices_and_never_secrets(): void
@@ -316,8 +317,8 @@ class CustomerPortalTest extends TestCase
         $customer = $this->customer();
         $this->login($customer);
 
-        $this->post('/pelanggan/keluar')->assertRedirect('/pelanggan/masuk');
-        $this->get('/pelanggan')->assertRedirect('/pelanggan/masuk');
+        $this->post('/pelanggan/keluar')->assertRedirect('/portal');
+        $this->get('/pelanggan')->assertRedirect('/portal');
         $this->get('/dashboard')->assertRedirect('/login');
     }
 
@@ -333,5 +334,26 @@ class CustomerPortalTest extends TestCase
         $this->assertCount(2, $bodies);
         $bodies->each(fn (string $body) => $this->assertStringContainsString('Kode pelanggan: TT-0001-0001', $body));
         $this->assertStringContainsString(route('portal.login'), $bodies[0]);
+    }
+
+    public function test_the_shared_login_page_serves_both_services_and_old_urls_redirect(): void
+    {
+        $this->get('/portal')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Public/Portal/Login')->where('service', 'pppoe'));
+        $this->get('/portal?layanan=vpn')->assertOk()->assertInertia(fn (Assert $page) => $page->where('service', 'vpn')->has('vpnRegistrationOpen'));
+        $this->get('/portal?layanan=lainnya')->assertInertia(fn (Assert $page) => $page->where('service', 'pppoe'));
+
+        $this->get('/pelanggan/masuk')->assertRedirect('/portal')->assertStatus(301);
+        $this->get('/vpn-tunnel/masuk')->assertRedirect('/portal?layanan=vpn')->assertStatus(301);
+    }
+
+    public function test_sessions_of_each_service_stay_separate_on_the_shared_page(): void
+    {
+        $this->login($this->customer());
+
+        $this->get('/portal')->assertRedirect('/pelanggan');
+        $this->get('/portal?layanan=vpn')->assertOk();
+
+        $member = VpnMember::factory()->create();
+        $this->actingAs($member, 'member')->get('/portal?layanan=vpn')->assertRedirect('/vpn-tunnel/akun');
     }
 }

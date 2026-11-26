@@ -35,14 +35,14 @@ class VpnMemberPasswordResetTest extends TestCase
     public function test_forgot_password_page_and_login_link_are_public(): void
     {
         $this->get('/vpn-tunnel/lupa-password')->assertOk();
-        $this->get('/vpn-tunnel/masuk')->assertOk();
+        $this->get('/portal?layanan=vpn')->assertOk();
     }
 
     public function test_reset_link_is_sent_to_the_members_whatsapp(): void
     {
         $member = $this->member(['whatsapp' => '6281234567890']);
 
-        $this->post('/vpn-tunnel/lupa-password', ['email' => 'BUDI@example.com'])->assertRedirect('/vpn-tunnel/masuk');
+        $this->post('/vpn-tunnel/lupa-password', ['email' => 'BUDI@example.com'])->assertRedirect('/portal?layanan=vpn');
 
         $message = WhatsappMessage::sole();
         $this->assertSame('6281234567890', $message->phone);
@@ -58,8 +58,8 @@ class VpnMemberPasswordResetTest extends TestCase
         $known = $this->post('/vpn-tunnel/lupa-password', ['email' => 'tidak-ada@example.com']);
         $inactive = $this->post('/vpn-tunnel/lupa-password', ['email' => 'nonaktif@example.com']);
 
-        $known->assertRedirect('/vpn-tunnel/masuk')->assertSessionDoesntHaveErrors();
-        $inactive->assertRedirect('/vpn-tunnel/masuk')->assertSessionDoesntHaveErrors();
+        $known->assertRedirect('/portal?layanan=vpn')->assertSessionDoesntHaveErrors();
+        $inactive->assertRedirect('/portal?layanan=vpn')->assertSessionDoesntHaveErrors();
         $this->assertSame(0, WhatsappMessage::count());
     }
 
@@ -81,7 +81,7 @@ class VpnMemberPasswordResetTest extends TestCase
 
         $this->get("/vpn-tunnel/reset-password/{$link['token']}?email=".urlencode($link['email']))->assertOk();
         $this->post('/vpn-tunnel/reset-password', [...$link, 'password' => 'password-baru-1', 'password_confirmation' => 'password-baru-1'])
-            ->assertRedirect('/vpn-tunnel/masuk')
+            ->assertRedirect('/portal?layanan=vpn')
             ->assertSessionDoesntHaveErrors();
 
         $this->post('/vpn-tunnel/masuk', ['email' => 'budi@example.com', 'password' => 'password-lama'])->assertSessionHasErrors('email');

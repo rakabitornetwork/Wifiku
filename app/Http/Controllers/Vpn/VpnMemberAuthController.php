@@ -41,11 +41,6 @@ class VpnMemberAuthController extends Controller
         return redirect()->route('vpn-member.dashboard');
     }
 
-    public function showLogin(SettingService $settings): Response
-    {
-        return Inertia::render('Public/Vpn/Login', ['company' => $settings->get('company', 'name', config('app.name'))]);
-    }
-
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);

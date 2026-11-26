@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['webhooks/*']);
 
         // Pengunjung yang belum login diarahkan ke login yang sesuai: portal member VPN atau panel admin.
-        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('vpn-tunnel/*') ? route('vpn-member.login') : route('login'));
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('vpn-tunnel/*') ? route('portal.login', ['layanan' => 'vpn']) : route('login'));
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

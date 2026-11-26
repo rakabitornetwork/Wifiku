@@ -107,8 +107,8 @@ class VpnMemberTest extends TestCase
 
     public function test_guest_is_sent_to_the_member_login_and_admin_session_does_not_grant_access(): void
     {
-        $this->get('/vpn-tunnel/akun')->assertRedirect('/vpn-tunnel/masuk');
-        $this->actingAs($this->admin())->get('/vpn-tunnel/akun')->assertRedirect('/vpn-tunnel/masuk');
+        $this->get('/vpn-tunnel/akun')->assertRedirect('/portal?layanan=vpn');
+        $this->actingAs($this->admin())->get('/vpn-tunnel/akun')->assertRedirect('/portal?layanan=vpn');
     }
 
     public function test_creating_an_account_is_pending_with_invoice_ip_ports_and_nothing_pushed_to_the_router(): void

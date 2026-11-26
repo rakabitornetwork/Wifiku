@@ -72,7 +72,7 @@ export default function Landing({ company, price, maxAccounts, registrationOpen,
                         <span className="rounded-lg border bg-muted px-4 py-2.5 text-sm text-muted-foreground">Pendaftaran sedang ditutup</span>
                     )}
                     {!loggedIn && (
-                        <Link href="/vpn-tunnel/masuk" className={buttonClass('outline', 'md', 'h-11 px-6')}>
+                        <Link href="/portal?layanan=vpn" className={buttonClass('outline', 'md', 'h-11 px-6')}>
                             Sudah punya akun? Masuk
                         </Link>
                     )}

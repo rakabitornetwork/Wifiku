@@ -65,12 +65,20 @@ Route::post('/isolir/{customer:customer_code}/pay', IsolirPaymentController::cla
     ->middleware('throttle:10,1')
     ->name('isolir.pay');
 
-// Portal pelanggan PPPoE: login dengan kode pelanggan + OTP WhatsApp, terpisah dari login admin dan member VPN.
-Route::prefix('pelanggan')->name('portal.')->group(function () {
-    Route::get('/masuk', [CustomerPortalAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
-    Route::post('/masuk', [CustomerPortalAuthController::class, 'sendCode'])->middleware('throttle:5,1')->name('send-code');
+// Halaman masuk bersama untuk pelanggan: tab Internet Rumah (OTP WhatsApp) dan VPN Tunnel (email + password).
+// Sesi keduanya tetap terpisah satu sama lain dan dari login admin.
+Route::get('/portal', [CustomerPortalAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('portal.login');
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::post('/kode', [CustomerPortalAuthController::class, 'sendCode'])->middleware('throttle:5,1')->name('send-code');
     Route::post('/verifikasi', [CustomerPortalAuthController::class, 'verify'])->middleware('throttle:10,1')->name('verify');
     Route::post('/kirim-ulang', [CustomerPortalAuthController::class, 'resend'])->middleware('throttle:5,1')->name('resend');
+});
+
+// Alamat login lama tetap dialihkan: tautan di pesan WhatsApp yang sudah terkirim masih menunjuk ke sini.
+Route::redirect('/pelanggan/masuk', '/portal', 301);
+
+// Portal pelanggan PPPoE setelah login: tagihan, status ONU, dan ganti WiFi.
+Route::prefix('pelanggan')->name('portal.')->group(function () {
     Route::get('/pilih', [CustomerPortalAuthController::class, 'choose'])->name('choose');
     Route::post('/pilih', [CustomerPortalAuthController::class, 'select'])->middleware('throttle:20,1')->name('select');
 
@@ -88,7 +96,7 @@ Route::prefix('vpn-tunnel')->name('vpn-member.')->group(function () {
     Route::get('/', VpnLandingController::class)->name('landing');
     Route::get('/daftar', [VpnMemberAuthController::class, 'showRegister'])->middleware('throttle:30,1')->name('register');
     Route::post('/daftar', [VpnMemberAuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
-    Route::get('/masuk', [VpnMemberAuthController::class, 'showLogin'])->middleware('throttle:30,1')->name('login');
+    Route::redirect('/masuk', '/portal?layanan=vpn', 301)->name('login');
     Route::post('/masuk', [VpnMemberAuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
 
     Route::get('/lupa-password', [VpnMemberPasswordController::class, 'showForgot'])->middleware('throttle:30,1')->name('password.request');
