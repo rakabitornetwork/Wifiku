@@ -1,14 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
-import { BrandLogo } from '@/Components/BrandLogo';
+import { useBrand } from '@/Components/BrandLogo';
+import { PortalShell, panel } from '@/Components/PortalShell';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
 import { Field, Select } from '@/Components/ui/Field';
-import { Toaster } from '@/Components/Toaster';
-import { useTheme } from '@/Hooks/useTheme';
 import { cn, formatDate, formatRupiah } from '@/lib/utils';
 
 type Props = {
@@ -22,8 +21,8 @@ type Props = {
     whatsappUrl: string | null;
 };
 
-export default function Isolir({ company, title, message, customer, invoices, outstanding, payment, whatsappUrl }: Props) {
-    useTheme();
+export default function Isolir({ title, message, customer, invoices, outstanding, payment, whatsappUrl }: Props) {
+    const brand = useBrand();
     const isolated = customer.status === 'isolated';
     const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0] ?? '' });
 
@@ -32,125 +31,127 @@ export default function Isolir({ company, title, message, customer, invoices, ou
         form.post(`/isolir/${customer.customer_code}/pay`, { preserveScroll: true });
     };
 
-    return (
-        <div className="min-h-screen bg-[radial-gradient(60%_40%_at_50%_0%,color-mix(in_oklab,var(--primary)_12%,transparent),transparent)] px-4 py-8">
-            <Head title={isolated ? 'Layanan Diisolir' : 'Status Layanan'} />
-            <div className="mx-auto max-w-lg space-y-4">
-                <div className="flex items-center justify-center gap-2.5 text-sm font-semibold">
-                    <BrandLogo size="sm" />
-                    {company}
-                </div>
-
-                <Card className={cn('p-5 text-center', isolated ? 'border-destructive/40' : 'border-emerald-500/40')}>
-                    <div className={cn('mx-auto mb-3 flex size-12 items-center justify-center rounded-full', isolated ? 'bg-destructive/12 text-destructive' : 'bg-emerald-500/12 text-emerald-600')}>
-                        {isolated ? <AlertTriangle className="size-6" /> : <CheckCircle2 className="size-6" />}
+    const hero = (
+        <>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-sm font-semibold">
+                <span className={cn('size-2 rounded-full', isolated ? 'bg-rose-400' : 'bg-emerald-400')} /> {isolated ? 'Diisolir' : 'Aktif'}
+            </span>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{isolated ? title : 'Layanan Anda Aktif'}</h1>
+            {isolated && message && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-indigo-100/80">{message}</p>}
+            <dl className="mt-7 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-6 lg:mt-10 lg:gap-5 lg:divide-x-0 lg:border-t-0 lg:pt-0">
+                {[
+                    ['ID Pelanggan', customer.customer_code],
+                    ['Nama', customer.name],
+                    ['Paket', customer.package],
+                ].map(([label, value]) => (
+                    <div key={label} className="min-w-0 px-4 first:pl-0 last:pr-0 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-white/[0.06] lg:px-6 lg:py-5 lg:first:pl-6 lg:last:pr-6">
+                        <dt className="text-xs whitespace-nowrap text-indigo-200/75 lg:text-sm">{label}</dt>
+                        <dd className="num mt-1.5 truncate text-base font-semibold whitespace-nowrap sm:text-xl lg:text-2xl">{value}</dd>
                     </div>
-                    <h1 className="text-lg font-semibold tracking-tight">{isolated ? title : 'Layanan Anda Aktif'}</h1>
-                    {isolated && message && <p className="mt-2 text-sm text-muted-foreground">{message}</p>}
-                    <dl className="mt-4 grid grid-cols-3 gap-2 border-t pt-4 text-left text-xs">
-                        <div>
-                            <dt className="text-muted-foreground">ID Pelanggan</dt>
-                            <dd className="num mt-0.5 font-medium">{customer.customer_code}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-muted-foreground">Nama</dt>
-                            <dd className="mt-0.5 font-medium">{customer.name}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-muted-foreground">Paket</dt>
-                            <dd className="mt-0.5 font-medium">{customer.package}</dd>
-                        </div>
-                    </dl>
-                </Card>
+                ))}
+            </dl>
+        </>
+    );
 
-                <Card>
-                    <CardHeader title="Tagihan tertunggak" description={invoices.length ? `${invoices.length} invoice belum lunas` : undefined} />
-                    {invoices.length === 0 ? (
-                        <p className="px-5 py-8 text-center text-sm text-muted-foreground">Tidak ada tagihan tertunggak.</p>
-                    ) : (
-                        <>
-                            <ul className="divide-y">
-                                {invoices.map((invoice) => (
-                                    <li key={invoice.invoice_number} className="row-in flex items-center justify-between gap-3 px-5 py-3.5">
-                                        <div className="min-w-0">
-                                            <div className="num text-sm font-medium">{invoice.invoice_number}</div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {formatDate(invoice.period_start)} – {formatDate(invoice.period_end)}
-                                            </div>
-                                            <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                Jatuh tempo {formatDate(invoice.due_date)}
-                                                {invoice.is_overdue && <Badge tone="red">Lewat tempo</Badge>}
-                                            </div>
-                                        </div>
-                                        <div className="num shrink-0 text-right text-sm font-semibold">{formatRupiah(invoice.outstanding)}</div>
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="flex items-center justify-between border-t bg-muted/40 px-5 py-3.5">
-                                <span className="text-sm font-medium">Total yang harus dibayar</span>
-                                <span className="num text-lg font-semibold">{formatRupiah(outstanding)}</span>
-                            </div>
-                        </>
-                    )}
-                </Card>
-
-                {invoices.length > 0 && (
-                    <Card>
-                        <CardHeader title="Bayar sekarang" description="QRIS atau Virtual Account" />
-                        {payment.available ? (
-                            <form onSubmit={pay} className="space-y-3 p-5">
-                                {invoices.length > 1 && (
-                                    <Field label="Invoice yang dibayar" error={form.errors.invoice_number}>
-                                        <Select value={form.data.invoice_number} onChange={(event) => form.setData('invoice_number', event.target.value)}>
-                                            {invoices.map((invoice) => (
-                                                <option key={invoice.invoice_number} value={invoice.invoice_number}>
-                                                    {invoice.invoice_number} — {formatRupiah(invoice.outstanding)}
-                                                </option>
-                                            ))}
-                                        </Select>
-                                    </Field>
-                                )}
-                                <Field label="Metode pembayaran" error={form.errors.channel}>
-                                    <div className="flex flex-wrap gap-2">
-                                        {payment.channels.map((channel) => (
-                                            <button
-                                                key={channel}
-                                                type="button"
-                                                onClick={() => form.setData('channel', channel)}
-                                                className={cn(
-                                                    'num rounded-lg border px-3 py-1.5 text-xs font-medium transition',
-                                                    form.data.channel === channel ? 'border-primary bg-accent text-accent-foreground' : 'hover:bg-muted',
-                                                )}
-                                            >
-                                                {channel}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </Field>
-                                {form.errors.invoice_number && invoices.length <= 1 && <p className="text-xs text-destructive">{form.errors.invoice_number}</p>}
-                                <Button type="submit" className="w-full" disabled={form.processing || !form.data.channel}>
-                                    {form.processing ? 'Menyiapkan pembayaran...' : 'Bayar sekarang'}
-                                </Button>
-                                <p className="text-center text-xs text-muted-foreground">Anda akan diarahkan ke halaman pembayaran resmi. Layanan aktif kembali otomatis setelah pembayaran diterima.</p>
-                            </form>
+    return (
+        <PortalShell company={brand} hero={hero}>
+            <Head title={isolated ? 'Layanan Diisolir' : 'Status Layanan'} />
+            <div className="mx-auto max-w-6xl space-y-5 px-4 pb-4">
+                <div className="grid items-start gap-5 lg:grid-cols-2 lg:gap-6">
+                    <Card className={panel}>
+                        <CardHeader title="Tagihan tertunggak" description={invoices.length ? `${invoices.length} invoice belum lunas` : undefined} />
+                        {invoices.length === 0 ? (
+                            <p className="px-5 py-8 text-center text-sm text-muted-foreground">Tidak ada tagihan tertunggak.</p>
                         ) : (
-                            <p className="p-5 text-center text-sm text-muted-foreground">Pembayaran online belum tersedia. Silakan hubungi CS untuk melakukan pembayaran.</p>
+                            <>
+                                <ul className="divide-y">
+                                    {invoices.map((invoice) => (
+                                        <li key={invoice.invoice_number} className="row-in flex items-center justify-between gap-3 px-5 py-3.5">
+                                            <div className="min-w-0">
+                                                <div className="num text-sm font-medium">{invoice.invoice_number}</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {formatDate(invoice.period_start)} – {formatDate(invoice.period_end)}
+                                                </div>
+                                                <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                    Jatuh tempo {formatDate(invoice.due_date)}
+                                                    {invoice.is_overdue && <Badge tone="red">Lewat tempo</Badge>}
+                                                </div>
+                                            </div>
+                                            <div className="num shrink-0 text-right text-sm font-semibold">{formatRupiah(invoice.outstanding)}</div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="flex items-center justify-between border-t bg-muted/40 px-5 py-3.5">
+                                    <span className="text-sm font-medium">Total yang harus dibayar</span>
+                                    <span className="num text-lg font-semibold">{formatRupiah(outstanding)}</span>
+                                </div>
+                            </>
                         )}
                     </Card>
-                )}
+
+                    {invoices.length > 0 && (
+                        <Card className={panel}>
+                            <CardHeader title="Bayar sekarang" description="QRIS atau Virtual Account" />
+                            {payment.available ? (
+                                <form onSubmit={pay} className="space-y-3 p-5">
+                                    {invoices.length > 1 && (
+                                        <Field label="Invoice yang dibayar" error={form.errors.invoice_number}>
+                                            <Select value={form.data.invoice_number} onChange={(event) => form.setData('invoice_number', event.target.value)}>
+                                                {invoices.map((invoice) => (
+                                                    <option key={invoice.invoice_number} value={invoice.invoice_number}>
+                                                        {invoice.invoice_number} — {formatRupiah(invoice.outstanding)}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                        </Field>
+                                    )}
+                                    <Field label="Metode pembayaran" error={form.errors.channel}>
+                                        <div className="flex flex-wrap gap-2">
+                                            {payment.channels.map((channel) => (
+                                                <button
+                                                    key={channel}
+                                                    type="button"
+                                                    onClick={() => form.setData('channel', channel)}
+                                                    className={cn(
+                                                        'num rounded-lg border px-3.5 py-2 text-sm font-semibold transition',
+                                                        form.data.channel === channel
+                                                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
+                                                            : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-white/15 dark:hover:bg-white/5',
+                                                    )}
+                                                >
+                                                    {channel}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </Field>
+                                    {form.errors.invoice_number && invoices.length <= 1 && <p className="text-xs text-destructive">{form.errors.invoice_number}</p>}
+                                    <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={form.processing || !form.data.channel}>
+                                        {form.processing ? 'Menyiapkan pembayaran...' : 'Bayar sekarang'}
+                                    </Button>
+                                    <p className="text-center text-xs text-muted-foreground">
+                                        Anda akan diarahkan ke halaman pembayaran resmi. Layanan aktif kembali otomatis setelah pembayaran diterima.
+                                    </p>
+                                </form>
+                            ) : (
+                                <p className="p-5 text-center text-sm text-muted-foreground">Pembayaran online belum tersedia. Silakan hubungi CS untuk melakukan pembayaran.</p>
+                            )}
+                        </Card>
+                    )}
+                </div>
 
                 {whatsappUrl && (
-                    <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
-                    >
-                        <MessageCircle className="size-4" /> Hubungi CS via WhatsApp
-                    </a>
+                    <div className="pt-2 text-center">
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1fa855] px-6 text-sm font-semibold text-white shadow-sm shadow-emerald-600/30 transition hover:bg-[#188f47]"
+                        >
+                            <MessageCircle className="size-4" /> Hubungi CS via WhatsApp
+                        </a>
+                    </div>
                 )}
             </div>
-            <Toaster />
-        </div>
+        </PortalShell>
     );
 }
