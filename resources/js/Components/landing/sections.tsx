@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, ChevronLeft, ChevronRight, X, Check, Clock, Headphones, Lock, Mail, MapPin, MessageCircle, Radar, Router, ShieldCheck, Signal, Star, Wifi, Zap, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Headphones, MessageCircle, Signal, Star, Wifi, X } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
 import { buttonClass } from '@/Components/ui/Button';
@@ -7,16 +7,21 @@ import { Card } from '@/Components/ui/Card';
 import { Field, Input, Textarea } from '@/Components/ui/Field';
 import { cn, formatRupiah } from '@/lib/utils';
 
+import { Icon3D, type Icon3DName, isIcon3DName } from './Icon3D';
 import { type Company, type GalleryItem, type LandingImages, type Plan, type Sections, waLink } from './types';
 
-const icons: Record<string, LucideIcon> = { wifi: Wifi, signal: Signal, router: Router, shield: ShieldCheck, zap: Zap, radar: Radar, lock: Lock, headphones: Headphones };
+const tint = 'bg-gradient-to-b from-muted/70 via-muted/30 to-background';
 
 function Heading({ eyebrow, title, body, center = true }: { eyebrow?: string; title: string; body?: string; center?: boolean }) {
     return (
         <div className={cn('max-w-2xl', center && 'mx-auto text-center')}>
-            {eyebrow && <p className="text-xs font-semibold tracking-widest text-primary uppercase">{eyebrow}</p>}
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{title}</h2>
-            {body && <p className="mt-3 text-pretty text-muted-foreground">{body}</p>}
+            {eyebrow && (
+                <p className={cn('inline-flex items-center gap-2 text-sm font-semibold text-primary', center && 'justify-center')}>
+                    <span className="h-0.5 w-6 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" /> {eyebrow}
+                </p>
+            )}
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{title}</h2>
+            {body && <p className="mt-4 text-lg text-pretty text-muted-foreground">{body}</p>}
         </div>
     );
 }
@@ -48,7 +53,7 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                     <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium', image ? 'border-white/25 bg-white/10 text-white backdrop-blur' : 'bg-card text-muted-foreground')}>
                         <Wifi className="size-3.5 text-primary" /> {content.badge}
                     </span>
-                    <h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                    <h1 className="mt-6 text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                         {content.title}
                     </h1>
                     <p className={cn('mt-5 max-w-xl text-lg text-pretty', image ? 'text-white/85' : 'text-muted-foreground')}>{content.body}</p>
@@ -60,9 +65,9 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                             {content.secondary_cta} <ArrowRight className="size-4" />
                         </a>
                     </div>
-                    <ul className={cn('mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm', image ? 'text-white/85' : 'text-muted-foreground')}>
+                    <ul className={cn('mt-8 flex flex-wrap gap-2.5 text-sm', image ? 'text-white/90' : 'text-muted-foreground')}>
                         {content.highlights.map((item) => (
-                            <li key={item} className="flex items-center gap-1.5">
+                            <li key={item} className={cn('flex items-center gap-1.5 rounded-full px-3.5 py-1.5', image ? 'border border-white/20 bg-white/10 backdrop-blur' : 'border bg-card')}>
                                 <Check className={cn('size-4', image ? 'text-emerald-400' : 'text-emerald-600')} /> {item}
                             </li>
                         ))}
@@ -97,15 +102,14 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
 }
 
 function IconCard({ item }: { item: { icon: string; title: string; description: string } }) {
-    const Icon = icons[item.icon] ?? Wifi;
+    const name: Icon3DName = isIcon3DName(item.icon) ? item.icon : 'wifi';
 
     return (
-        <Card className="p-6 transition hover:-translate-y-0.5 hover:shadow-md">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-                <Icon className="size-5" />
-            </span>
-            <h3 className="mt-4 font-semibold">{item.title}</h3>
-            <p className="mt-1.5 text-sm text-muted-foreground">{item.description}</p>
+        <Card className="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-card to-muted/40 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-indigo-500/10">
+            <div className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-indigo-500/10 blur-2xl transition duration-300 group-hover:bg-indigo-500/20" />
+            <Icon3D name={name} className="relative size-16 drop-shadow-lg transition duration-300 group-hover:scale-105" />
+            <h3 className="relative mt-5 text-lg font-semibold tracking-tight">{item.title}</h3>
+            <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
         </Card>
     );
 }
@@ -125,7 +129,7 @@ export function Services({ content }: { content: Sections['services'] }) {
 
 export function About({ content, image }: { content: Sections['about']; image: LandingImages['about'] }) {
     return (
-        <Section id="tentang" className="bg-muted/40">
+        <Section id="tentang" className={tint}>
             <div className="grid items-center gap-10 lg:grid-cols-2">
                 <div>
                     <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} center={false} />
@@ -169,7 +173,7 @@ export function Benefits({ content }: { content: Sections['benefits'] }) {
 
 export function Process({ content }: { content: Sections['process'] }) {
     return (
-        <Section id="proses" className="bg-muted/40">
+        <Section id="proses" className={tint}>
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
             <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.steps.map((step, index) => (
@@ -205,27 +209,27 @@ export function Pricing({ content, plans, company }: { content: Sections['pricin
                         const chat = waLink(company.whatsapp, `Halo ${company.name}, saya tertarik dengan paket ${plan.name}.`);
 
                         return (
-                            <Card key={plan.name} className={cn('relative flex flex-col p-6', plan.highlight && 'border-primary shadow-xl shadow-indigo-500/15 ring-1 ring-primary/40')}>
+                            <Card key={plan.name} className={cn('relative flex flex-col rounded-2xl p-7 transition duration-300 hover:-translate-y-1', plan.highlight ? 'border-indigo-400/30 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white shadow-2xl shadow-indigo-500/25 ring-1 ring-indigo-400/30 md:-my-3 md:py-10' : 'hover:shadow-xl hover:shadow-indigo-500/10')}>
                                 {plan.highlight && <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-0.5 text-xs font-semibold text-white">Paling banyak diambil</span>}
                                 <h3 className="text-lg font-semibold">{plan.name}</h3>
-                                {plan.description && <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>}
+                                {plan.description && <p className={cn('mt-1 text-sm', plan.highlight ? 'text-white/70' : 'text-muted-foreground')}>{plan.description}</p>}
                                 <p className="mt-5 flex items-baseline gap-1.5">
                                     <span className="num text-3xl font-semibold tracking-tight">{formatRupiah(plan.price)}</span>
-                                    <span className="text-sm text-muted-foreground">per bulan</span>
+                                    <span className={cn('text-sm', plan.highlight ? 'text-white/70' : 'text-muted-foreground')}>per bulan</span>
                                 </p>
-                                <ul className="mt-5 space-y-2.5 text-sm">
+                                <ul className="mt-6 mb-7 space-y-3 text-sm">
                                     {plan.speed && (
                                         <li className="flex items-start gap-2">
-                                            <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> <span>Kecepatan hingga <strong>{plan.speed}</strong></span>
+                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-400' : 'text-emerald-600')} /> <span>Kecepatan hingga <strong>{plan.speed}</strong></span>
                                         </li>
                                     )}
                                     {content.perks.map((perk) => (
                                         <li key={perk} className="flex items-start gap-2">
-                                            <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" /> <span>{perk}</span>
+                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-400' : 'text-emerald-600')} /> <span>{perk}</span>
                                         </li>
                                     ))}
                                 </ul>
-                                <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass(plan.highlight ? 'primary' : 'outline', 'md', 'mt-auto w-full')}>
+                                <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass(plan.highlight ? 'primary' : 'outline', 'md', cn('mt-auto h-11 w-full', plan.highlight && 'border-0 bg-white text-indigo-700 hover:bg-white/90'))}>
                                     Ambil paket ini
                                 </a>
                             </Card>
@@ -244,7 +248,7 @@ export function Testimonials({ content }: { content: Sections['testimonials'] })
     }
 
     return (
-        <Section id="testimoni" className="bg-muted/40">
+        <Section id="testimoni" className={tint}>
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
             <div className="mt-10 grid gap-4 md:grid-cols-3">
                 {content.items.map((item) => (
@@ -300,7 +304,7 @@ export function Cta({ content, company, image }: { content: Sections['cta']; com
 
 export function VpnSection({ content, vpn }: { content: Sections['vpn']; vpn: { price: number; registrationOpen: boolean; protocols: string[] } }) {
     return (
-        <Section id="vpn" className="bg-muted/40">
+        <Section id="vpn" className={tint}>
             <div className="grid items-center gap-10 lg:grid-cols-2">
                 <div>
                     <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} center={false} />
@@ -360,11 +364,11 @@ export function Contact({ content, company }: { content: Sections['contact']; co
     };
 
     const rows = [
-        company.whatsapp_display && { icon: MessageCircle, label: 'WhatsApp', value: company.whatsapp_display, href: waLink(company.whatsapp, `Halo ${company.name}`) },
-        company.email && { icon: Mail, label: 'Email', value: company.email, href: `mailto:${company.email}` },
-        company.address && { icon: MapPin, label: 'Alamat', value: company.address, href: null },
-        company.hours && { icon: Clock, label: 'Jam operasional', value: company.hours, href: null },
-    ].filter(Boolean) as { icon: LucideIcon; label: string; value: string; href: string | null }[];
+        company.whatsapp_display && { icon: 'chat' as const, label: 'WhatsApp', value: company.whatsapp_display, href: waLink(company.whatsapp, `Halo ${company.name}`) },
+        company.email && { icon: 'mail' as const, label: 'Email', value: company.email, href: `mailto:${company.email}` },
+        company.address && { icon: 'pin' as const, label: 'Alamat', value: company.address, href: null },
+        company.hours && { icon: 'clock' as const, label: 'Jam operasional', value: company.hours, href: null },
+    ].filter(Boolean) as { icon: Icon3DName; label: string; value: string; href: string | null }[];
 
     return (
         <Section id="kontak">
@@ -377,9 +381,7 @@ export function Contact({ content, company }: { content: Sections['contact']; co
                         <ul className="space-y-5">
                             {rows.map((row) => (
                                 <li key={row.label} className="flex items-start gap-4">
-                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-                                        <row.icon className="size-[18px]" />
-                                    </span>
+                                    <Icon3D name={row.icon} className="size-12 drop-shadow-md" />
                                     <span className="min-w-0 text-sm">
                                         <span className="block text-xs text-muted-foreground">{row.label}</span>
                                         {row.href ? (

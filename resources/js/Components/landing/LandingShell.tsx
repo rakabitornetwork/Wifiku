@@ -1,11 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { Menu, MessageCircle, Moon, Sun, Wifi, X } from 'lucide-react';
+import { Menu, MessageCircle, Moon, Sun, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 import { Toaster } from '@/Components/Toaster';
 import { Button, buttonClass } from '@/Components/ui/Button';
 import { useTheme } from '@/Hooks/useTheme';
 
+import { Icon3D } from './Icon3D';
 import { type Company, waLink } from './types';
 
 const nav = [
@@ -29,12 +30,10 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
 
     return (
         <div className="flex min-h-screen flex-col">
-            <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
+            <header className="sticky top-0 z-30 border-b bg-background/75 shadow-sm shadow-indigo-500/5 backdrop-blur-xl">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
-                            <Wifi className="size-[18px]" />
-                        </span>
+                        <Icon3D name="wifi" className="size-10 drop-shadow-md" />
                         {company.name}
                     </Link>
 

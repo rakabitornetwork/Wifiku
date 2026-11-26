@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Wifi } from 'lucide-react';
 
+import { Icon3D } from './Icon3D';
 import { type Company } from './types';
 
 const links = [
@@ -19,9 +19,7 @@ export function Footer({ company, body, onLanding = true }: { company: Company; 
             <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-[1.4fr_1fr_1fr]">
                 <div>
                     <div className="flex items-center gap-2.5 text-sm font-semibold">
-                        <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
-                            <Wifi className="size-4" />
-                        </span>
+                        <Icon3D name="wifi" className="size-9" />
                         {company.name}
                     </div>
                     <p className="mt-3 max-w-sm text-sm text-muted-foreground">{body}</p>
