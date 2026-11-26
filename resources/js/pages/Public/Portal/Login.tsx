@@ -1,11 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { MessageCircle, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
-import { IconBadge } from '@/Components/IconBadge';
-import { PortalShell } from '@/Components/PortalShell';
+import { PortalShell, panel } from '@/Components/PortalShell';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
+import { cn } from '@/lib/utils';
 import { Field, Input } from '@/Components/ui/Field';
 
 type Props = { company: { name: string; logo: string | null }; pendingPhone: string | null; resendSeconds: number };
@@ -39,15 +38,18 @@ export default function Login({ company, pendingPhone, resendSeconds }: Props) {
     };
 
     return (
-        <PortalShell company={company}>
-            <Head title="Masuk Portal Pelanggan" />
-            <div className="mx-auto w-full max-w-sm px-4 py-12">
-                <div className="mb-6 flex flex-col items-center text-center">
-                    <IconBadge icon={pendingPhone ? ShieldCheck : MessageCircle} tone={pendingPhone ? 'indigo' : 'emerald'} size="lg" className="mb-3" />
-                    <h1 className="text-xl font-semibold tracking-tight">Masuk ke portal pelanggan</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">Lihat tagihan, cek status ONU, dan ganti nama serta password WiFi Anda.</p>
+        <PortalShell
+            company={company}
+            hero={
+                <div className="mx-auto max-w-md text-center">
+                    <h1 className="text-3xl font-semibold tracking-tight">{pendingPhone ? 'Masukkan kode dari WhatsApp' : 'Masuk ke portal pelanggan'}</h1>
+                    <p className="mt-2 text-sm text-indigo-100/80">Lihat tagihan, cek status ONU, dan ganti nama serta password WiFi Anda.</p>
                 </div>
-                <Card className="glass p-6">
+            }
+        >
+            <Head title="Masuk Portal Pelanggan" />
+            <div className="mx-auto w-full max-w-md px-4 pb-4">
+                <Card className={cn('p-7', panel)}>
                     {pendingPhone ? (
                         <form onSubmit={verify} className="space-y-4">
                             <p className="text-sm text-muted-foreground">
@@ -65,7 +67,7 @@ export default function Login({ company, pendingPhone, resendSeconds }: Props) {
                                     required
                                 />
                             </Field>
-                            <Button type="submit" className="w-full" disabled={otpForm.processing || otpForm.data.otp.length !== 6}>
+                            <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={otpForm.processing || otpForm.data.otp.length !== 6}>
                                 {otpForm.processing ? 'Memeriksa...' : 'Masuk'}
                             </Button>
                             <div className="flex items-center justify-between text-sm">
@@ -82,7 +84,7 @@ export default function Login({ company, pendingPhone, resendSeconds }: Props) {
                             <Field label="Nomor WhatsApp" error={phoneForm.errors.whatsapp} hint="Nomor yang terdaftar di data pelanggan kami, misalnya 08123456789.">
                                 <Input type="tel" value={phoneForm.data.whatsapp} onChange={(event) => phoneForm.setData('whatsapp', event.target.value)} inputMode="tel" placeholder="08123456789" className="num" autoComplete="tel" autoFocus required />
                             </Field>
-                            <Button type="submit" className="w-full" disabled={phoneForm.processing || phoneForm.data.whatsapp.trim() === ''}>
+                            <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={phoneForm.processing || phoneForm.data.whatsapp.trim() === ''}>
                                 {phoneForm.processing ? 'Mengirim...' : 'Kirim kode ke WhatsApp'}
                             </Button>
                         </form>

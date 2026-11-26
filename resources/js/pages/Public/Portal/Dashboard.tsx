@@ -1,11 +1,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Activity, AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Cpu, Eye, EyeOff, Gauge, Hash, KeyRound, MessageCircle, Network, Receipt, RefreshCw, Smartphone, UserRound, Wifi, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, Check, Copy, Eye, EyeOff, MessageCircle, RefreshCw, Smartphone } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
-import { IconBadge, type IconTone } from '@/Components/IconBadge';
-import { PortalShell } from '@/Components/PortalShell';
-import { Badge } from '@/Components/ui/Badge';
-import { Button, buttonClass } from '@/Components/ui/Button';
+import { PortalShell, panel } from '@/Components/PortalShell';
+import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Field, Input } from '@/Components/ui/Field';
 import { cn, formatDate, formatRupiah } from '@/lib/utils';
@@ -36,43 +34,56 @@ type Props = {
     whatsappUrl: string | null;
 };
 
-const statusTone = { active: 'green', isolated: 'red', inactive: 'slate' } as const;
 const statusLabel = { active: 'Aktif', isolated: 'Diisolir', inactive: 'Nonaktif' } as const;
+const statusDot = { active: 'bg-emerald-400', isolated: 'bg-rose-400', inactive: 'bg-slate-400' } as const;
+
 const quality = {
-    good: { label: 'Baik', className: 'text-emerald-600 dark:text-emerald-400' },
-    warning: { label: 'Perlu dicek', className: 'text-amber-600 dark:text-amber-400' },
-    bad: { label: 'Lemah', className: 'text-red-600 dark:text-red-400' },
+    good: { label: 'Baik', text: 'text-emerald-600 dark:text-emerald-400', onDark: 'text-emerald-300' },
+    warning: { label: 'Perlu dicek', text: 'text-amber-600 dark:text-amber-400', onDark: 'text-amber-300' },
+    bad: { label: 'Lemah', text: 'text-rose-600 dark:text-rose-400', onDark: 'text-rose-300' },
 } as const;
 
-const tileTone = {
-    good: 'border-emerald-500/30 bg-emerald-500/10',
-    warning: 'border-amber-500/35 bg-amber-500/10',
-    bad: 'border-rose-500/35 bg-rose-500/10',
-    neutral: 'bg-muted/40',
-} as const;
+const SKELETON = <span className="inline-block h-6 w-20 animate-pulse rounded bg-white/15" />;
 
-/** Kotak angka penting; nilainya satu baris dan tidak pernah dipecah. */
-function Metric({ label, value, icon, tone = 'indigo', tile = 'neutral', valueClassName, hint }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone; tile?: keyof typeof tileTone; valueClassName?: string; hint?: React.ReactNode }) {
+/** Rentang yang digambar pada meter redaman (dBm): lemah sekali di kiri, terlalu kuat di kanan. */
+const METER_MIN = -35;
+const METER_MAX = -5;
+
+function SignalMeter({ rx, quality: grade }: { rx: number | null; quality: 'good' | 'warning' | 'bad' | null }) {
+    const position = rx === null ? null : Math.min(100, Math.max(0, ((rx - METER_MIN) / (METER_MAX - METER_MIN)) * 100));
+
     return (
-        <div className={cn('min-w-0 rounded-xl border p-3.5', tileTone[tile])}>
-            <div className="flex items-center gap-2 text-xs whitespace-nowrap text-muted-foreground">
-                <IconBadge icon={icon} tone={tone} size="sm" /> {label}
+        <div>
+            <div className="relative h-2.5 overflow-visible rounded-full">
+                <div className="absolute inset-0 flex overflow-hidden rounded-full">
+                    <div className="bg-rose-500" style={{ width: '23.3%' }} />
+                    <div className="bg-amber-400" style={{ width: '10%' }} />
+                    <div className="bg-emerald-500" style={{ width: '56.7%' }} />
+                    <div className="bg-amber-400" style={{ width: '10%' }} />
+                </div>
+                {position !== null && (
+                    <span
+                        className={cn('absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-slate-900 shadow-md dark:border-slate-900 dark:bg-white', grade === 'bad' && 'bg-rose-600 dark:bg-rose-400')}
+                        style={{ left: `${position}%` }}
+                    />
+                )}
             </div>
-            <div className={cn('num mt-2 overflow-x-auto text-lg font-semibold whitespace-nowrap', valueClassName)}>{value}</div>
-            {hint && <div className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground">{hint}</div>}
+            <div className="num mt-2 flex justify-between text-[11px] text-muted-foreground">
+                <span>{METER_MIN}</span>
+                <span>-28</span>
+                <span>-25</span>
+                <span>-8</span>
+                <span>{METER_MAX} dBm</span>
+            </div>
         </div>
     );
 }
 
-/** Informasi pendukung: label kecil di atas, nilai satu baris di bawahnya (nilai sangat panjang bisa digeser). */
-function Detail({ label, value, icon, tone = 'slate' }: { label: string; value: React.ReactNode; icon: LucideIcon; tone?: IconTone }) {
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="flex min-w-0 items-start gap-2.5">
-            <IconBadge icon={icon} tone={tone} size="sm" className="mt-0.5" />
-            <div className="min-w-0">
-                <dt className="text-xs whitespace-nowrap text-muted-foreground">{label}</dt>
-                <dd className="num mt-0.5 overflow-x-auto text-sm font-medium whitespace-nowrap">{value}</dd>
-            </div>
+        <div className="min-w-0">
+            <dt className="text-xs text-muted-foreground">{label}</dt>
+            <dd className="num mt-1 overflow-x-auto text-sm font-semibold whitespace-nowrap">{value}</dd>
         </div>
     );
 }
@@ -122,38 +133,42 @@ function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' 
     };
 
     return (
-        <Card className="p-5">
-            <div className="flex items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2.5 font-semibold">
-                    <IconBadge icon={Receipt} tone="emerald" /> Tagihan
-                </h2>
-                {outstanding > 0 ? <span className="num text-lg font-semibold text-amber-600 dark:text-amber-400">{formatRupiah(outstanding)}</span> : <Badge tone="green">Tidak ada tunggakan</Badge>}
+        <Card className={cn('p-6', panel)}>
+            <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-base font-semibold">Tagihan</h2>
+                {outstanding > 0 ? <span className="num text-xl font-semibold text-amber-600 dark:text-amber-400">{formatRupiah(outstanding)}</span> : <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Tidak ada tunggakan</span>}
             </div>
 
             {invoices.length === 0 ? (
                 <p className="mt-4 text-sm text-muted-foreground">Belum ada tagihan.</p>
             ) : (
-                <ul className="mt-4 divide-y">
-                    {invoices.map((invoice) => (
-                        <li key={invoice.invoice_number} className="flex items-center justify-between gap-3 py-3 text-sm">
-                            <IconBadge icon={invoice.status === 'paid' ? CheckCircle2 : invoice.is_overdue ? AlertTriangle : Clock} tone={invoice.status === 'paid' ? 'emerald' : invoice.is_overdue ? 'rose' : 'amber'} />
-                            <div className="min-w-0 flex-1">
-                                <div className="num font-medium">{invoice.invoice_number}</div>
-                                <div className="text-xs text-muted-foreground">
-                                    {formatDate(invoice.period_start)} – {formatDate(invoice.period_end)} · {invoice.status === 'paid' ? `Lunas ${formatDate(invoice.paid_at)}` : `Jatuh tempo ${formatDate(invoice.due_date)}`}
+                <ul className="mt-4 divide-y divide-slate-100 dark:divide-white/10">
+                    {invoices.map((invoice) => {
+                        const paid = invoice.status === 'paid';
+                        const tone = paid ? 'text-emerald-600 dark:text-emerald-400' : invoice.is_overdue ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400';
+
+                        return (
+                            <li key={invoice.invoice_number} className="flex items-center justify-between gap-4 py-3.5 text-sm">
+                                <div className="min-w-0">
+                                    <div className="num truncate font-semibold">{invoice.invoice_number}</div>
+                                    <div className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground">
+                                        {formatDate(invoice.period_start)} – {formatDate(invoice.period_end)}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="shrink-0 text-right">
-                                <div className="num font-semibold">{formatRupiah(invoice.status === 'paid' ? invoice.total : invoice.outstanding)}</div>
-                                <Badge tone={invoice.status === 'paid' ? 'green' : invoice.is_overdue ? 'red' : 'amber'}>{invoice.status === 'paid' ? 'Lunas' : invoice.is_overdue ? 'Terlambat' : invoice.status === 'partial' ? 'Sebagian' : 'Belum bayar'}</Badge>
-                            </div>
-                        </li>
-                    ))}
+                                <div className="shrink-0 text-right">
+                                    <div className="num font-semibold">{formatRupiah(paid ? invoice.total : invoice.outstanding)}</div>
+                                    <div className={cn('mt-0.5 text-xs font-medium whitespace-nowrap', tone)}>
+                                        {paid ? `Lunas ${formatDate(invoice.paid_at)}` : invoice.is_overdue ? `Terlambat sejak ${formatDate(invoice.due_date)}` : `Jatuh tempo ${formatDate(invoice.due_date)}`}
+                                    </div>
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
 
             {unpaid.length > 0 && payment.available && (
-                <form onSubmit={pay} className="mt-4 space-y-3 border-t pt-4">
+                <form onSubmit={pay} className="mt-3 space-y-4 border-t border-slate-100 pt-5 dark:border-white/10">
                     {unpaid.length > 1 && (
                         <Field label="Bayar tagihan" error={form.errors.invoice_number}>
                             <select value={form.data.invoice_number} onChange={(event) => form.setData('invoice_number', event.target.value)} className="h-10 w-full rounded-lg border bg-background px-3 text-sm">
@@ -168,14 +183,19 @@ function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' 
                     <Field label="Metode pembayaran" error={form.errors.channel}>
                         <div className="flex flex-wrap gap-2">
                             {payment.channels.map((channel) => (
-                                <button key={channel} type="button" onClick={() => form.setData('channel', channel)} className={cn('rounded-lg border px-3 py-1.5 text-sm font-medium transition', form.data.channel === channel ? 'border-primary bg-accent text-accent-foreground' : 'hover:bg-muted')}>
+                                <button
+                                    key={channel}
+                                    type="button"
+                                    onClick={() => form.setData('channel', channel)}
+                                    className={cn('rounded-lg border px-3.5 py-2 text-sm font-semibold transition', form.data.channel === channel ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-white/15 dark:hover:bg-white/5')}
+                                >
                                     {channel}
                                 </button>
                             ))}
                         </div>
                     </Field>
-                    <Button type="submit" className="w-full" disabled={form.processing || !form.data.channel}>
-                        {form.processing ? 'Menyiapkan pembayaran...' : 'Bayar sekarang'}
+                    <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={form.processing || !form.data.channel}>
+                        {form.processing ? 'Menyiapkan pembayaran...' : `Bayar ${formatRupiah(outstanding)}`}
                     </Button>
                 </form>
             )}
@@ -184,14 +204,14 @@ function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' 
 }
 
 function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live | null; loading: boolean; refresh: () => void }) {
+    const grade = live?.rx_quality ?? null;
+
     return (
-        <Card className="p-5">
+        <Card className={cn('p-6', panel)}>
             <div className="flex items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2.5 font-semibold">
-                    <IconBadge icon={Cpu} tone="sky" /> Status ONU
-                </h2>
+                <h2 className="text-base font-semibold">Status ONU</h2>
                 {onu && (
-                    <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
+                    <Button variant="ghost" size="sm" onClick={refresh} disabled={loading} className="-mr-2 text-muted-foreground">
                         <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> Perbarui
                     </Button>
                 )}
@@ -201,46 +221,43 @@ function OnuCard({ onu, live, loading, refresh }: { onu: Onu | null; live: Live 
                 <p className="mt-4 text-sm text-muted-foreground">Belum ada ONU yang tercatat untuk akun Anda. Hubungi CS bila ini keliru.</p>
             ) : (
                 <>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                        <Metric
-                            icon={Activity}
-                            tone={live?.online === false ? 'rose' : 'emerald'}
-                            label="Koneksi"
-                            value={loading && !live ? <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" /> : live?.online === null || live?.online === undefined ? '-' : <Badge tone={live.online ? 'green' : 'red'}>{live.online ? 'Online' : 'Offline'}</Badge>}
-                        />
-                        <Metric
-                            icon={Gauge}
-                            tone={live?.rx_quality === 'bad' ? 'rose' : live?.rx_quality === 'warning' ? 'amber' : live?.rx_quality === 'good' ? 'emerald' : 'violet'}
-                            tile={live?.rx_quality ?? 'neutral'}
-                            label="Redaman (RX)"
-                            value={loading && !live ? <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" /> : live?.rx_power != null ? `${live.rx_power.toFixed(2)} dBm` : '-'}
-                            valueClassName={live?.rx_quality ? quality[live.rx_quality].className : undefined}
-                            hint={live?.rx_quality ? <span className={cn('font-medium', quality[live.rx_quality].className)}>{quality[live.rx_quality].label}</span> : undefined}
-                        />
-                        <Metric icon={Clock} tone="amber" label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'} />
-                        <Metric icon={Wifi} tone="indigo" label="Nama WiFi (SSID)" value={live?.ssid ?? '-'} />
+                    <div className="mt-5">
+                        <div className="flex items-end justify-between gap-3">
+                            <div>
+                                <div className="text-xs text-muted-foreground">Redaman optik (RX)</div>
+                                <div className={cn('num mt-1 text-3xl font-semibold tracking-tight whitespace-nowrap', grade ? quality[grade].text : 'text-foreground')}>
+                                    {loading && !live ? <span className="inline-block h-8 w-28 animate-pulse rounded bg-muted" /> : live?.rx_power != null ? `${live.rx_power.toFixed(2)} dBm` : '-'}
+                                </div>
+                            </div>
+                            {grade && <span className={cn('rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap', grade === 'good' ? 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' : grade === 'warning' ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-rose-500/12 text-rose-700 dark:text-rose-300')}>{quality[grade].label}</span>}
+                        </div>
+                        <div className="mt-4">
+                            <SignalMeter rx={live?.rx_power ?? null} quality={grade} />
+                        </div>
                     </div>
 
-                    <dl className="mt-4 grid gap-x-4 gap-y-3 border-t pt-4 sm:grid-cols-2">
-                        <Detail icon={Cpu} tone="sky" label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
-                        <Detail icon={Hash} label="Serial number" value={onu.serial_number} />
-                        <Detail icon={Network} tone="cyan" label="MAC" value={onu.mac_address ?? '-'} />
-                        <Detail icon={KeyRound} tone="rose" label="Password WiFi" value={<WifiPassword password={live ? live.wifi_password : undefined} loading={loading} />} />
-                        <Detail icon={CalendarDays} label="Terpasang sejak" value={formatDate(onu.installed_at)} />
+                    <dl className="mt-6 grid gap-x-6 gap-y-4 border-t border-slate-100 pt-5 sm:grid-cols-2 dark:border-white/10">
+                        <Detail label="Perangkat" value={[onu.brand, onu.model].filter(Boolean).join(' ') || '-'} />
+                        <Detail label="Terakhir terlihat" value={live?.last_inform ? new Date(live.last_inform).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'} />
+                        <Detail label="Serial number" value={onu.serial_number} />
+                        <Detail label="MAC" value={onu.mac_address ?? '-'} />
+                        <Detail label="Nama WiFi (SSID)" value={live?.ssid ?? '-'} />
+                        <Detail label="Password WiFi" value={<WifiPassword password={live ? live.wifi_password : undefined} loading={loading} />} />
+                        <Detail label="Terpasang sejak" value={formatDate(onu.installed_at)} />
                     </dl>
 
-                    {live?.message && <p className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">{live.message}</p>}
+                    {live?.message && <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">{live.message}</p>}
 
                     {live && live.devices.length > 0 && (
-                        <div className="mt-5">
-                            <h3 className="text-sm font-medium">Perangkat terhubung ({live.devices.length})</h3>
-                            <ul className="mt-2 divide-y rounded-lg border text-sm">
+                        <div className="mt-6 border-t border-slate-100 pt-5 dark:border-white/10">
+                            <h3 className="text-sm font-semibold">Perangkat terhubung ({live.devices.length})</h3>
+                            <ul className="mt-3 divide-y divide-slate-100 text-sm dark:divide-white/10">
                                 {live.devices.map((device, index) => (
-                                    <li key={`${device.mac_address}-${index}`} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-3 py-2">
+                                    <li key={`${device.mac_address}-${index}`} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2.5">
                                         <span className="flex items-center gap-2 font-medium">
-                                            <IconBadge icon={Smartphone} tone="cyan" size="sm" /> {device.hostname ?? 'Perangkat tanpa nama'}
+                                            <Smartphone className="size-4 text-indigo-500" /> {device.hostname ?? 'Perangkat tanpa nama'}
                                         </span>
-                                        <span className="num text-xs text-muted-foreground">{[device.ip_address, device.mac_address].filter(Boolean).join(' · ')}</span>
+                                        <span className="num text-xs whitespace-nowrap text-muted-foreground">{[device.ip_address, device.mac_address].filter(Boolean).join(' · ')}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -268,15 +285,13 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
     };
 
     return (
-        <Card className="p-5">
-            <h2 className="flex items-center gap-2.5 font-semibold">
-                <IconBadge icon={Wifi} tone="violet" /> Ganti nama dan password WiFi
-            </h2>
-            <p className="mt-3 flex items-start gap-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+        <Card className={cn('p-6', panel)}>
+            <h2 className="text-base font-semibold">Ganti nama dan password WiFi</h2>
+            <p className="mt-3 flex items-start gap-2.5 rounded-lg border border-amber-300/70 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" />
                 <span>Setelah disimpan, semua perangkat yang tersambung akan terputus dan harus menyambung lagi dengan nama dan password baru. Catat password baru Anda; password yang sedang aktif bisa dilihat di kartu Status ONU.</span>
             </p>
-            <form onSubmit={submit} className="mt-4 grid gap-4 sm:grid-cols-2">
+            <form onSubmit={submit} className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Field label="Nama WiFi (SSID)" error={form.errors.ssid} hint="Maksimal 32 karakter." className="sm:col-span-2">
                     <Input value={form.data.ssid} onChange={(event) => form.setData('ssid', event.target.value)} maxLength={32} required />
                 </Field>
@@ -286,11 +301,20 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
                 <Field label="Ulangi password baru" error={form.errors.password_confirmation}>
                     <Input type="password" value={form.data.password_confirmation} onChange={(event) => form.setData('password_confirmation', event.target.value)} minLength={8} maxLength={63} autoComplete="new-password" required />
                 </Field>
-                <Button type="submit" className="sm:col-span-2" disabled={form.processing}>
+                <Button type="submit" className="h-11 bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100 sm:col-span-2" disabled={form.processing}>
                     {form.processing ? 'Mengirim ke ONU...' : 'Simpan pengaturan WiFi'}
                 </Button>
             </form>
         </Card>
+    );
+}
+
+function HeroStat({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="min-w-0 px-4 first:pl-0 last:pr-0">
+            <div className="text-xs whitespace-nowrap text-indigo-200/75">{label}</div>
+            <div className="num mt-1.5 truncate text-lg font-semibold whitespace-nowrap sm:text-2xl">{children}</div>
+        </div>
     );
 }
 
@@ -326,56 +350,74 @@ export default function Dashboard({ company, customer, invoices, outstanding, pa
         void load();
     }, [load]);
 
-    return (
-        <PortalShell company={company} loggedIn>
-            <Head title="Portal Pelanggan" />
-            <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-8">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <IconBadge icon={UserRound} tone="indigo" size="lg" />
-                        <div>
-                            <h1 className="text-2xl font-semibold tracking-tight">Halo, {customer.name}</h1>
-                            <p className="num mt-1 text-sm text-muted-foreground">
-                                {customer.customer_code}
-                                {customer.package && ` · Paket ${customer.package}`}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {hasMultipleAccounts && (
-                            <Link href="/pelanggan/pilih" className={buttonClass('outline', 'sm')}>
-                                Ganti sambungan
-                            </Link>
-                        )}
-                        <Badge tone={statusTone[customer.status as keyof typeof statusTone] ?? 'slate'}>{statusLabel[customer.status as keyof typeof statusLabel] ?? customer.status}</Badge>
-                    </div>
-                </div>
+    const grade = live?.rx_quality ?? null;
+    const status = customer.status as keyof typeof statusLabel;
 
+    const hero = (
+        <>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                    <p className="text-sm text-indigo-200/80">Selamat datang,</p>
+                    <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{customer.name}</h1>
+                    <p className="num mt-2 text-sm text-indigo-100/80">
+                        {customer.customer_code}
+                        {customer.package && ` · Paket ${customer.package}`}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                    {hasMultipleAccounts && (
+                        <Link href="/pelanggan/pilih" className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white transition hover:bg-white/10">
+                            Ganti sambungan
+                        </Link>
+                    )}
+                    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-sm font-semibold">
+                        <span className={cn('size-2 rounded-full', statusDot[status] ?? 'bg-slate-400')} /> {statusLabel[status] ?? customer.status}
+                    </span>
+                </div>
+            </div>
+
+            <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-6">
+                <HeroStat label="Tagihan">{outstanding > 0 ? <span className="text-amber-300">{formatRupiah(outstanding)}</span> : <span className="text-emerald-300">Lunas</span>}</HeroStat>
+                <HeroStat label="Koneksi">
+                    {!onu ? '-' : loading && !live ? SKELETON : live?.online == null ? '-' : <span className={live.online ? 'text-emerald-300' : 'text-rose-300'}>{live.online ? 'Online' : 'Offline'}</span>}
+                </HeroStat>
+                <HeroStat label="Redaman">
+                    {!onu ? '-' : loading && !live ? SKELETON : live?.rx_power != null ? <span className={grade ? quality[grade].onDark : undefined}>{live.rx_power.toFixed(1)} dBm</span> : '-'}
+                </HeroStat>
+            </div>
+        </>
+    );
+
+    return (
+        <PortalShell company={company} loggedIn hero={hero}>
+            <Head title="Portal Pelanggan" />
+            <div className="mx-auto w-full max-w-5xl space-y-5 px-4 pb-4">
                 {customer.status === 'isolated' && (
-                    <Card className="flex items-start gap-3 border-red-500/40 bg-red-500/10 p-4 text-sm">
-                        <IconBadge icon={AlertTriangle} tone="rose" />
+                    <div className="flex items-start gap-3 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 shadow-sm dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-100">
+                        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-rose-600 dark:text-rose-300" />
                         <div>
-                        Layanan Anda sedang diisolir karena tagihan belum dibayar. Selesaikan pembayaran di bawah; layanan aktif kembali otomatis setelah pembayaran diterima.
-                        {customer.promise_to_pay_until && <span className="block text-xs text-muted-foreground">Janji bayar sampai {formatDate(customer.promise_to_pay_until)}.</span>}
+                            <p className="font-semibold">Layanan Anda sedang diisolir</p>
+                            <p className="mt-0.5">Selesaikan pembayaran di bawah; layanan aktif kembali otomatis setelah pembayaran diterima.</p>
+                            {customer.promise_to_pay_until && <p className="mt-1 text-xs opacity-80">Janji bayar sampai {formatDate(customer.promise_to_pay_until)}.</p>}
                         </div>
-                    </Card>
+                    </div>
                 )}
 
-                <div className="grid gap-5 lg:grid-cols-2">
+                <div className="grid items-start gap-5 lg:grid-cols-2">
                     <BillingCard invoices={invoices} outstanding={outstanding} payment={payment} />
                     <OnuCard onu={onu} live={live} loading={loading} refresh={() => void load()} />
                 </div>
 
-                {canChangeWifi ? <WifiCard currentSsid={live?.ssid ?? null} /> : onu && customer.status !== 'active' ? (
-                    <Card className="p-5 text-sm text-muted-foreground">
-                        <Wifi className="mr-2 inline size-4" /> Pengaturan WiFi hanya tersedia saat layanan aktif.
-                    </Card>
+                {canChangeWifi ? (
+                    <WifiCard currentSsid={live?.ssid ?? null} />
+                ) : onu && customer.status !== 'active' ? (
+                    <Card className={cn('p-5 text-sm text-muted-foreground', panel)}>Pengaturan WiFi hanya tersedia saat layanan aktif.</Card>
                 ) : null}
 
                 {whatsappUrl && (
-                    <div className="text-center">
-                        <a href={whatsappUrl} target="_blank" rel="noreferrer" className={buttonClass('outline', 'md', 'border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300')}>
-                            <MessageCircle className="size-4 text-emerald-500" /> Hubungi CS via WhatsApp
+                    <div className="pt-2 text-center">
+                        <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1fa855] px-6 text-sm font-semibold text-white shadow-sm shadow-emerald-600/30 transition hover:bg-[#188f47]">
+                            <MessageCircle className="size-4" /> Hubungi CS via WhatsApp
                         </a>
                     </div>
                 )}
