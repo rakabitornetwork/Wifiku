@@ -39,6 +39,13 @@ class VpnAccountController extends Controller
 
     public function destroy(VpnAccount $account): RedirectResponse
     {
+        // Invoice (termasuk yang sudah dihapus lunak) memegang relasi RESTRICT ke akun ini agar riwayat tagihan tidak hilang.
+        if ($account->invoices()->withTrashed()->exists()) {
+            Toast::error('Akun VPN ini sudah punya riwayat tagihan sehingga tidak bisa dihapus. Ubah statusnya menjadi Nonaktif untuk menghentikan layanan.');
+
+            return back();
+        }
+
         $account->delete();
 
         RemoveVpnAccountJob::dispatch($account->vpn_server_id, $account->server->router_id, $account->username);

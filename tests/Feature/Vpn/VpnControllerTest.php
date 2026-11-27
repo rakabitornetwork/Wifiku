@@ -4,6 +4,7 @@ namespace Tests\Feature\Vpn;
 
 use App\Jobs\Vpn\RemoveVpnAccountJob;
 use App\Jobs\Vpn\SyncVpnAccountJob;
+use App\Models\Invoice;
 use App\Models\Router;
 use App\Models\VpnAccount;
 use App\Models\VpnServer;
@@ -126,6 +127,18 @@ class VpnControllerTest extends TestCase
 
         $this->assertModelMissing($account);
         Queue::assertPushed(RemoveVpnAccountJob::class, fn (RemoveVpnAccountJob $job): bool => $job->username === 'budi');
+    }
+
+    public function test_account_with_invoice_history_cannot_be_deleted(): void
+    {
+        Queue::fake([RemoveVpnAccountJob::class]);
+        $account = VpnAccount::factory()->create();
+        Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id]);
+
+        $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
+
+        $this->assertModelExists($account);
+        Queue::assertNotPushed(RemoveVpnAccountJob::class);
     }
 
     public function test_scripts_endpoint_returns_client_and_server_scripts(): void
