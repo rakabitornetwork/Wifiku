@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InvoiceStatus;
+use App\Enums\VpnAccountStatus;
 use App\Http\Requests\VpnAccountRequest;
 use App\Jobs\Vpn\RemoveVpnAccountJob;
 use App\Jobs\Vpn\SyncVpnAccountJob;
+use App\Models\Invoice;
 use App\Models\VpnAccount;
 use App\Services\Vpn\VpnScriptBuilder;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class VpnAccountController extends Controller
 {
@@ -39,11 +43,35 @@ class VpnAccountController extends Controller
 
     public function destroy(VpnAccount $account): RedirectResponse
     {
-        // Invoice (termasuk yang sudah dihapus lunak) memegang relasi RESTRICT ke akun ini agar riwayat tagihan tidak hilang.
-        if ($account->invoices()->withTrashed()->exists()) {
-            Toast::error('Akun VPN ini sudah punya riwayat tagihan sehingga tidak bisa dihapus. Ubah statusnya menjadi Nonaktif untuk menghentikan layanan.');
+        $invoices = $account->invoices()->withTrashed()->get();
 
-            return back();
+        if ($invoices->isNotEmpty()) {
+            if ($account->status !== VpnAccountStatus::Disabled) {
+                Toast::error('Akun VPN ini punya riwayat tagihan. Ubah statusnya menjadi Nonaktif lebih dulu, lalu hapus.');
+
+                return back();
+            }
+
+            if ($invoices->contains(fn (Invoice $invoice): bool => $invoice->status === InvoiceStatus::Partial)) {
+                Toast::error('Akun VPN ini masih punya tagihan yang dibayar sebagian. Selesaikan atau batalkan tagihan itu lebih dulu.');
+
+                return back();
+            }
+
+            // Riwayat tagihan dipertahankan (relasi ke akun dilepas oleh database); identitas akun dicatat di catatan tagihan.
+            DB::transaction(function () use ($account, $invoices): void {
+                $label = "Akun VPN dihapus: {$account->name} ({$account->username})";
+
+                foreach ($invoices as $invoice) {
+                    $invoice->notes = trim(($invoice->notes ? $invoice->notes."\n" : '').$label);
+
+                    if ($invoice->status === InvoiceStatus::Unpaid) {
+                        $invoice->status = InvoiceStatus::Cancelled;
+                    }
+
+                    $invoice->saveQuietly();
+                }
+            });
         }
 
         $account->delete();

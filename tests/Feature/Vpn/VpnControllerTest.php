@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Vpn;
 
+use App\Enums\InvoiceStatus;
 use App\Jobs\Vpn\RemoveVpnAccountJob;
 use App\Jobs\Vpn\SyncVpnAccountJob;
 use App\Models\Invoice;
@@ -129,16 +130,44 @@ class VpnControllerTest extends TestCase
         Queue::assertPushed(RemoveVpnAccountJob::class, fn (RemoveVpnAccountJob $job): bool => $job->username === 'budi');
     }
 
-    public function test_account_with_invoice_history_cannot_be_deleted(): void
+    public function test_active_account_with_invoice_history_cannot_be_deleted(): void
     {
         Queue::fake([RemoveVpnAccountJob::class]);
-        $account = VpnAccount::factory()->create();
+        $account = VpnAccount::factory()->create(['status' => 'active']);
         Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id]);
 
         $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
 
         $this->assertModelExists($account);
         Queue::assertNotPushed(RemoveVpnAccountJob::class);
+    }
+
+    public function test_disabled_account_with_invoice_history_is_deleted_and_invoices_are_kept(): void
+    {
+        Queue::fake([RemoveVpnAccountJob::class]);
+        $account = VpnAccount::factory()->create(['status' => 'disabled', 'name' => 'Budi', 'username' => 'budi']);
+        $unpaid = Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id, 'status' => InvoiceStatus::Unpaid, 'period_start' => '2026-10-01']);
+        $paid = Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id, 'status' => InvoiceStatus::Paid, 'period_start' => '2026-09-01']);
+
+        $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
+
+        $this->assertModelMissing($account);
+        $this->assertNull($unpaid->fresh()->vpn_account_id);
+        $this->assertSame(InvoiceStatus::Cancelled, $unpaid->fresh()->status);
+        $this->assertSame(InvoiceStatus::Paid, $paid->fresh()->status);
+        $this->assertStringContainsString('Budi (budi)', (string) $paid->fresh()->notes);
+        Queue::assertPushed(RemoveVpnAccountJob::class);
+    }
+
+    public function test_disabled_account_with_partially_paid_invoice_cannot_be_deleted(): void
+    {
+        Queue::fake([RemoveVpnAccountJob::class]);
+        $account = VpnAccount::factory()->create(['status' => 'disabled']);
+        Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id, 'status' => InvoiceStatus::Partial]);
+
+        $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
+
+        $this->assertModelExists($account);
     }
 
     public function test_scripts_endpoint_returns_client_and_server_scripts(): void
