@@ -303,6 +303,15 @@ class ChatBot
             ->orderBy('due_date')
             ->get();
         $paid = Invoice::query()->where('customer_id', $customer->id)->whereNull('vpn_account_id')->where('status', InvoiceStatus::Paid)->latest('paid_at')->first();
+
+        return $this->billingReply($customer, $unpaid, $paid);
+    }
+
+    /**
+     * @param  Collection<int, Invoice>  $unpaid
+     */
+    private function billingReply(Customer $customer, Collection $unpaid, ?Invoice $paid): ChatReply
+    {
         $outstanding = $unpaid->sum(fn (Invoice $invoice): int => max(0, $invoice->total - $invoice->amount_paid));
         $payUrl = route('isolir.show', $customer->customer_code);
 
@@ -334,8 +343,14 @@ class ChatBot
 
     private function onuStatus(Customer $customer): ChatReply
     {
-        $live = $this->onu->live($customer);
+        return $this->onuReply($customer, $this->onu->live($customer));
+    }
 
+    /**
+     * @param  array<string, mixed>  $live
+     */
+    private function onuReply(Customer $customer, array $live): ChatReply
+    {
         if (! $live['available']) {
             return new ChatReply('📶 '.($live['message'] ?? 'Status ONU belum tersedia.'), [[['label' => '🎧 Hubungi CS', 'data' => 'cs'], ['label' => '📋 Menu', 'data' => 'menu']]]);
         }
@@ -361,8 +376,14 @@ class ChatBot
 
     private function devices(Customer $customer): ChatReply
     {
-        $live = $this->onu->live($customer);
+        return $this->devicesReply($this->onu->live($customer));
+    }
 
+    /**
+     * @param  array<string, mixed>  $live
+     */
+    private function devicesReply(array $live): ChatReply
+    {
         if (! $live['available']) {
             return new ChatReply('💻 '.($live['message'] ?? 'Daftar perangkat belum tersedia.'), [[['label' => '📋 Menu', 'data' => 'menu']]]);
         }
@@ -410,10 +431,18 @@ class ChatBot
             return [new ChatReply('🔑 ONU Anda belum bisa diatur dari chat. Hubungi CS untuk bantuan.', $this->supportButtons())];
         }
 
-        $live = $this->onu->live($customer);
-        $canChange = $customer->status === CustomerStatus::Active;
         $session->state = 'wifi_menu';
         $session->expires_at = now()->addMinutes(self::FLOW_MINUTES);
+
+        return [$this->wifiMenuReply($customer, $this->onu->live($customer))];
+    }
+
+    /**
+     * @param  array<string, mixed>  $live
+     */
+    private function wifiMenuReply(Customer $customer, array $live): ChatReply
+    {
+        $canChange = $customer->status === CustomerStatus::Active;
 
         $lines = ['🔑 WiFi '.$customer->name, '', 'Nama WiFi saat ini: '.($live['ssid'] ?? '-'), ''];
         $buttons = [];
@@ -430,7 +459,7 @@ class ChatBot
         $lines[] = 'Balas angka pilihan, atau ketik batal.';
         $buttons[] = [['label' => '👁️ Lihat password', 'data' => '2'], ['label' => '❌ Batal', 'data' => 'batal']];
 
-        return [new ChatReply(implode("\n", $lines), $buttons)];
+        return new ChatReply(implode("\n", $lines), $buttons);
     }
 
     /**
@@ -540,6 +569,43 @@ class ChatBot
         return [new ChatReply($applied
             ? "✅ WiFi diperbarui!\nSambungkan lagi perangkat Anda ke \"{$payload['ssid']}\" dengan password baru."
             : '⏳ ONU sedang tidak terhubung. Pengaturan baru diterapkan otomatis saat ONU online kembali.', [[['label' => '📋 Menu', 'data' => 'menu']]])];
+    }
+
+    // ───────────────────────────── Pratinjau untuk admin ─────────────────────────────
+
+    /**
+     * Balasan bot untuk tiap pilihan menu dengan data contoh, memakai pembangun balasan yang sama dengan percakapan sungguhan
+     * (tanpa menyentuh database, GenieACS, atau kanal chat) sehingga admin melihat persis apa yang tampil di HP pelanggan.
+     *
+     * @return list<array{trigger: string, title: string, replies: list<ChatReply>}>
+     */
+    public function preview(): array
+    {
+        $customer = new Customer(['name' => 'Budi Santoso', 'customer_code' => 'TT-2612-0001', 'status' => CustomerStatus::Active]);
+        $invoice = fn (string $number, int $total, string $due): Invoice => new Invoice(['invoice_number' => $number, 'total' => $total, 'amount_paid' => 0, 'due_date' => now()->parse($due)]);
+        $unpaid = new Collection([$invoice('INV/2612/00123', 150000, '2026-12-10'), $invoice('INV/2611/00088', 150000, '2026-11-10')]);
+        $paid = new Invoice(['invoice_number' => 'INV/2611/00088', 'paid_at' => now()->parse('2026-11-08')]);
+        $live = [
+            'available' => true, 'message' => null, 'online' => true, 'rx_power' => -21.4, 'rx_quality' => 'good', 'last_inform' => '2026-12-08 14:32:00', 'ssid' => 'Rumah-Budi', 'wifi_password' => null,
+            'devices' => [
+                ['hostname' => 'iPhone-Budi', 'ip_address' => '192.168.1.12', 'mac_address' => 'AA:BB:CC:11:22:33', 'interface' => 'WiFi'],
+                ['hostname' => 'Smart-TV', 'ip_address' => '192.168.1.15', 'mac_address' => 'AA:BB:CC:44:55:66', 'interface' => 'WiFi'],
+            ],
+        ];
+
+        return [
+            ['trigger' => 'Pesan pertama (Telegram)', 'title' => 'Meminta verifikasi nomor', 'replies' => [$this->contactPrompt()]],
+            ['trigger' => 'menu', 'title' => 'Menu utama', 'replies' => [$this->menu($customer, 1)]],
+            ['trigger' => '1', 'title' => 'Tagihan belum lunas', 'replies' => [$this->billingReply($customer, $unpaid, $paid)]],
+            ['trigger' => '1', 'title' => 'Tagihan sudah lunas', 'replies' => [$this->billingReply($customer, new Collection, $paid)]],
+            ['trigger' => '2', 'title' => 'Status ONU', 'replies' => [$this->onuReply($customer, $live)]],
+            ['trigger' => '2', 'title' => 'Status ONU lemah atau offline', 'replies' => [$this->onuReply($customer, [...$live, 'online' => false, 'rx_power' => -29.8, 'rx_quality' => 'bad'])]],
+            ['trigger' => '3', 'title' => 'Perangkat terhubung', 'replies' => [$this->devicesReply($live)]],
+            ['trigger' => '4', 'title' => 'Menu WiFi', 'replies' => [$this->wifiMenuReply($customer, $live)]],
+            ['trigger' => '4 lalu 1', 'title' => 'Ganti nama WiFi', 'replies' => $this->wifiMenu(new ChatSession, $customer, '1')],
+            ['trigger' => '5', 'title' => 'Hubungi CS', 'replies' => [$this->support()]],
+            ['trigger' => 'pesan tidak dikenal', 'title' => 'Bot belum paham', 'replies' => [new ChatReply('🤔 Maaf, saya belum paham pesan itu.'), $this->menu($customer, 1)]],
+        ];
     }
 
     // ───────────────────────────── Format ─────────────────────────────

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Bell, LayoutTemplate, MessageSquareText } from 'lucide-react';
+import { Bell, Bot, LayoutTemplate, MessageSquareText } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 const tabs = [
     { key: 'settings', label: 'Pengaturan & Webhook', href: '/settings/notifications', icon: Bell },
     { key: 'templates', label: 'Template Pesan', href: '/settings/message-templates', icon: LayoutTemplate },
+    { key: 'bot', label: 'Balasan Bot', href: '/settings/bot-replies', icon: Bot },
     { key: 'history', label: 'Riwayat Pesan', href: '/pesan', icon: MessageSquareText },
 ] as const;
 

@@ -1,7 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
 import { Lock, Pencil, RotateCcw } from 'lucide-react';
-import { type ReactNode, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { linkify } from '@/Components/ChatPreview';
 import { MessagingShell } from '@/Components/MessagingShell';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
@@ -27,19 +28,6 @@ type Template = {
     whatsapp: string;
     telegram: string;
 };
-
-/** Teks pesan dengan tautan http(s) yang bisa diklik, seperti tampil di aplikasi chat. */
-function linkify(text: string): ReactNode[] {
-    return text.split(/(https?:\/\/[^\s)]+)/g).map((part, index) =>
-        /^https?:\/\//.test(part) ? (
-            <a key={index} href={part} target="_blank" rel="noreferrer" className="break-all underline decoration-1 underline-offset-2 hover:opacity-80">
-                {part}
-            </a>
-        ) : (
-            part
-        ),
-    );
-}
 
 function Bubble({ channel, text }: { channel: 'whatsapp' | 'telegram'; text: string }) {
     const whatsapp = channel === 'whatsapp';

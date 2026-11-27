@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Customer\CreateCustomer;
 use App\Enums\WhatsappMessageType;
+use App\Models\ChatSession;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\Package;
@@ -13,6 +14,7 @@ use App\Services\Messaging\MessageTemplates;
 use App\Services\Settings\SettingService;
 use App\Services\Whatsapp\CustomerNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesUsers;
@@ -163,5 +165,24 @@ class MessageLogAndTemplatesTest extends TestCase
         app(CustomerNotifier::class)->welcome($full->fresh());
 
         $this->assertStringContainsString('Tagihan pertama: Rp 150.000 (1 bulan penuh)', WhatsappMessage::sole()->body);
+    }
+
+    public function test_the_bot_preview_shows_each_menu_choice_with_sample_data_and_touches_nothing_real(): void
+    {
+        Http::fake();
+        Queue::fake();
+
+        $this->actingAs($this->owner())->get('/settings/bot-replies')->assertInertia(fn (Assert $page) => $page
+            ->component('Settings/BotReplies')
+            ->has('botSteps', 11)
+            ->where('botSteps.1.trigger', 'menu')
+            ->where('botSteps.1.replies.0.text', fn ($text) => str_contains($text, 'Halo Budi!') && str_contains($text, '1️⃣ 🧾 Tagihan'))
+            ->where('botSteps.2.replies.0.text', fn ($text) => str_contains($text, 'Tunggakan: Rp 300.000 (2 invoice)'))
+            ->where('botSteps.4.replies.0.text', fn ($text) => str_contains($text, '-21.40 dBm'))
+            ->where('botSteps.6.replies.0.text', fn ($text) => str_contains($text, 'iPhone-Budi'))
+            ->where('botSteps.1.replies.0.buttons.0.0.label', '🧾 Tagihan'));
+
+        Http::assertNothingSent();
+        $this->assertSame(0, ChatSession::count());
     }
 }

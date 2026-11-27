@@ -87,7 +87,7 @@ export const navigation: NavGroup[] = [
     {
         title: 'Komunikasi',
         items: [
-            { label: 'Pesan & Notifikasi', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', alsoMatch: ['/settings/message-templates', '/pesan'], permission: 'settings.manage' },
+            { label: 'Pesan & Notifikasi', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', alsoMatch: ['/settings/message-templates', '/settings/bot-replies', '/pesan'], permission: 'settings.manage' },
             { label: 'Tiket & Broadcast Gangguan', href: '/outages', icon: Megaphone, match: '/outages', permission: 'outages.manage' },
         ],
     },

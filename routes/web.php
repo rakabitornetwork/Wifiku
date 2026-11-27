@@ -6,6 +6,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\BotReplyController;
 use App\Http\Controllers\ChatWebhookSettingController;
 use App\Http\Controllers\CompanyLogoController;
 use App\Http\Controllers\CustomerController;
@@ -277,6 +278,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/payment-gateways/{paymentGateway}/channels', [PaymentGatewayController::class, 'channels'])->name('payment-gateways.channels');
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
+        Route::get('/bot-replies', [BotReplyController::class, 'index'])->name('bot-replies.index');
         Route::post('/logo', [CompanyLogoController::class, 'store'])->middleware('throttle:20,1')->name('logo.store');
         Route::delete('/logo', [CompanyLogoController::class, 'destroy'])->name('logo.destroy');
         Route::get('/message-templates', [MessageTemplateController::class, 'index'])->name('message-templates.index');
