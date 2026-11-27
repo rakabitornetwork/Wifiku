@@ -22,7 +22,18 @@ function readCollapsed(): boolean {
     }
 }
 
-function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; collapsed: boolean; active: boolean; onNavigate: () => void }) {
+/** Warna ikon menu yang dipilih per grup (tampil di atas pil putih; versi terang untuk tema gelap). */
+const activeIconTone: Record<string, string> = {
+    Main: 'text-blue-600 dark:text-blue-300',
+    Pelanggan: 'text-emerald-600 dark:text-emerald-300',
+    Network: 'text-cyan-600 dark:text-cyan-300',
+    'Keuangan & Billing': 'text-amber-600 dark:text-amber-300',
+    'Landing Page': 'text-pink-600 dark:text-pink-300',
+    Komunikasi: 'text-violet-600 dark:text-violet-300',
+    'Sistem & Tim': 'text-rose-600 dark:text-rose-300',
+};
+
+function NavLink({ item, collapsed, active, group, onNavigate }: { item: NavItem; collapsed: boolean; active: boolean; group: string; onNavigate: () => void }) {
     const Icon = item.icon;
     const base = 'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition';
 
@@ -52,7 +63,7 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
                     : 'text-white/90 hover:bg-white/15 hover:text-white dark:text-slate-300 dark:hover:bg-white/[0.06]',
             )}
         >
-            <Icon className={'size-[18px] shrink-0'} />
+            <Icon className={cn('size-[18px] shrink-0', active && activeIconTone[group])} />
             {!collapsed && <span className="truncate">{item.label}</span>}
         </Link>
     );
@@ -135,7 +146,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                             {compact && <div className="mx-2 mb-1.5 border-t border-sidebar-border" />}
                             <div className="space-y-0.5">
                                 {items.map((item) => (
-                                    <NavLink key={item.label} item={item} collapsed={compact} active={isActive(item)} onNavigate={() => setMobileOpen(false)} />
+                                    <NavLink key={item.label} item={item} collapsed={compact} active={isActive(item)} group={group.title} onNavigate={() => setMobileOpen(false)} />
                                 ))}
                             </div>
                         </div>
