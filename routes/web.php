@@ -6,6 +6,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\ChatWebhookSettingController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPortalAuthController;
 use App\Http\Controllers\CustomerPortalController;
@@ -50,6 +51,7 @@ use App\Http\Controllers\VpnImportController;
 use App\Http\Controllers\VpnMemberController;
 use App\Http\Controllers\VpnPortalController;
 use App\Http\Controllers\VpnServerController;
+use App\Http\Controllers\Webhooks\ChatWebhookController;
 use App\Http\Controllers\Webhooks\HotspotLoginWebhookController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -126,6 +128,8 @@ Route::post('/layanan-vpn/{account:portal_token}/pay', [VpnPortalController::cla
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/payment/{driver}', PaymentWebhookController::class)->middleware('throttle:120,1')->name('payment');
     Route::match(['get', 'post'], '/hotspot/{router}/login', HotspotLoginWebhookController::class)->middleware('throttle:600,1')->name('hotspot-login');
+    Route::post('/chat/whatsapp/{secret}', [ChatWebhookController::class, 'whatsapp'])->middleware('throttle:300,1')->name('chat.whatsapp');
+    Route::post('/chat/telegram', [ChatWebhookController::class, 'telegram'])->middleware('throttle:300,1')->name('chat.telegram');
 });
 
 Route::middleware('guest')->group(function () {
@@ -269,6 +273,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/payment-gateways/{paymentGateway}/channels', [PaymentGatewayController::class, 'channels'])->name('payment-gateways.channels');
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
+        Route::post('/whatsapp/webhook', [ChatWebhookSettingController::class, 'whatsappInstall'])->middleware('throttle:10,1')->name('whatsapp.webhook');
+        Route::post('/telegram/webhook', [ChatWebhookSettingController::class, 'telegramInstall'])->middleware('throttle:10,1')->name('telegram.webhook');
+        Route::post('/telegram/webhook-info', [ChatWebhookSettingController::class, 'telegramInfo'])->middleware('throttle:20,1')->name('telegram.webhook-info');
         Route::post('/telegram/status', [TelegramSettingController::class, 'status'])->middleware('throttle:20,1')->name('telegram.status');
         Route::post('/telegram/test', [TelegramSettingController::class, 'test'])->middleware('throttle:10,1')->name('telegram.test');
         Route::put('/integrations', [IntegrationSettingController::class, 'update'])->name('integrations.update');

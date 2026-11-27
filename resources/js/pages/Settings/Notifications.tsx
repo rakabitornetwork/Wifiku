@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { AlertTriangle, KeyRound, MessageCircle, QrCode, Send, Wifi } from 'lucide-react';
+import { AlertTriangle, Bot, Check, Copy, KeyRound, MessageCircle, QrCode, Send, Webhook, Wifi } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
@@ -32,7 +32,99 @@ function Toggle({ label, checked, onChange, hint }: { label: string; checked: bo
     );
 }
 
-export default function Notifications({ groups, whatsappQueue }: { groups: Group[]; whatsappQueue: { stalled: number; oldest_at: string | null } }) {
+/** Bot pelanggan: saklar, alamat webhook, dan tombol memasangnya di Evolution API atau Telegram. */
+function BotSection({
+    title,
+    description,
+    enabled,
+    onToggle,
+    url,
+    secretInUrl,
+    installLabel,
+    onInstall,
+    onInspect,
+    busy,
+    result,
+}: {
+    title: string;
+    description: string;
+    enabled: boolean;
+    onToggle: (on: boolean) => void;
+    url: string;
+    secretInUrl: boolean;
+    installLabel: string;
+    onInstall: () => void;
+    onInspect?: () => void;
+    busy: boolean;
+    result: TelegramResult | null;
+}) {
+    const [copied, setCopied] = useState(false);
+
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1500);
+        } catch {
+            // Tanpa izin clipboard: alamat tetap bisa disalin manual dari kolom.
+        }
+    };
+
+    return (
+        <div className="space-y-4 border-t p-6">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/12 text-violet-600 dark:text-violet-300">
+                        <Bot className="size-[18px]" />
+                    </span>
+                    <div>
+                        <h3 className="text-sm font-semibold">{title}</h3>
+                        <p className="mt-0.5 max-w-xl text-xs leading-relaxed text-muted-foreground">{description}</p>
+                    </div>
+                </div>
+                <Toggle label="Aktifkan" checked={enabled} onChange={onToggle} />
+            </div>
+            <div className={cn('space-y-3', !enabled && 'opacity-60')}>
+                <Field
+                    label="Alamat webhook"
+                    hint={
+                        secretInUrl
+                            ? 'Memuat rahasia pengesah; jangan dibagikan. Dipasang otomatis oleh tombol di bawah.'
+                            : 'Telegram memakai header rahasia terpisah; dipasang otomatis oleh tombol di bawah.'
+                    }
+                >
+                    <div className="flex gap-2">
+                        <Input readOnly value={url} className="num min-w-0 flex-1 text-xs" onFocus={(event) => event.currentTarget.select()} />
+                        <Button type="button" variant="outline" onClick={copy} aria-label="Salin alamat webhook">
+                            {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
+                        </Button>
+                    </div>
+                </Field>
+                {result && <p className={result.ok ? 'text-sm text-emerald-600 dark:text-emerald-400' : 'text-sm text-destructive'}>{result.message}</p>}
+                <div className="flex flex-wrap gap-2">
+                    <Button type="button" disabled={busy} onClick={onInstall}>
+                        <Webhook className="size-4" /> {busy ? 'Memasang...' : installLabel}
+                    </Button>
+                    {onInspect && (
+                        <Button type="button" variant="outline" disabled={busy} onClick={onInspect}>
+                            Periksa status webhook
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Notifications({
+    groups,
+    whatsappQueue,
+    webhooks,
+}: {
+    groups: Group[];
+    whatsappQueue: { stalled: number; oldest_at: string | null };
+    webhooks: { whatsapp: string; telegram: string };
+}) {
     const initial: FormShape = { settings: {} };
 
     for (const group of groups) {
@@ -48,6 +140,8 @@ export default function Notifications({ groups, whatsappQueue }: { groups: Group
     const [waBusy, setWaBusy] = useState<'status' | 'connect' | null>(null);
     const [tgResult, setTgResult] = useState<TelegramResult | null>(null);
     const [tgBusy, setTgBusy] = useState<'status' | 'test' | null>(null);
+    const [hookBusy, setHookBusy] = useState<'whatsapp' | 'telegram' | null>(null);
+    const [hookResult, setHookResult] = useState<{ whatsapp: TelegramResult | null; telegram: TelegramResult | null }>({ whatsapp: null, telegram: null });
     const errors = form.errors as Record<string, string | undefined>;
     const fieldOf = (name: string) => groups.flatMap((group) => group.fields).find((field) => field.name === name);
 
@@ -83,6 +177,19 @@ export default function Notifications({ groups, whatsappQueue }: { groups: Group
             setTgResult({ ok: false, message: 'Gagal menghubungi server.' });
         } finally {
             setTgBusy(null);
+        }
+    };
+
+    const runHook = async (channel: 'whatsapp' | 'telegram', path: string) => {
+        setHookBusy(channel);
+
+        try {
+            const result = await postJson<TelegramResult>(path);
+            setHookResult((current) => ({ ...current, [channel]: result }));
+        } catch {
+            setHookResult((current) => ({ ...current, [channel]: { ok: false, message: 'Gagal menghubungi server.' } }));
+        } finally {
+            setHookBusy(null);
         }
     };
 
@@ -181,6 +288,18 @@ export default function Notifications({ groups, whatsappQueue }: { groups: Group
                             </Button>
                         </div>
                     </div>
+                    <BotSection
+                        title="Bot pelanggan WhatsApp"
+                        description="Pelanggan yang nomornya terdaftar bisa membalas pesan Anda untuk cek tagihan, status ONU, dan ganti WiFi. Pasang webhook agar Evolution API meneruskan pesan masuk ke aplikasi ini."
+                        enabled={value('whatsapp.bot_enabled') === '1'}
+                        onToggle={(on) => setField('whatsapp.bot_enabled', on ? '1' : '0')}
+                        url={webhooks.whatsapp}
+                        secretInUrl
+                        installLabel="Pasang webhook ke Evolution"
+                        onInstall={() => runHook('whatsapp', '/settings/whatsapp/webhook')}
+                        busy={hookBusy === 'whatsapp'}
+                        result={hookResult.whatsapp}
+                    />
                 </Card>
 
                 <Card>
@@ -252,6 +371,19 @@ export default function Notifications({ groups, whatsappQueue }: { groups: Group
                             </Button>
                         </div>
                     </div>
+                    <BotSection
+                        title="Bot pelanggan Telegram"
+                        description="Pelanggan menautkan Telegram dengan membagikan nomornya, lalu memakai menu berikon untuk tagihan, status ONU, dan ganti WiFi. Pasang webhook agar Telegram meneruskan pesan ke aplikasi ini."
+                        enabled={value('telegram.bot_enabled') === '1'}
+                        onToggle={(on) => setField('telegram.bot_enabled', on ? '1' : '0')}
+                        url={webhooks.telegram}
+                        secretInUrl={false}
+                        installLabel="Pasang webhook Telegram"
+                        onInstall={() => runHook('telegram', '/settings/telegram/webhook')}
+                        onInspect={() => runHook('telegram', '/settings/telegram/webhook-info')}
+                        busy={hookBusy === 'telegram'}
+                        result={hookResult.telegram}
+                    />
                 </Card>
 
                 <div className="flex justify-end">

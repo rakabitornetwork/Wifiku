@@ -6,6 +6,7 @@ use App\Enums\WhatsappMessageStatus;
 use App\Enums\WhatsappMessageType;
 use App\Http\Requests\IntegrationSettingRequest;
 use App\Models\WhatsappMessage;
+use App\Services\Chat\ChatWebhookSecrets;
 use App\Services\Settings\SettingService;
 use App\Services\Whatsapp\EvolutionApiClient;
 use App\Services\Whatsapp\WhatsappDeliveryException;
@@ -52,7 +53,7 @@ class IntegrationSettingController extends Controller
     /**
      * Halaman Notifikasi & Webhook: WhatsApp (Evolution API) dan Telegram.
      */
-    public function notifications(SettingService $settings): Response
+    public function notifications(SettingService $settings, ChatWebhookSecrets $secrets): Response
     {
         // Pesan yang tertahan lebih dari semenit menandakan queue worker tidak berjalan.
         $stalled = WhatsappMessage::query()->where('status', WhatsappMessageStatus::Queued)->where('created_at', '<=', now()->subMinute());
@@ -60,6 +61,8 @@ class IntegrationSettingController extends Controller
         return Inertia::render('Settings/Notifications', [
             'groups' => $this->groups($settings, fn (string $group): bool => in_array($group, self::NOTIFICATION_GROUPS, true)),
             'whatsappQueue' => ['stalled' => $stalled->count(), 'oldest_at' => $stalled->min('created_at')],
+            // Alamat webhook memuat rahasia; halaman ini khusus Owner.
+            'webhooks' => ['whatsapp' => $secrets->whatsappUrl(), 'telegram' => $secrets->telegramUrl()],
         ]);
     }
 

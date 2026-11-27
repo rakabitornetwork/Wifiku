@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Services\Chat;
+
+use App\Enums\WhatsappMessageType;
+use App\Services\Telegram\TelegramClient;
+use App\Services\Telegram\TelegramDeliveryException;
+use App\Services\Whatsapp\WhatsappNotificationService;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Mengirim balasan bot ke kanal asalnya. WhatsApp lewat outbox (dibatasi rate limiter); Telegram langsung ke Bot API.
+ */
+class ChatDispatcher
+{
+    public function __construct(
+        private readonly WhatsappNotificationService $whatsapp,
+        private readonly TelegramClient $telegram,
+    ) {}
+
+    /**
+     * @param  list<ChatReply>  $replies
+     */
+    public function send(ChatMessage $message, array $replies): void
+    {
+        foreach ($replies as $reply) {
+            if ($message->channel === ChatMessage::CHANNEL_WHATSAPP) {
+                $this->whatsapp->queue($message->senderId, WhatsappMessageType::Chat, $reply->text);
+
+                continue;
+            }
+
+            $this->sendTelegram($message, $reply);
+        }
+    }
+
+    private function sendTelegram(ChatMessage $message, ChatReply $reply): void
+    {
+        try {
+            $this->telegram->sendTo($message->senderId, $reply->text, $this->markup($reply));
+
+            if ($reply->deleteIncoming && $message->messageId !== null) {
+                $this->telegram->deleteMessage($message->senderId, $message->messageId);
+            }
+        } catch (TelegramDeliveryException $exception) {
+            // Penghapusan pesan yang gagal tidak boleh membatalkan balasan; kegagalan kirim dicatat tanpa token.
+            Log::warning('Balasan bot Telegram gagal.', ['error' => $exception->getMessage()]);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function markup(ChatReply $reply): ?array
+    {
+        if ($reply->requestContact) {
+            return ['keyboard' => [[['text' => '📱 Bagikan nomor saya', 'request_contact' => true]]], 'resize_keyboard' => true, 'one_time_keyboard' => true];
+        }
+
+        if ($reply->buttons !== []) {
+            return ['inline_keyboard' => array_map(fn (array $row): array => array_map(
+                fn (array $button): array => isset($button['url']) ? ['text' => $button['label'], 'url' => $button['url']] : ['text' => $button['label'], 'callback_data' => $button['data'] ?? ''],
+                $row,
+            ), $reply->buttons)];
+        }
+
+        return $reply->removeKeyboard ? ['remove_keyboard' => true] : null;
+    }
+}

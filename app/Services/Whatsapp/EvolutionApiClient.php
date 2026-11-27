@@ -33,6 +33,18 @@ class EvolutionApiClient
     }
 
     /**
+     * Daftarkan webhook pesan masuk pada instance (Evolution API v2: pembungkus `webhook`).
+     *
+     * @throws WhatsappDeliveryException
+     */
+    public function setWebhook(string $url): void
+    {
+        $this->call(fn (PendingRequest $request) => $request->post("/webhook/set/{$this->instance()}", [
+            'webhook' => ['enabled' => true, 'url' => $url, 'byEvents' => false, 'base64' => false, 'events' => ['MESSAGES_UPSERT']],
+        ]));
+    }
+
+    /**
      * @return array{state: string, connected: bool}
      *
      * @throws WhatsappDeliveryException
