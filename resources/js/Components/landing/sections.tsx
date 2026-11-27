@@ -7,6 +7,7 @@ import { Card, cardSurface } from '@/Components/ui/Card';
 import { Field, Input, Textarea } from '@/Components/ui/Field';
 import { cn, formatRupiah } from '@/lib/utils';
 
+import { Reveal } from './Reveal';
 import { Icon3D, type Icon3DName, isIcon3DName } from './Icon3D';
 import { type Company, type GalleryItem, type LandingImages, type Plan, type Sections, waLink } from './types';
 
@@ -14,7 +15,7 @@ const tint = 'bg-gradient-to-b from-muted/70 via-muted/30 to-background';
 
 function Heading({ eyebrow, title, body, center = true }: { eyebrow?: string; title: string; body?: string; center?: boolean }) {
     return (
-        <div className={cn('max-w-2xl', center && 'mx-auto text-center')}>
+        <Reveal className={cn('max-w-2xl', center && 'mx-auto text-center')}>
             {eyebrow && (
                 <p className={cn('inline-flex items-center gap-2 text-sm font-semibold text-primary', center && 'justify-center')}>
                     <span className="h-0.5 w-6 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" /> {eyebrow}
@@ -22,7 +23,7 @@ function Heading({ eyebrow, title, body, center = true }: { eyebrow?: string; ti
             )}
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{title}</h2>
             {body && <p className="mt-4 text-lg text-pretty text-muted-foreground">{body}</p>}
-        </div>
+        </Reveal>
     );
 }
 
@@ -41,7 +42,7 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
         <section className={cn('relative isolate overflow-hidden px-4 pt-14 pb-16 sm:pt-20 sm:pb-24', image && 'flex min-h-[34rem] items-center sm:min-h-[40rem]')}>
             {image ? (
                 <>
-                    <img src={image.url} alt="" fetchPriority="high" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover" />
+                    <img src={image.url} alt="" fetchPriority="high" className="hero-zoom pointer-events-none absolute inset-0 -z-20 size-full object-cover" />
                     <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/25" />
                     {image.is_ai && <span className="absolute right-4 bottom-4 rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Ilustrasi</span>}
                 </>
@@ -50,14 +51,14 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
             )}
             <div className={cn('mx-auto grid w-full max-w-6xl items-center gap-12', !image && 'lg:grid-cols-[1.1fr_0.9fr]')}>
                 <div className={cn(image && 'max-w-2xl text-white')}>
-                    <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium', image ? 'border-white/25 bg-white/10 text-white backdrop-blur' : 'bg-card text-muted-foreground')}>
+                    <span style={{ '--d': 0 } as React.CSSProperties} className={cn('hero-in inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium', image ? 'border-white/25 bg-white/10 text-white backdrop-blur' : 'bg-card text-muted-foreground')}>
                         <Wifi className="size-3.5 text-primary" /> {content.badge}
                     </span>
-                    <h1 className="mt-6 text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                    <h1 style={{ '--d': 1 } as React.CSSProperties} className="hero-in mt-6 text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                         {content.title}
                     </h1>
-                    <p className={cn('mt-5 max-w-xl text-lg text-pretty', image ? 'text-white/85' : 'text-muted-foreground')}>{content.body}</p>
-                    <div className="mt-8 flex flex-wrap items-center gap-3">
+                    <p style={{ '--d': 2 } as React.CSSProperties} className={cn('hero-in mt-5 max-w-xl text-lg text-pretty', image ? 'text-white/85' : 'text-muted-foreground')}>{content.body}</p>
+                    <div style={{ '--d': 3 } as React.CSSProperties} className="hero-in mt-8 flex flex-wrap items-center gap-3">
                         <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass('primary', 'md', 'h-12 px-6 text-base')}>
                             <MessageCircle className="size-4" /> {content.cta}
                         </a>
@@ -65,7 +66,7 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                             {content.secondary_cta} <ArrowRight className="size-4" />
                         </a>
                     </div>
-                    <ul className={cn('mt-8 flex flex-wrap gap-2.5 text-sm', image ? 'text-white/90' : 'text-muted-foreground')}>
+                    <ul style={{ '--d': 4 } as React.CSSProperties} className={cn('hero-in mt-8 flex flex-wrap gap-2.5 text-sm', image ? 'text-white/90' : 'text-muted-foreground')}>
                         {content.highlights.map((item) => (
                             <li key={item} className={cn('flex items-center gap-1.5 rounded-full px-3.5 py-1.5', image ? 'border border-white/20 bg-white/10 backdrop-blur' : 'border bg-card')}>
                                 <Check className={cn('size-4', image ? 'text-emerald-400' : 'text-emerald-600')} /> {item}
@@ -75,23 +76,23 @@ export function Hero({ content, company, image }: { content: Sections['hero']; c
                 </div>
 
                 {!image && (
-                <div className="relative mx-auto aspect-square w-full max-w-md" aria-hidden="true">
+                <div style={{ '--d': 2 } as React.CSSProperties} className="hero-in relative mx-auto aspect-square w-full max-w-md" aria-hidden="true">
                         <>
                             <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 shadow-2xl shadow-indigo-500/30" />
                             <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-white">
                                 {[78, 58, 38, 18].map((radius, index) => (
                                     <circle key={radius} cx="100" cy="150" r={radius} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${radius * 2.2} ${radius * 4}`} strokeDashoffset={-radius * 0.15} opacity={0.35 + index * 0.18} transform="rotate(-90 100 150) rotate(0 100 150)" />
                                 ))}
-                                <circle cx="100" cy="150" r="7" fill="currentColor" />
+                                <circle cx="100" cy="150" r="7" fill="currentColor" className="hero-pulse" style={{ transformOrigin: '100px 150px' }} />
                             </svg>
                         </>
-                    <div className="absolute top-6 -left-3 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-left-6">
-                        <span className="mr-1.5 inline-block size-2 rounded-full bg-emerald-500" /> Sinyal merata
+                    <div style={{ '--d': 0 } as React.CSSProperties} className="hero-float absolute top-6 -left-3 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-left-6">
+                        <span className="hero-pulse mr-1.5 inline-block size-2 rounded-full bg-emerald-500" /> Sinyal merata
                     </div>
-                    <div className="absolute right-0 bottom-10 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-right-4">
+                    <div style={{ '--d': 1 } as React.CSSProperties} className="hero-float absolute right-0 bottom-10 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg sm:-right-4">
                         <Signal className="mr-1.5 inline size-3.5 text-primary" /> Survey gratis
                     </div>
-                    <div className="absolute bottom-2 left-6 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg">
+                    <div style={{ '--d': 2 } as React.CSSProperties} className="hero-float absolute bottom-2 left-6 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-lg">
                         <Headphones className="mr-1.5 inline size-3.5 text-primary" /> Support WhatsApp
                     </div>
                 </div>
@@ -118,11 +119,11 @@ export function Services({ content }: { content: Sections['services'] }) {
     return (
         <Section id="layanan">
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Reveal stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.items.map((item) => (
                     <IconCard key={item.title} item={item} />
                 ))}
-            </div>
+            </Reveal>
         </Section>
     );
 }
@@ -141,7 +142,7 @@ export function About({ content, image }: { content: Sections['about']; image: L
                     )}
                 </div>
                 {content.stats.length > 0 && (
-                    <dl className="grid grid-cols-3 gap-3">
+                    <Reveal as="dl" stagger className="grid grid-cols-3 gap-3">
                         {content.stats.map((stat) => (
                             <Card key={stat.label} className="p-5 text-center">
                                 <dt className="sr-only">{stat.label}</dt>
@@ -151,7 +152,7 @@ export function About({ content, image }: { content: Sections['about']; image: L
                                 </p>
                             </Card>
                         ))}
-                    </dl>
+                    </Reveal>
                 )}
             </div>
         </Section>
@@ -162,11 +163,11 @@ export function Benefits({ content }: { content: Sections['benefits'] }) {
     return (
         <Section id="keunggulan">
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Reveal stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.items.map((item) => (
                     <IconCard key={item.title} item={item} />
                 ))}
-            </div>
+            </Reveal>
         </Section>
     );
 }
@@ -175,7 +176,7 @@ export function Process({ content }: { content: Sections['process'] }) {
     return (
         <Section id="proses" className={tint}>
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
-            <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Reveal as="ol" stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.steps.map((step, index) => (
                     <li key={step.title} className={cn(cardSurface, 'relative p-6')}>
                         <span className="num flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-sm font-semibold text-white shadow-md shadow-indigo-500/25">
@@ -185,7 +186,7 @@ export function Process({ content }: { content: Sections['process'] }) {
                         <p className="mt-1.5 text-sm text-muted-foreground">{step.description}</p>
                     </li>
                 ))}
-            </ol>
+            </Reveal>
         </Section>
     );
 }
@@ -204,7 +205,7 @@ export function Pricing({ content, plans, company }: { content: Sections['pricin
                     )}
                 </Card>
             ) : (
-                <div className="mt-10 grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
+                <Reveal stagger className="mt-10 grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {plans.map((plan) => {
                         const chat = waLink(company.whatsapp, `Halo ${company.name}, saya tertarik dengan paket ${plan.name}.`);
 
@@ -235,7 +236,7 @@ export function Pricing({ content, plans, company }: { content: Sections['pricin
                             </Card>
                         );
                     })}
-                </div>
+                </Reveal>
             )}
             <p className="mt-6 text-center text-sm text-muted-foreground">{content.note}</p>
         </Section>
@@ -250,7 +251,7 @@ export function Testimonials({ content }: { content: Sections['testimonials'] })
     return (
         <Section id="testimoni" className={tint}>
             <Heading eyebrow={content.eyebrow} title={content.title} body={content.body} />
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <Reveal stagger className="mt-10 grid gap-4 md:grid-cols-3">
                 {content.items.map((item) => (
                     <Card key={item.name} className="flex flex-col p-6">
                         <div className="flex gap-0.5 text-amber-500" aria-label="Bintang 5 dari 5">
@@ -274,7 +275,7 @@ export function Testimonials({ content }: { content: Sections['testimonials'] })
                         </figcaption>
                     </Card>
                 ))}
-            </div>
+            </Reveal>
         </Section>
     );
 }

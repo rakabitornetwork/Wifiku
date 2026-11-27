@@ -393,3 +393,91 @@ tbody > tr:nth-child(12),
     animation-delay: 495ms;
 }
 }
+
+/* Landing page: muncul saat di-scroll (Reveal.tsx) dan animasi masuk hero. */
+@keyframes reveal-up {
+    from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes hero-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes hero-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.55;
+        transform: scale(1.35);
+    }
+}
+
+@keyframes hero-zoom {
+    from {
+        transform: scale(1.08);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.reveal[data-reveal='hidden'],
+.reveal-stagger[data-reveal='hidden'] > * {
+    opacity: 0;
+}
+
+.reveal[data-reveal='shown'] {
+    animation: reveal-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-stagger[data-reveal='shown'] > * {
+    animation: reveal-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--reveal-delay, 0ms) + var(--i, 0) * 90ms);
+}
+
+.hero-in {
+    animation: reveal-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--d, 0) * 110ms + 80ms);
+}
+
+.hero-float {
+    animation: hero-float 5s ease-in-out infinite;
+    animation-delay: calc(var(--d, 0) * -1.7s);
+}
+
+.hero-pulse {
+    animation: hero-pulse 2.4s ease-in-out infinite;
+}
+
+.hero-zoom {
+    animation: hero-zoom 1.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal[data-reveal],
+    .reveal-stagger[data-reveal] > *,
+    .hero-in,
+    .hero-float,
+    .hero-pulse,
+    .hero-zoom {
+        animation: none;
+        opacity: 1;
+    }
+}
