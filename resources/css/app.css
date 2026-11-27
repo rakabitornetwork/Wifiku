@@ -43,12 +43,12 @@
     --accent: oklch(0.93 0.045 277);
     --accent-foreground: oklch(0.34 0.17 277);
     --destructive: oklch(0.56 0.23 25);
-    /* Sidebar terang berhias rona indigo halus di tema terang; navy pekat di tema gelap (lihat .dark). */
-    --sidebar: oklch(0.985 0.005 277);
-    --sidebar-border: oklch(0.915 0.012 277);
-    --sidebar-from: oklch(1 0 0);
-    --sidebar-to: oklch(0.965 0.014 277);
-    --sidebar-glow: oklch(0.55 0.22 277 / 0.09);
+    /* Sidebar cerah bergradasi indigo ke ungu di tema terang; navy pekat di tema gelap (lihat .dark). */
+    --sidebar: oklch(0.95 0.035 280);
+    --sidebar-border: oklch(0.87 0.05 280);
+    --sidebar-from: oklch(0.975 0.03 270);
+    --sidebar-to: oklch(0.925 0.06 292);
+    --sidebar-glow: oklch(0.62 0.22 277 / 0.32);
     --navbar-tint-1: oklch(0.55 0.22 277 / 0.05);
     --navbar-tint-2: oklch(0.55 0.2 290 / 0.03);
 }
