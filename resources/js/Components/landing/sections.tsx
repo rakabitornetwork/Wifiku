@@ -210,27 +210,27 @@ export function Pricing({ content, plans, company }: { content: Sections['pricin
                         const chat = waLink(company.whatsapp, `Halo ${company.name}, saya tertarik dengan paket ${plan.name}.`);
 
                         return (
-                            <Card key={plan.name} className={cn('relative flex flex-col rounded-2xl p-7 transition duration-300 hover:-translate-y-1', plan.highlight ? 'border-indigo-400/30 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white shadow-2xl shadow-indigo-500/25 ring-1 ring-indigo-400/30 md:-my-3 md:py-10' : 'hover:shadow-xl hover:shadow-indigo-500/10')}>
+                            <Card key={plan.name} className={cn('relative flex flex-col rounded-2xl p-7 transition duration-300 hover:-translate-y-1', plan.highlight ? 'border-indigo-200 bg-gradient-to-b from-indigo-50 via-white to-white shadow-xl shadow-indigo-500/15 ring-1 ring-indigo-300/60 md:-my-3 md:py-10 dark:border-indigo-400/30 dark:from-indigo-950 dark:via-slate-900 dark:to-slate-950 dark:text-white dark:shadow-2xl dark:shadow-indigo-500/25 dark:ring-indigo-400/30' : 'hover:shadow-xl hover:shadow-indigo-500/10')}>
                                 {plan.highlight && <span className="absolute -top-3 left-6 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-0.5 text-xs font-semibold text-white">Paling banyak diambil</span>}
                                 <h3 className="text-lg font-semibold">{plan.name}</h3>
-                                {plan.description && <p className={cn('mt-1 text-sm', plan.highlight ? 'text-white/70' : 'text-muted-foreground')}>{plan.description}</p>}
+                                {plan.description && <p className={cn('mt-1 text-sm', plan.highlight ? 'text-muted-foreground dark:text-white/70' : 'text-muted-foreground')}>{plan.description}</p>}
                                 <p className="mt-5 flex items-baseline gap-1.5">
                                     <span className="num text-3xl font-semibold tracking-tight">{formatRupiah(plan.price)}</span>
-                                    <span className={cn('text-sm', plan.highlight ? 'text-white/70' : 'text-muted-foreground')}>per bulan</span>
+                                    <span className={cn('text-sm', plan.highlight ? 'text-muted-foreground dark:text-white/70' : 'text-muted-foreground')}>per bulan</span>
                                 </p>
                                 <ul className="mt-6 mb-7 space-y-3 text-sm">
                                     {plan.speed && (
                                         <li className="flex items-start gap-2">
-                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-400' : 'text-emerald-600')} /> <span>Kecepatan hingga <strong>{plan.speed}</strong></span>
+                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-600')} /> <span>Kecepatan hingga <strong>{plan.speed}</strong></span>
                                         </li>
                                     )}
                                     {content.perks.map((perk) => (
                                         <li key={perk} className="flex items-start gap-2">
-                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-400' : 'text-emerald-600')} /> <span>{perk}</span>
+                                            <Check className={cn('mt-0.5 size-4 shrink-0', plan.highlight ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-600')} /> <span>{perk}</span>
                                         </li>
                                     ))}
                                 </ul>
-                                <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass(plan.highlight ? 'primary' : 'outline', 'md', cn('mt-auto h-11 w-full', plan.highlight && 'border-0 bg-white text-indigo-700 hover:bg-white/90'))}>
+                                <a href={chat ?? '#kontak'} {...(chat ? { target: '_blank', rel: 'noreferrer' } : {})} className={buttonClass(plan.highlight ? 'primary' : 'outline', 'md', cn('mt-auto h-11 w-full', plan.highlight && 'dark:border-0 dark:bg-white dark:text-indigo-700 dark:hover:bg-white/90'))}>
                                     Ambil paket ini
                                 </a>
                             </Card>
