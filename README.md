@@ -77,6 +77,12 @@ CACHE_STORE=database
 TRUSTED_PROXIES=
 ```
 
+> **⚠️ Simpan `APP_KEY` dan jangan pernah menggantinya.** Key dibuat otomatis oleh `./deploy.sh --first-run` dan dipakai untuk mengenkripsi kredensial gateway, WhatsApp, dan pengaturan lain di database. Begitu key berubah, semua data itu tidak terbaca lagi (error `The MAC is invalid`).
+>
+> - Salin baris `APP_KEY=...` dari `.env` ke tempat aman **di luar VPS** (password manager atau cadangan terenkripsi).
+> - Saat memindahkan atau memulihkan aplikasi, pakai `APP_KEY` yang lama.
+> - `deploy.sh --first-run` menolak membuat key baru bila `APP_KEY` kosong tetapi database SQLite sudah berisi data. Gunakan `FORCE_NEW_KEY=1 ./deploy.sh --first-run` hanya bila database memang boleh dibuang.
+
 Kredensial payment gateway, WhatsApp (Evolution API), Telegram, dan Gemini **tidak** diisi di `.env`; atur lewat menu **Pengaturan** di panel admin.
 
 ### 4. Nginx
