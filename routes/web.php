@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\ChatWebhookSettingController;
+use App\Http\Controllers\CompanyLogoController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPortalAuthController;
 use App\Http\Controllers\CustomerPortalController;
@@ -181,7 +182,6 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:settings.manage')->prefix('ilustrasi-landing')->name('landing-images.')->group(function () {
         Route::get('/', [LandingImageController::class, 'index'])->name('index');
-        Route::post('/logo', [LandingImageController::class, 'uploadLogo'])->middleware('throttle:20,1')->name('logo');
         Route::post('/{slot}/generate', [LandingImageController::class, 'generate'])->middleware('throttle:6,1')->name('generate');
         Route::post('/{slot}/upload', [LandingImageController::class, 'upload'])->middleware('throttle:20,1')->name('upload');
         Route::delete('/{slot}', [LandingImageController::class, 'destroy'])->name('destroy');
@@ -277,6 +277,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/payment-gateways/{paymentGateway}/channels', [PaymentGatewayController::class, 'channels'])->name('payment-gateways.channels');
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
+        Route::post('/logo', [CompanyLogoController::class, 'store'])->middleware('throttle:20,1')->name('logo.store');
+        Route::delete('/logo', [CompanyLogoController::class, 'destroy'])->name('logo.destroy');
         Route::get('/message-templates', [MessageTemplateController::class, 'index'])->name('message-templates.index');
         Route::put('/message-templates/{template}', [MessageTemplateController::class, 'update'])->name('message-templates.update');
         Route::delete('/message-templates/{template}', [MessageTemplateController::class, 'destroy'])->name('message-templates.destroy');

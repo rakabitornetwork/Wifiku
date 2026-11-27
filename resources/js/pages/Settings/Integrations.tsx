@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { KeyRound } from 'lucide-react';
 import { type FormEvent } from 'react';
 
+import { LogoCard } from '@/Components/LogoCard';
 import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
@@ -21,7 +22,7 @@ type FormShape = { settings: Record<string, Record<string, string>> };
 
 const multiline = new Set(['isolir.message', 'genieacs.rx_power_paths']);
 
-export default function Integrations({ groups }: { groups: Group[] }) {
+export default function Integrations({ groups, logo }: { groups: Group[]; logo: string | null }) {
     const initial: FormShape = { settings: {} };
 
     for (const group of groups) {
@@ -61,8 +62,10 @@ export default function Integrations({ groups }: { groups: Group[] }) {
         <>
             <PageHeader
                 title="Pengaturan"
-                description="Perusahaan, template isolir, penagihan, GenieACS, hotspot, dan VPN. WhatsApp dan Telegram ada di menu Notifikasi & Webhook. Nilai rahasia disimpan terenkripsi."
+                description="Logo dan data perusahaan, template isolir, penagihan, GenieACS, hotspot, dan VPN. WhatsApp dan Telegram ada di menu Notifikasi & Webhook. Nilai rahasia disimpan terenkripsi."
             />
+
+            <LogoCard logo={logo} />
 
             <form onSubmit={submit} className="space-y-4">
                 {groups.map((group) => (

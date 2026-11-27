@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\WhatsappMessageStatus;
 use App\Enums\WhatsappMessageType;
 use App\Http\Requests\IntegrationSettingRequest;
+use App\Models\LandingImage;
 use App\Models\WhatsappMessage;
 use App\Services\Chat\ChatWebhookSecrets;
 use App\Services\Settings\SettingService;
@@ -48,6 +49,7 @@ class IntegrationSettingController extends Controller
     {
         return Inertia::render('Settings/Integrations', [
             'groups' => $this->groups($settings, fn (string $group): bool => ! in_array($group, self::NOTIFICATION_GROUPS, true)),
+            'logo' => ($logo = LandingImage::where('slot', LandingImage::LOGO_SLOT)->first()) ? route('landing-image.show', [LandingImage::LOGO_SLOT, 'v' => $logo->updated_at?->timestamp]) : null,
         ]);
     }
 
