@@ -180,6 +180,38 @@ git push
 
 `deploy.sh` berhenti dengan pesan jelas bila `public/build/manifest.json` tidak ada.
 
+## Pemecahan Masalah
+
+### `SQLSTATE[HY000]: General error: 5 database is locked` (SQLite)
+
+Terjadi bila ada lebih dari satu penulis yang berebut file SQLite. Cache, session, dan queue yang semuanya memakai driver `database` memperbesar peluangnya. WAL dan `busy_timeout` sudah aktif di `config/database.php`.
+
+1. **Samakan pemilik file.** User yang menjalankan `deploy.sh`/`artisan`/queue worker harus sama dengan user PHP-FPM, atau file `database.sqlite-wal` dan `-shm` bisa dimiliki user lain.
+   ```bash
+   ls -la database/
+   sudo chown -R <user-php-fpm>:<user-php-fpm> database
+   sudo chmod -R ug+rw database
+   ```
+2. **Pastikan tidak ada proses menggantung**, lalu jalankan hanya satu queue worker:
+   ```bash
+   ps aux | grep -E "artisan|php-fpm" | grep -v grep
+   ```
+3. **Kurangi beban tulis ke SQLite** di `.env`, lalu `php artisan config:cache` dan `php artisan queue:restart`:
+   ```ini
+   CACHE_STORE=file
+   SESSION_DRIVER=file
+   DB_BUSY_TIMEOUT=15000
+   ```
+4. **Jangka panjang:** pindah ke MariaDB (`DB_CONNECTION=mysql`) bila traffic, webhook, dan antrean pesan bertambah.
+
+### `Failed opening required '.../vendor/autoload.php'`
+
+Dependensi belum terpasang. Jalankan `composer install --no-dev --optimize-autoloader` (atau `./deploy.sh`) sebelum perintah `artisan` apa pun.
+
+### Halaman error 500 setelah deploy
+
+Periksa `php artisan migrate:status` (pastikan tidak ada migrasi `Pending`), `tail -n 40 storage/logs/laravel.log`, serta izin tulis `storage/` dan `bootstrap/cache/`.
+
 ## Webhook
 
 Daftarkan URL berikut di layanan terkait (ganti domain):
