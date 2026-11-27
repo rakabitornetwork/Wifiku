@@ -1,3 +1,4 @@
+import { PaymentChannelPicker, type PaymentChannel } from '@/Components/PaymentChannelPicker';
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import { MessageCircle } from 'lucide-react';
@@ -15,13 +16,13 @@ type Props = {
     invoices: { invoice_number: string; period_start: string; period_end: string; due_date: string; total: number; outstanding: number; status: string; is_overdue: boolean }[];
     outstanding: number;
     memberUrl: string | null;
-    payment: { available: boolean; channels: string[] };
+    payment: { available: boolean; channels: PaymentChannel[] };
     whatsappUrl: string | null;
 };
 
 export default function VpnPortal({ company, account, invoices, outstanding, memberUrl, payment, whatsappUrl }: Props) {
     const active = account.status === 'active';
-    const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0] ?? '' });
+    const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0]?.code ?? '' });
 
     const pay = (event: FormEvent) => {
         event.preventDefault();
@@ -103,21 +104,7 @@ export default function VpnPortal({ company, account, invoices, outstanding, mem
                                         </Field>
                                     )}
                                     <Field label="Metode pembayaran" error={form.errors.channel}>
-                                        <div className="flex flex-wrap gap-2">
-                                            {payment.channels.map((channel) => (
-                                                <button
-                                                    key={channel}
-                                                    type="button"
-                                                    onClick={() => form.setData('channel', channel)}
-                                                    className={cn(
-                                                        'num rounded-lg border px-3 py-1.5 text-xs font-medium transition',
-                                                        form.data.channel === channel ? 'border-primary bg-accent text-accent-foreground' : 'hover:bg-muted',
-                                                    )}
-                                                >
-                                                    {channel}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <PaymentChannelPicker channels={payment.channels} value={form.data.channel} onChange={(code) => form.setData('channel', code)} />
                                     </Field>
                                     {form.errors.invoice_number && invoices.length <= 1 && <p className="text-xs text-destructive">{form.errors.invoice_number}</p>}
                                     <Button type="submit" className="w-full" disabled={form.processing || !form.data.channel}>

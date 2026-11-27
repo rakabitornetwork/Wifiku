@@ -6,6 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Invoice;
 use App\Models\PaymentGateway;
+use App\Support\PaymentChannelCatalog;
 
 /**
  * Bentuk data tagihan VPN untuk halaman pelanggan (halaman bayar per akun dan halaman Tagihan member).
@@ -34,14 +35,14 @@ class VpnBillingPresenter
             // Transaksi QRIS/VA yang masih berlaku, agar pelanggan bisa melanjutkan tanpa membuat yang baru.
             'checkout_url' => $pending?->checkout_url,
             'paid_at' => $invoice->paid_at?->toDateString(),
-            'paid_via' => $paid === null ? null : ($paid->method === PaymentMethod::Cash ? 'Tunai' : ($paid->channel ?: 'Online')),
+            'paid_via' => $paid === null ? null : ($paid->method === PaymentMethod::Cash ? 'Tunai' : ($paid->channel ? PaymentChannelCatalog::label($paid->channel) : 'Online')),
         ];
     }
 
     /**
      * Ketersediaan pembayaran online dari gateway aktif.
      *
-     * @return array{available: bool, channels: list<string>}
+     * @return array{available: bool, channels: list<array{code: string, label: string, group: string}>}
      */
     public function paymentOptions(): array
     {
@@ -49,7 +50,7 @@ class VpnBillingPresenter
 
         return [
             'available' => $gateway !== null && ! empty($gateway->enabled_channels),
-            'channels' => $gateway?->enabled_channels ?? [],
+            'channels' => PaymentChannelCatalog::options($gateway?->enabled_channels),
         ];
     }
 }

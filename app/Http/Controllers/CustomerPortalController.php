@@ -16,6 +16,7 @@ use App\Services\Portal\CustomerLoginService;
 use App\Services\Portal\CustomerOnuService;
 use App\Services\Settings\SettingService;
 use App\Support\CompanyBranding;
+use App\Support\PaymentChannelCatalog;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -73,7 +74,7 @@ class CustomerPortalController extends Controller
             'outstanding' => $invoices->where('status', '!=', InvoiceStatus::Paid->value)->sum('outstanding'),
             'payment' => [
                 'available' => $gateway !== null && ! empty($gateway->enabled_channels),
-                'channels' => $gateway?->enabled_channels ?? [],
+                'channels' => PaymentChannelCatalog::options($gateway?->enabled_channels),
             ],
             'onu' => $asset === null ? null : [
                 'brand' => $asset->brand,

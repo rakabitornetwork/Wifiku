@@ -1,3 +1,4 @@
+import { PaymentChannelPicker, type PaymentChannel } from '@/Components/PaymentChannelPicker';
 import { Head, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import { MessageCircle } from 'lucide-react';
@@ -17,14 +18,14 @@ type Props = {
     customer: { customer_code: string; name: string; package: string; status: string };
     invoices: { invoice_number: string; period_start: string; period_end: string; due_date: string; total: number; outstanding: number; status: string; is_overdue: boolean }[];
     outstanding: number;
-    payment: { available: boolean; channels: string[] };
+    payment: { available: boolean; channels: PaymentChannel[] };
     whatsappUrl: string | null;
 };
 
 export default function Isolir({ title, message, customer, invoices, outstanding, payment, whatsappUrl }: Props) {
     const brand = useBrand();
     const isolated = customer.status === 'isolated';
-    const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0] ?? '' });
+    const form = useForm({ invoice_number: invoices[0]?.invoice_number ?? '', channel: payment.channels[0]?.code ?? '' });
 
     const pay = (event: FormEvent) => {
         event.preventDefault();
@@ -106,23 +107,7 @@ export default function Isolir({ title, message, customer, invoices, outstanding
                                         </Field>
                                     )}
                                     <Field label="Metode pembayaran" error={form.errors.channel}>
-                                        <div className="flex flex-wrap gap-2">
-                                            {payment.channels.map((channel) => (
-                                                <button
-                                                    key={channel}
-                                                    type="button"
-                                                    onClick={() => form.setData('channel', channel)}
-                                                    className={cn(
-                                                        'num rounded-lg border px-3.5 py-2 text-sm font-semibold transition',
-                                                        form.data.channel === channel
-                                                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                                                            : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-white/15 dark:hover:bg-white/5',
-                                                    )}
-                                                >
-                                                    {channel}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <PaymentChannelPicker channels={payment.channels} value={form.data.channel} onChange={(code) => form.setData('channel', code)} activeClass="border-indigo-600 bg-indigo-600 text-white shadow-sm" />
                                     </Field>
                                     {form.errors.invoice_number && invoices.length <= 1 && <p className="text-xs text-destructive">{form.errors.invoice_number}</p>}
                                     <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={form.processing || !form.data.channel}>

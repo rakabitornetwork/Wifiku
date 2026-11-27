@@ -96,7 +96,7 @@ class IsolirControllerTest extends TestCase
         PaymentGateway::factory()->create(['driver' => 'duitku', 'is_active' => false, 'sort_order' => 0, 'enabled_channels' => ['OVO']]);
 
         $this->get("/isolir/{$customer->customer_code}")->assertInertia(
-            fn (Assert $page) => $page->where('payment.available', true)->where('payment.channels', ['QRIS', 'BRIVA']),
+            fn (Assert $page) => $page->where('payment.available', true)->where('payment.channels.0.code', 'QRIS')->where('payment.channels.1.code', 'BRIVA')->where('payment.channels.1.label', 'BRI')->where('payment.channels.1.group', 'Transfer Bank (Virtual Account)'),
         );
     }
 

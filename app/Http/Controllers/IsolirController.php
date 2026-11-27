@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\PaymentGateway;
 use App\Services\Settings\SettingService;
+use App\Support\PaymentChannelCatalog;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -53,7 +54,7 @@ class IsolirController extends Controller
             'outstanding' => $invoices->sum('outstanding'),
             'payment' => [
                 'available' => $gateway !== null && ! empty($gateway->enabled_channels),
-                'channels' => $gateway?->enabled_channels ?? [],
+                'channels' => PaymentChannelCatalog::options($gateway?->enabled_channels),
             ],
             'whatsappUrl' => $csNumber !== ''
                 ? 'https://wa.me/'.$csNumber.'?text='.rawurlencode("Halo, saya pelanggan {$customer->customer_code}. Mohon bantuan terkait layanan internet saya.")

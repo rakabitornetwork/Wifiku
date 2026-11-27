@@ -1,3 +1,4 @@
+import { PaymentChannelPicker, type PaymentChannel } from '@/Components/PaymentChannelPicker';
 import { Head, Link, router } from '@inertiajs/react';
 import { CheckCircle2, ExternalLink, Receipt, Wallet } from 'lucide-react';
 import { useState } from 'react';
@@ -33,11 +34,11 @@ type Props = {
     open: InvoiceRow[];
     outstanding: number;
     history: Paginated<InvoiceRow>;
-    payment: { available: boolean; channels: string[] };
+    payment: { available: boolean; channels: PaymentChannel[] };
 };
 
 export default function Billing({ company, member, open, outstanding, history, payment }: Props) {
-    const [channel, setChannel] = useState(payment.channels[0] ?? '');
+    const [channel, setChannel] = useState(payment.channels[0]?.code ?? '');
     const [paying, setPaying] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -85,18 +86,7 @@ export default function Billing({ company, member, open, outstanding, history, p
                             {payment.available ? (
                                 <div className="border-b px-5 py-3">
                                     <Field label="Metode pembayaran">
-                                        <div className="flex flex-wrap gap-2">
-                                            {payment.channels.map((item) => (
-                                                <button
-                                                    key={item}
-                                                    type="button"
-                                                    onClick={() => setChannel(item)}
-                                                    className={cn('num rounded-lg border px-3 py-1.5 text-xs font-medium transition', channel === item ? 'border-primary bg-accent text-accent-foreground' : 'hover:bg-muted')}
-                                                >
-                                                    {item}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <PaymentChannelPicker channels={payment.channels} value={channel} onChange={setChannel} />
                                     </Field>
                                 </div>
                             ) : (

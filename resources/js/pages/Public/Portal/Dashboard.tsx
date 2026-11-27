@@ -1,3 +1,4 @@
+import { PaymentChannelPicker, type PaymentChannel } from '@/Components/PaymentChannelPicker';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { AlertTriangle, Check, Copy, Eye, EyeOff, MessageCircle, RefreshCw, Smartphone } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
@@ -27,7 +28,7 @@ type Props = {
     customer: { customer_code: string; name: string; package: string | null; address: string | null; status: string; installed_at: string | null; promise_to_pay_until: string | null };
     invoices: Invoice[];
     outstanding: number;
-    payment: { available: boolean; channels: string[] };
+    payment: { available: boolean; channels: PaymentChannel[] };
     onu: Onu | null;
     hasMultipleAccounts: boolean;
     canChangeWifi: boolean;
@@ -125,7 +126,7 @@ function WifiPassword({ password, loading }: { password: string | null | undefin
 
 function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' | 'outstanding' | 'payment'>) {
     const unpaid = invoices.filter((invoice) => invoice.status !== 'paid');
-    const form = useForm({ invoice_number: unpaid[0]?.invoice_number ?? '', channel: payment.channels[0] ?? '' });
+    const form = useForm({ invoice_number: unpaid[0]?.invoice_number ?? '', channel: payment.channels[0]?.code ?? '' });
 
     const pay = (event: FormEvent) => {
         event.preventDefault();
@@ -181,18 +182,7 @@ function BillingCard({ invoices, outstanding, payment }: Pick<Props, 'invoices' 
                         </Field>
                     )}
                     <Field label="Metode pembayaran" error={form.errors.channel}>
-                        <div className="flex flex-wrap gap-2">
-                            {payment.channels.map((channel) => (
-                                <button
-                                    key={channel}
-                                    type="button"
-                                    onClick={() => form.setData('channel', channel)}
-                                    className={cn('rounded-lg border px-3.5 py-2 text-sm font-semibold transition', form.data.channel === channel ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm' : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-white/15 dark:hover:bg-white/5')}
-                                >
-                                    {channel}
-                                </button>
-                            ))}
-                        </div>
+                        <PaymentChannelPicker channels={payment.channels} value={form.data.channel} onChange={(code) => form.setData('channel', code)} activeClass="border-indigo-600 bg-indigo-600 text-white shadow-sm" />
                     </Field>
                     <Button type="submit" className="h-11 w-full bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100" disabled={form.processing || !form.data.channel}>
                         {form.processing ? 'Menyiapkan pembayaran...' : `Bayar ${formatRupiah(outstanding)}`}
