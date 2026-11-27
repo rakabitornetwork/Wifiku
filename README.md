@@ -180,7 +180,45 @@ git push
 
 `deploy.sh` berhenti dengan pesan jelas bila `public/build/manifest.json` tidak ada.
 
+## Cadangan (Backup)
+
+Data yang **tidak** ikut di git dan harus dicadangkan:
+
+| Data | Lokasi |
+|---|---|
+| Database (SQLite) | `database/database.sqlite` (atau dump MariaDB) |
+| Logo, ilustrasi landing, foto galeri | `storage/app/private/` |
+| Konfigurasi dan `APP_KEY` | `.env` |
+
+> **`APP_KEY` wajib disimpan terpisah dan jangan pernah diganti.** Kredensial gateway, WhatsApp, dan pengaturan lain terenkripsi dengan key ini. Tanpanya data tersebut tidak bisa dibaca lagi (error `The MAC is invalid`).
+
+Contoh cadangan harian (SQLite, aman dijalankan saat aplikasi berjalan):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+APP=/home/teslatech/public_html
+OUT=/home/teslatech/backup/$(date +%F)
+mkdir -p "$OUT"
+sqlite3 "$APP/database/database.sqlite" ".backup '$OUT/database.sqlite'"
+tar -czf "$OUT/storage-private.tar.gz" -C "$APP/storage/app" private
+cp "$APP/.env" "$OUT/env.backup" && chmod 600 "$OUT/env.backup"
+find /home/teslatech/backup -mindepth 1 -maxdepth 1 -mtime +14 -exec rm -rf {} +
+```
+
+Pasang di cron, misalnya `15 2 * * * /home/teslatech/backup.sh`, dan salin hasilnya ke luar VPS (rsync/rclone). Untuk MariaDB, ganti baris `sqlite3` dengan `mysqldump --single-transaction nama_db > "$OUT/db.sql"`.
+
+Pemulihan di server baru: pasang aplikasi (`./deploy.sh --first-run`), hentikan queue worker, lalu kembalikan `.env` (dengan `APP_KEY` lama), `database.sqlite`, dan `storage/app/private/` dari cadangan, kemudian `php artisan config:cache` dan `php artisan queue:restart`.
+
 ## Pemecahan Masalah
+
+### `The MAC is invalid`
+
+`APP_KEY` di `.env` berbeda dari key yang dipakai saat data terenkripsi disimpan. Kembalikan `APP_KEY` yang lama lalu `php artisan config:cache`. Hanya bila datanya memang belum berharga (instalasi baru), kosongkan nilai terenkripsi di tabel `settings` dan isi ulang dari menu Pengaturan.
+
+### Logo atau ilustrasi landing tidak muncul
+
+File disimpan di `storage/app/private/landing/` dan tercatat di tabel `landing_images`, keduanya tidak ikut git. Unggah ulang dari menu **Ilustrasi Landing**, atau pulihkan dari cadangan. Pastikan `storage/` bisa ditulis user PHP-FPM.
 
 ### `SQLSTATE[HY000]: General error: 5 database is locked` (SQLite)
 
