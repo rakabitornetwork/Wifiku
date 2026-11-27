@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Services\Chat\CustomerTelegramChannel;
 use App\Services\Messaging\MessageTemplates;
 use App\Services\Settings\SettingService;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
 /**
@@ -27,6 +28,11 @@ class CustomerNotifier
         private readonly CustomerTelegramChannel $telegram,
         private readonly MessageTemplates $templates,
     ) {}
+
+    public function welcome(Customer $customer): void
+    {
+        $this->send($customer, 'welcome', $this->base($customer));
+    }
 
     public function invoiceIssued(Invoice $invoice): void
     {
@@ -45,6 +51,7 @@ class CustomerNotifier
             'no_invoice' => $invoice->invoice_number,
             'total' => $this->rupiah($invoice->total),
             'jatuh_tempo' => $this->date($invoice->due_date),
+            'rincian' => $this->invoiceBreakdown($invoice, $customer),
         ]);
     }
 
@@ -180,6 +187,44 @@ class CustomerNotifier
         }
 
         $this->whatsapp->queue($customer->whatsapp, $template['type'], $body, $customer);
+    }
+
+    /**
+     * Rincian tagihan: perhitungan prorata untuk tagihan pertama, tunggakan sebelumnya, dan kapan tagihan berikutnya terbit.
+     */
+    private function invoiceBreakdown(Invoice $invoice, Customer $customer): string
+    {
+        $package = $customer->package;
+        $monthly = $package?->price ?? $invoice->total;
+        $lines = ['Rincian tagihan:'];
+
+        if ($package !== null) {
+            $lines[] = "• Paket: {$package->name} ({$this->rupiah($monthly)}/bulan)";
+        }
+
+        if ($invoice->is_prorated && $invoice->prorata_days && $invoice->period_days) {
+            $lines[] = "• Layanan aktif sejak {$this->date($invoice->period_start)}, jadi ditagih {$invoice->prorata_days} dari {$invoice->period_days} hari (prorata bulan pertama).";
+            $lines[] = "• Perhitungan: {$this->rupiah($monthly)} × {$invoice->prorata_days}/{$invoice->period_days} = {$this->rupiah($invoice->total)}";
+        } else {
+            $lines[] = "• Periode: {$this->date($invoice->period_start)} s.d. {$this->date($invoice->period_end)}";
+            $lines[] = "• Biaya bulan ini: {$this->rupiah($invoice->total)}";
+        }
+
+        $arrears = Invoice::query()
+            ->where('customer_id', $invoice->customer_id)
+            ->whereKeyNot($invoice->id)
+            ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::Partial])
+            ->get(['total', 'amount_paid']);
+
+        if ($arrears->isNotEmpty()) {
+            $lines[] = "• Tunggakan sebelumnya: {$this->rupiah((int) $arrears->sum(fn (Invoice $item): int => $item->total - $item->amount_paid))} ({$arrears->count()} tagihan)";
+        }
+
+        $next = CarbonImmutable::parse($invoice->period_end)->addDay();
+        $nextAmount = $invoice->is_prorated ? ' Mulai tagihan berikutnya, biaya penuh '.$this->rupiah($monthly).' per bulan.' : '';
+        $lines[] = "• Tagihan berikutnya terbit {$this->date($next)}, jatuh tempo {$customer->due_days} hari setelahnya.{$nextAmount}";
+
+        return implode("\n", $lines);
     }
 
     private function portalUrl(Customer $customer): string

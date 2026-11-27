@@ -18,25 +18,27 @@ class MessageTemplateController extends Controller
         $items = [];
 
         foreach ($templates->definitions() as $key => $definition) {
-            $sample = $templates->sample($key);
-            $body = $templates->body($key);
+            foreach (isset($definition['sample_next']) ? [false, true] : [false] as $next) {
+                $sample = $templates->sample($key, $next);
+                $body = $templates->body($key);
 
-            $items[] = [
-                'key' => $key,
-                'label' => $definition['label'],
-                'icon' => $definition['icon'],
-                'when' => $definition['when'],
-                'editable' => $definition['editable'],
-                'customised' => $templates->isCustomised($key),
-                'enabled' => $definition['topic'] === null || $settings->get('notify', $definition['topic']) !== '0',
-                'placeholders' => $definition['placeholders'],
-                'required' => $definition['required'],
-                'body' => $body,
-                'default_body' => $definition['default'],
-                'sample' => $sample,
-                'whatsapp' => $templates->fill($body, $sample),
-                'telegram' => "{$definition['icon']} ".$templates->fill($body, $sample),
-            ];
+                $items[] = [
+                    'key' => $next ? "{$key}_next" : $key,
+                    'label' => $next ? "{$definition['label']} — bulan berikutnya" : (isset($definition['sample_next']) ? "{$definition['label']} — pertama (prorata)" : $definition['label']),
+                    'icon' => $definition['icon'],
+                    'when' => $definition['when'],
+                    'editable' => $definition['editable'],
+                    'customised' => $templates->isCustomised($key),
+                    'enabled' => $definition['topic'] === null || $settings->get('notify', $definition['topic']) !== '0',
+                    'placeholders' => $definition['placeholders'],
+                    'required' => $definition['required'],
+                    'body' => $body,
+                    'default_body' => $definition['default'],
+                    'sample' => $sample,
+                    'whatsapp' => $templates->fill($body, $sample),
+                    'telegram' => "{$definition['icon']} ".$templates->fill($body, $sample),
+                ];
+            }
         }
 
         return Inertia::render('Settings/MessageTemplates', ['templates' => $items, 'maxLength' => MessageTemplates::MAX_LENGTH]);

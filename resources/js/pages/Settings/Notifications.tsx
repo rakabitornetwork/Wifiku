@@ -21,7 +21,7 @@ function postJson<T>(url: string): Promise<T> {
 }
 
 /** Ikon per jenis pesan otomatis ke pelanggan, sama dengan ikon yang tampil di pesan Telegram. */
-const topicIcons: Record<string, string> = { invoice: '🧾', reminder: '⏰', due_today: '⏳', receipt: '💳', isolated: '🔴', reopened: '🟢', extension: '🤝', outage: '⚠️' };
+const topicIcons: Record<string, string> = { welcome: '🎉', invoice: '🧾', reminder: '⏰', due_today: '⏳', receipt: '💳', isolated: '🔴', reopened: '🟢', extension: '🤝', outage: '⚠️' };
 
 function Toggle({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (value: boolean) => void; hint?: string }) {
     return (

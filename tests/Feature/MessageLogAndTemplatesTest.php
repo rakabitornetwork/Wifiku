@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Customer\CreateCustomer;
 use App\Enums\WhatsappMessageType;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\TelegramMessage;
 use App\Models\WhatsappMessage;
 use App\Services\Messaging\MessageTemplates;
+use App\Services\Settings\SettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesUsers;
 use Tests\TestCase;
@@ -23,10 +26,10 @@ class MessageLogAndTemplatesTest extends TestCase
         $this->actingAs($this->owner())->get('/settings/message-templates')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Settings/MessageTemplates')
-                ->has('templates', count(app(MessageTemplates::class)->definitions()))
-                ->where('templates.0.key', 'invoice_issued')
-                ->where('templates.0.whatsapp', fn ($text) => str_contains($text, 'Halo Budi Santoso') && ! str_contains($text, '{nama}'))
-                ->where('templates.0.telegram', fn ($text) => str_starts_with($text, '🧾 Halo Budi Santoso')));
+                ->has('templates', count(app(MessageTemplates::class)->definitions()) + 1)
+                ->where('templates.1.key', 'invoice_issued')
+                ->where('templates.1.whatsapp', fn ($text) => str_contains($text, 'Halo Budi Santoso') && ! str_contains($text, '{nama}'))
+                ->where('templates.1.telegram', fn ($text) => str_starts_with($text, '🧾 Halo Budi Santoso')));
     }
 
     public function test_an_owner_override_replaces_the_default_text_and_unknown_or_missing_variables_are_rejected(): void
@@ -87,5 +90,23 @@ class MessageLogAndTemplatesTest extends TestCase
     {
         $this->get('/pesan')->assertRedirect();
         $this->get('/settings/message-templates')->assertRedirect();
+    }
+
+    public function test_a_new_active_customer_gets_a_welcome_message_once_and_it_can_be_switched_off(): void
+    {
+        Queue::fake();
+        $data = fn (string $name, string $status) => [...Customer::factory()->make(['name' => $name, 'whatsapp' => '6281234567890', 'status' => $status])->makeVisible(['pppoe_password'])->getAttributes()];
+
+        app(CreateCustomer::class)->handle($data('Sari', 'active'));
+        app(CreateCustomer::class)->handle($data('Isolir', 'isolated'));
+
+        $message = WhatsappMessage::sole();
+        $this->assertSame(WhatsappMessageType::Welcome, $message->type);
+        $this->assertStringContainsString('Selamat bergabung', $message->body);
+        $this->assertStringContainsString('TT-', $message->body);
+
+        (new SettingService)->set('notify', 'welcome', '0');
+        app(CreateCustomer::class)->handle($data('Dimati', 'active'));
+        $this->assertSame(1, WhatsappMessage::count());
     }
 }

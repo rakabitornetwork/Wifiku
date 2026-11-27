@@ -9,6 +9,7 @@ use App\Enums\WhatsappMessageType;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Package;
+use App\Models\WhatsappMessage;
 use App\Services\Billing\InvoiceGeneratorService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,5 +160,30 @@ class InvoiceGeneratorServiceTest extends TestCase
         $this->generator()->generateFor($customer, CarbonImmutable::parse('2026-11-02'));
 
         $this->assertSame(1, $customer->whatsappMessages()->count());
+    }
+
+    public function test_the_invoice_message_explains_the_prorata_first_bill_and_the_next_bill(): void
+    {
+        $customer = $this->customer(['installed_at' => '2026-11-11', 'whatsapp' => '6281234567890']);
+
+        $this->generator()->generateFor($customer, CarbonImmutable::parse('2026-11-11'));
+
+        $first = WhatsappMessage::sole()->body;
+        $this->assertStringContainsString('Paket: Home 20 (Rp 300.000/bulan)', $first);
+        $this->assertStringContainsString('ditagih 20 dari 30 hari (prorata bulan pertama)', $first);
+        $this->assertStringContainsString('Rp 300.000 × 20/30 = Rp 200.000', $first);
+        $this->assertStringContainsString('Tagihan berikutnya terbit 01/12/2026', $first);
+        $this->assertStringContainsString('biaya penuh Rp 300.000 per bulan', $first);
+        $this->assertStringNotContainsString('Tunggakan', $first);
+
+        WhatsappMessage::query()->delete();
+        $this->generator()->generateFor($customer->fresh(), CarbonImmutable::parse('2026-12-01'));
+
+        $next = WhatsappMessage::sole()->body;
+        $this->assertStringContainsString('Periode: 01/12/2026 s.d. 31/12/2026', $next);
+        $this->assertStringContainsString('Biaya bulan ini: Rp 300.000', $next);
+        $this->assertStringContainsString('Tunggakan sebelumnya: Rp 200.000 (1 tagihan)', $next);
+        $this->assertStringContainsString('Tagihan berikutnya terbit 01/01/2027', $next);
+        $this->assertStringNotContainsString('prorata', $next);
     }
 }

@@ -133,9 +133,9 @@ class DueDateReminderTest extends TestCase
 
         $this->actingAs($this->owner())->get('/settings/notifications')->assertInertia(fn (Assert $page) => $page
             ->where('groups.2.group', 'notify')
-            ->has('groups.2.fields', 8)
-            ->where('groups.2.fields.2.name', 'notify.due_today')
-            ->where('groups.2.fields.2.value', '0'));
+            ->has('groups.2.fields', 9)
+            ->where('groups.2.fields.3.name', 'notify.due_today')
+            ->where('groups.2.fields.3.value', '0'));
 
         $this->actingAs($this->owner())->put('/settings/integrations', ['settings' => ['notify' => ['invoice' => '0', 'due_today' => '1']]])->assertSessionDoesntHaveErrors();
 

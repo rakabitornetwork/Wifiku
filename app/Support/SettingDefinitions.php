@@ -40,6 +40,7 @@ class SettingDefinitions
         'telegram.alert_router' => ['label' => 'Router offline dan pulih', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
         'telegram.alert_outage' => ['label' => 'Gangguan ODP baru', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
         'telegram.alert_whatsapp' => ['label' => 'Pesan WhatsApp gagal terkirim', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
+        'notify.welcome' => ['label' => 'Selamat datang pelanggan baru', 'default' => '1', 'rules' => ['nullable', 'in:0,1'], 'hint' => 'Sekali saat pelanggan aktif baru didaftarkan.'],
         'notify.invoice' => ['label' => 'Tagihan baru', 'default' => '1', 'rules' => ['nullable', 'in:0,1'], 'hint' => 'Dikirim saat invoice terbit, pukul 08.00.'],
         'notify.reminder' => ['label' => 'Pengingat sebelum jatuh tempo', 'default' => '1', 'rules' => ['nullable', 'in:0,1'], 'hint' => 'Pukul 09.00, sekian hari sebelum jatuh tempo (atur di Pengaturan, bagian Penagihan).'],
         'notify.due_today' => ['label' => 'Pengingat hari jatuh tempo', 'default' => '1', 'rules' => ['nullable', 'in:0,1'], 'hint' => 'Pukul 09.10 pada hari jatuh tempo; pelanggan dalam masa Janji Bayar tidak diingatkan.'],

@@ -46,6 +46,7 @@ const typeMeta: Record<string, { label: string; icon: string }> = {
     password_reset: { label: 'Reset password', icon: '🔑' },
     account_security: { label: 'Kode OTP', icon: '🔐' },
     chat: { label: 'Balasan bot', icon: '🤖' },
+    welcome: { label: 'Selamat datang', icon: '🎉' },
 };
 
 const statusMeta = {

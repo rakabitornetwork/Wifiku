@@ -17,9 +17,21 @@ class MessageTemplates
     public const MAX_LENGTH = 1500;
 
     /**
-     * @var array<string, array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, default: string}>
+     * @var array<string, array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, sample_next?: array<string, string>, default: string}>
      */
     private const DEFINITIONS = [
+        'welcome' => [
+            'label' => 'Selamat datang pelanggan baru',
+            'topic' => 'welcome',
+            'type' => WhatsappMessageType::Welcome,
+            'icon' => '🎉',
+            'when' => 'Sekali, saat pelanggan baru berstatus aktif didaftarkan di panel (butuh nomor WhatsApp).',
+            'editable' => true,
+            'placeholders' => ['nama' => 'Nama pelanggan', 'perusahaan' => 'Nama perusahaan', 'kode_pelanggan' => 'Kode pelanggan', 'link_portal' => 'Tautan login portal pelanggan'],
+            'required' => ['kode_pelanggan'],
+            'sample' => [],
+            'default' => "Halo {nama},\n\nSelamat bergabung dan selamat datang di layanan internet {perusahaan}! 🎉\nTerima kasih telah mempercayakan koneksi internet Anda kepada kami.\n\nKode pelanggan Anda: {kode_pelanggan}\nSimpan kode ini untuk keperluan layanan.\n\nDi portal pelanggan Anda bisa melihat tagihan, mengecek status ONU, dan mengganti nama serta password WiFi:\n{link_portal}\n(masuk dengan nomor WhatsApp ini)\n\nBila ada kendala, balas pesan ini atau hubungi CS kami. Selamat menikmati internetnya!",
+        ],
         'invoice_issued' => [
             'label' => 'Tagihan baru',
             'topic' => 'invoice',
@@ -27,10 +39,11 @@ class MessageTemplates
             'icon' => '🧾',
             'when' => 'Saat invoice terbit, pukul 08.00 pada tanggal tagihan pelanggan.',
             'editable' => true,
-            'placeholders' => ['nama' => 'Nama pelanggan', 'perusahaan' => 'Nama perusahaan', 'periode_mulai' => 'Awal periode tagihan', 'periode_selesai' => 'Akhir periode tagihan', 'no_invoice' => 'Nomor invoice', 'total' => 'Total tagihan', 'jatuh_tempo' => 'Tanggal jatuh tempo', 'kode_pelanggan' => 'Kode pelanggan', 'link_bayar' => 'Tautan bayar online', 'link_portal' => 'Tautan login portal pelanggan'],
+            'placeholders' => ['nama' => 'Nama pelanggan', 'perusahaan' => 'Nama perusahaan', 'periode_mulai' => 'Awal periode tagihan', 'periode_selesai' => 'Akhir periode tagihan', 'no_invoice' => 'Nomor invoice', 'total' => 'Total tagihan', 'jatuh_tempo' => 'Tanggal jatuh tempo', 'kode_pelanggan' => 'Kode pelanggan', 'link_bayar' => 'Tautan bayar online', 'link_portal' => 'Tautan login portal pelanggan', 'rincian' => 'Rincian: perhitungan prorata (tagihan pertama), tunggakan, dan jadwal tagihan berikutnya'],
             'required' => ['link_bayar'],
-            'sample' => ['periode_mulai' => '03/12/2026', 'periode_selesai' => '02/01/2027', 'no_invoice' => 'INV/2026/00123', 'total' => 'Rp 150.000', 'jatuh_tempo' => '10/12/2026'],
-            'default' => "Halo {nama},\n\nTagihan internet {perusahaan} periode {periode_mulai} s.d. {periode_selesai} sudah terbit.\nNo. invoice: {no_invoice}\nTotal: {total}\nJatuh tempo: {jatuh_tempo}\nKode pelanggan: {kode_pelanggan}\n\nBayar online (QRIS/VA): {link_bayar}\nCek status ONU & ganti WiFi: {link_portal} (masuk dengan nomor WhatsApp ini)\nTerima kasih.",
+            'sample' => ['periode_mulai' => '13/12/2026', 'periode_selesai' => '02/01/2027', 'no_invoice' => 'INV/2612/00123', 'total' => 'Rp 105.000', 'jatuh_tempo' => '20/12/2026', 'rincian' => "Rincian tagihan:\n• Paket: Home 20 Mbps (Rp 150.000/bulan)\n• Layanan aktif sejak 13/12/2026, jadi ditagih 21 dari 30 hari (prorata bulan pertama).\n• Perhitungan: Rp 150.000 × 21/30 = Rp 105.000\n• Tagihan berikutnya terbit 03/01/2027, jatuh tempo 7 hari setelahnya. Mulai tagihan berikutnya, biaya penuh Rp 150.000 per bulan."],
+            'sample_next' => ['periode_mulai' => '03/01/2027', 'periode_selesai' => '02/02/2027', 'no_invoice' => 'INV/2701/00188', 'total' => 'Rp 150.000', 'jatuh_tempo' => '10/01/2027', 'rincian' => "Rincian tagihan:\n• Paket: Home 20 Mbps (Rp 150.000/bulan)\n• Periode: 03/01/2027 s.d. 02/02/2027\n• Biaya bulan ini: Rp 150.000\n• Tunggakan sebelumnya: Rp 150.000 (1 tagihan)\n• Tagihan berikutnya terbit 03/02/2027, jatuh tempo 7 hari setelahnya."],
+            'default' => "Halo {nama},\n\nTagihan internet {perusahaan} periode {periode_mulai} s.d. {periode_selesai} sudah terbit.\nNo. invoice: {no_invoice}\nTotal: {total}\nJatuh tempo: {jatuh_tempo}\nKode pelanggan: {kode_pelanggan}\n\n{rincian}\n\nBayar online (QRIS/VA): {link_bayar}\nCek status ONU & ganti WiFi: {link_portal} (masuk dengan nomor WhatsApp ini)\nTerima kasih.",
         ],
         'invoice_reminder' => [
             'label' => 'Pengingat sebelum jatuh tempo',
@@ -160,7 +173,7 @@ class MessageTemplates
     public function __construct(private readonly SettingService $settings) {}
 
     /**
-     * @return array<string, array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, default: string}>
+     * @return array<string, array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, sample_next?: array<string, string>, default: string}>
      */
     public function definitions(): array
     {
@@ -173,7 +186,7 @@ class MessageTemplates
     }
 
     /**
-     * @return array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, default: string}
+     * @return array{label: string, topic: string|null, type: WhatsappMessageType, icon: string, when: string, editable: bool, placeholders: array<string, string>, required: list<string>, sample: array<string, string>, sample_next?: array<string, string>, default: string}
      */
     public function definition(string $key): array
     {
@@ -224,7 +237,7 @@ class MessageTemplates
      *
      * @return array<string, string>
      */
-    public function sample(string $key): array
+    public function sample(string $key, bool $next = false): array
     {
         $definition = $this->definition($key);
 
@@ -234,7 +247,7 @@ class MessageTemplates
             'kode_pelanggan' => 'TT-2612-0001',
             'link_bayar' => route('isolir.show', 'TT-2612-0001'),
             'link_portal' => route('portal.login'),
-            ...$definition['sample'],
+            ...($next ? ($definition['sample_next'] ?? $definition['sample']) : $definition['sample']),
         ];
     }
 
