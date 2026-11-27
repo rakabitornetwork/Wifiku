@@ -42,12 +42,14 @@ class Permissions
 
     public const SETTINGS_MANAGE = 'settings.manage';
 
+    public const SYSTEM_UPDATE = 'system.update';
+
     /**
      * Permission yang hanya dimiliki Owner.
      *
      * @var list<string>
      */
-    public const OWNER_ONLY = [self::USERS_MANAGE, self::AUDIT_VIEW, self::SETTINGS_MANAGE];
+    public const OWNER_ONLY = [self::USERS_MANAGE, self::AUDIT_VIEW, self::SETTINGS_MANAGE, self::SYSTEM_UPDATE];
 
     /**
      * @return list<string>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppUpdateController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetDeviceController;
 use App\Http\Controllers\AuditLogController;
@@ -279,6 +280,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
         Route::get('/bot-replies', [BotReplyController::class, 'index'])->name('bot-replies.index');
+        Route::middleware('can:system.update')->prefix('update')->name('update.')->group(function () {
+            Route::get('/', [AppUpdateController::class, 'index'])->name('index');
+            Route::post('/check', [AppUpdateController::class, 'check'])->middleware('throttle:10,1')->name('check');
+            Route::get('/status', [AppUpdateController::class, 'status'])->middleware('throttle:120,1')->name('status');
+            Route::post('/start', [AppUpdateController::class, 'start'])->middleware('throttle:3,1')->name('start');
+        });
         Route::post('/logo', [CompanyLogoController::class, 'store'])->middleware('throttle:20,1')->name('logo.store');
         Route::delete('/logo', [CompanyLogoController::class, 'destroy'])->name('logo.destroy');
         Route::get('/message-templates', [MessageTemplateController::class, 'index'])->name('message-templates.index');
