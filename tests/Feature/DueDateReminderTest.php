@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Outage;
 use App\Models\Payment;
+use App\Models\TelegramMessage;
 use App\Models\WhatsappMessage;
 use App\Services\Settings\SettingService;
 use App\Services\Whatsapp\CustomerNotifier;
@@ -48,7 +49,10 @@ class DueDateReminderTest extends TestCase
         $this->assertStringContainsString('TT-0001-0001', $message->body);
         $this->assertStringContainsString(route('isolir.show', 'TT-0001-0001'), $message->body);
         Queue::assertPushed(SendTelegramCustomerMessageJob::class, 1);
-        Queue::assertPushed(SendTelegramCustomerMessageJob::class, fn ($job) => str_starts_with($job->text, '⏳ Halo Budi') && $job->chatId === '777');
+        $telegram = TelegramMessage::sole();
+        $this->assertStringStartsWith('⏳ Halo Budi', $telegram->body);
+        $this->assertSame('777', $telegram->chat_id);
+        $this->assertSame('reminder', $telegram->type);
         $this->assertNotNull($invoice->fresh()->due_reminder_sent_at);
         $this->assertNull($invoice->fresh()->reminder_sent_at);
     }

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['customer_id', 'phone', 'type', 'body', 'status', 'attempts', 'error', 'sent_at'])]
+#[Fillable(['customer_id', 'phone', 'type', 'body', 'status', 'attempts', 'error', 'is_sensitive', 'sent_at'])]
 class WhatsappMessage extends Model
 {
     /** @use HasFactory<WhatsappMessageFactory> */
@@ -27,8 +27,19 @@ class WhatsappMessage extends Model
             'type' => WhatsappMessageType::class,
             'status' => WhatsappMessageStatus::class,
             'attempts' => 'integer',
+            'is_sensitive' => 'boolean',
             'sent_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Pesan yang memuat kode atau password: setelah selesai diproses isinya diganti penanda agar tidak tersimpan terbaca.
+     */
+    public function redactIfSensitive(): void
+    {
+        if ($this->is_sensitive && $this->body !== TelegramMessage::REDACTED) {
+            $this->update(['body' => TelegramMessage::REDACTED]);
+        }
     }
 
     /**

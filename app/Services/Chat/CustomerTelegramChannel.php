@@ -2,9 +2,11 @@
 
 namespace App\Services\Chat;
 
+use App\Enums\WhatsappMessageType;
 use App\Jobs\Notification\SendTelegramCustomerMessageJob;
 use App\Models\ChatSession;
 use App\Models\Customer;
+use App\Models\TelegramMessage;
 use App\Services\Portal\CustomerLoginService;
 use App\Services\Settings\SettingService;
 use App\Services\Telegram\TelegramClient;
@@ -64,7 +66,7 @@ class CustomerTelegramChannel
      *
      * @return bool true bila ada chat Telegram yang dituju.
      */
-    public function send(Customer $customer, string $text): bool
+    public function send(Customer $customer, string $text, ?WhatsappMessageType $type = null): bool
     {
         if ($this->mode() === self::OFF) {
             return false;
@@ -73,7 +75,9 @@ class CustomerTelegramChannel
         $chats = $this->chatIdsFor($customer);
 
         foreach ($chats as $chatId) {
-            SendTelegramCustomerMessageJob::dispatch($chatId, $text);
+            $log = TelegramMessage::create(['customer_id' => $customer->id, 'chat_id' => $chatId, 'type' => $type?->value, 'body' => $text, 'status' => 'queued']);
+
+            SendTelegramCustomerMessageJob::dispatch($log->id);
         }
 
         return $chats !== [];

@@ -12,6 +12,7 @@ final readonly class ChatReply
      * @param  bool  $requestContact  Telegram: tampilkan tombol Bagikan nomor saya.
      * @param  bool  $removeKeyboard  Telegram: sembunyikan tombol kontak setelah verifikasi.
      * @param  bool  $deleteIncoming  Telegram: hapus pesan pengguna (mis. berisi password WiFi) dari chat.
+     * @param  bool  $sensitive  Balasan memuat password; isinya disamarkan di riwayat pesan.
      */
     public function __construct(
         public string $text,
@@ -19,5 +20,6 @@ final readonly class ChatReply
         public bool $requestContact = false,
         public bool $removeKeyboard = false,
         public bool $deleteIncoming = false,
+        public bool $sensitive = false,
     ) {}
 }

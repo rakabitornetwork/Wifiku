@@ -3,6 +3,7 @@
 namespace App\Jobs\Notification;
 
 use App\Models\ChatSession;
+use App\Models\TelegramMessage;
 use App\Services\Chat\ChatMessage;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramDeliveryException;
@@ -11,8 +12,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
 
 /**
- * Mengirim satu pesan otomatis ke chat Telegram pelanggan. Bila pelanggan memblokir bot atau chat-nya hilang, tautannya
- * dicabut agar tidak dicoba lagi; galat sementara dicoba ulang.
+ * Mengirim satu pesan otomatis ke chat Telegram pelanggan dan memperbarui statusnya di riwayat pesan. Bila pelanggan
+ * memblokir bot atau chat-nya hilang, tautannya dicabut agar tidak dicoba lagi; galat sementara dicoba ulang.
  */
 class SendTelegramCustomerMessageJob implements ShouldQueue
 {
@@ -29,7 +30,7 @@ class SendTelegramCustomerMessageJob implements ShouldQueue
      */
     public array $backoff = [30, 120];
 
-    public function __construct(public string $chatId, public string $text) {}
+    public function __construct(public int $messageId) {}
 
     /**
      * @return array<int, object>
@@ -41,20 +42,33 @@ class SendTelegramCustomerMessageJob implements ShouldQueue
 
     public function handle(TelegramClient $telegram): void
     {
+        $message = TelegramMessage::find($this->messageId);
+
+        if ($message === null || $message->status === 'sent') {
+            return;
+        }
+
+        $message->increment('attempts');
+
         try {
-            $telegram->sendTo($this->chatId, $this->text);
+            $telegram->sendTo($message->chat_id, $message->body);
         } catch (TelegramDeliveryException $exception) {
-            $message = strtolower($exception->getMessage());
+            $error = mb_substr($exception->getMessage(), 0, 500);
 
             foreach (self::GONE as $needle) {
-                if (str_contains($message, $needle)) {
-                    ChatSession::query()->where('channel', ChatMessage::CHANNEL_TELEGRAM)->where('sender_id', $this->chatId)->update(['phone' => null, 'customer_id' => null, 'state' => ChatSession::IDLE, 'payload' => null]);
+                if (str_contains(strtolower($error), $needle)) {
+                    ChatSession::query()->where('channel', ChatMessage::CHANNEL_TELEGRAM)->where('sender_id', $message->chat_id)->update(['phone' => null, 'customer_id' => null, 'state' => ChatSession::IDLE, 'payload' => null]);
+                    $message->update(['status' => 'failed', 'error' => "{$error} (tautan Telegram pelanggan dicabut)"]);
 
                     return;
                 }
             }
 
+            $message->update(['status' => 'failed', 'error' => $error]);
+
             throw $exception;
         }
+
+        $message->update(['status' => 'sent', 'sent_at' => now(), 'error' => null]);
     }
 }

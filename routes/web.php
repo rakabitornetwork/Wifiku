@@ -23,6 +23,8 @@ use App\Http\Controllers\IsolirController;
 use App\Http\Controllers\IsolirPaymentController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LandingImageController;
+use App\Http\Controllers\MessageLogController;
+use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\OdpController;
 use App\Http\Controllers\OutageController;
@@ -168,6 +170,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/routers/{router}/hotspot-script', [RouterConnectionController::class, 'hotspotScript'])->name('routers.hotspot-script');
     });
 
+    Route::get('/pesan', [MessageLogController::class, 'index'])->name('messages.index')->middleware('can:settings.manage');
+
     Route::middleware('can:settings.manage')->prefix('galeri-landing')->name('gallery.')->group(function () {
         Route::get('/', [GalleryController::class, 'index'])->name('index');
         Route::post('/', [GalleryController::class, 'store'])->middleware('throttle:30,1')->name('store');
@@ -273,6 +277,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/payment-gateways/{paymentGateway}/channels', [PaymentGatewayController::class, 'channels'])->name('payment-gateways.channels');
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
+        Route::get('/message-templates', [MessageTemplateController::class, 'index'])->name('message-templates.index');
         Route::post('/whatsapp/webhook', [ChatWebhookSettingController::class, 'whatsappInstall'])->middleware('throttle:10,1')->name('whatsapp.webhook');
         Route::post('/telegram/webhook', [ChatWebhookSettingController::class, 'telegramInstall'])->middleware('throttle:10,1')->name('telegram.webhook');
         Route::post('/telegram/webhook-info', [ChatWebhookSettingController::class, 'telegramInfo'])->middleware('throttle:20,1')->name('telegram.webhook-info');

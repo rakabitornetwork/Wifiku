@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Outage;
 use App\Models\Router;
+use App\Models\TelegramMessage;
 use App\Models\WhatsappMessage;
 use App\Services\Settings\SettingService;
 use App\Services\Telegram\TelegramClient;
@@ -64,13 +65,15 @@ class CustomerTelegramDeliveryTest extends TestCase
         $notifier->invoiceIssued(Invoice::factory()->create(['customer_id' => $customer->id]));
         $notifier->outageResolved($customer, Outage::factory()->create(['title' => 'FO putus']));
 
-        $texts = collect(Queue::pushed(SendTelegramCustomerMessageJob::class))->map(fn ($job) => $job->text);
+        $texts = TelegramMessage::query()->orderBy('id')->pluck('body');
         $this->assertCount(4, $texts);
         $this->assertTrue($texts->contains(fn ($text) => str_starts_with($text, '🔴 Halo Budi') && str_contains($text, 'diisolir')));
         $this->assertTrue($texts->contains(fn ($text) => str_starts_with($text, '🟢 Halo Budi') && str_contains($text, 'aktif kembali')));
         $this->assertTrue($texts->contains(fn ($text) => str_starts_with($text, '🧾 Halo Budi')));
         $this->assertTrue($texts->contains(fn ($text) => str_starts_with($text, '✅ Halo Budi')));
-        Queue::assertPushed(SendTelegramCustomerMessageJob::class, fn ($job) => $job->chatId === '777');
+        Queue::assertPushed(SendTelegramCustomerMessageJob::class, 4);
+        $this->assertSame(['777'], TelegramMessage::query()->pluck('chat_id')->unique()->values()->all());
+        $this->assertSame('queued', TelegramMessage::first()->status);
         $this->assertSame(4, WhatsappMessage::count());
         $this->assertStringNotContainsString('🔴', WhatsappMessage::first()->body);
     }
@@ -126,23 +129,40 @@ class CustomerTelegramDeliveryTest extends TestCase
         $this->assertSame(WhatsappMessageStatus::Queued, WhatsappMessage::first()->status);
     }
 
-    public function test_the_job_sends_via_the_bot_and_unlinks_chats_that_blocked_the_bot(): void
+    public function test_the_job_sends_via_the_bot_records_the_outcome_and_unlinks_chats_that_blocked_the_bot(): void
     {
         $this->link();
         Http::fake(['api.telegram.org/*' => Http::sequence()
             ->push(['ok' => true, 'result' => []])
             ->push(['ok' => false, 'description' => 'Forbidden: bot was blocked by the user'], 403)
             ->push(['ok' => false, 'description' => 'Too Many Requests'], 429)]);
+        $make = fn (string $chat) => TelegramMessage::create(['chat_id' => $chat, 'body' => 'Halo', 'status' => 'queued']);
 
-        (new SendTelegramCustomerMessageJob('777', 'Halo'))->handle(app(TelegramClient::class));
+        $first = $make('777');
+        (new SendTelegramCustomerMessageJob($first->id))->handle(app(TelegramClient::class));
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/sendMessage') && $request['chat_id'] === '777' && $request['text'] === 'Halo');
+        $this->assertSame('sent', $first->fresh()->status);
+        $this->assertNotNull($first->fresh()->sent_at);
         $this->assertSame('6281234567890', ChatSession::first()->phone);
 
-        (new SendTelegramCustomerMessageJob('777', 'Halo'))->handle(app(TelegramClient::class));
+        $blocked = $make('777');
+        (new SendTelegramCustomerMessageJob($blocked->id))->handle(app(TelegramClient::class));
         $this->assertNull(ChatSession::first()->phone);
+        $this->assertSame('failed', $blocked->fresh()->status);
+        $this->assertStringContainsString('tautan Telegram pelanggan dicabut', $blocked->fresh()->error);
 
-        $this->expectException(TelegramDeliveryException::class);
-        (new SendTelegramCustomerMessageJob('999', 'Halo'))->handle(app(TelegramClient::class));
+        $flaky = $make('999');
+
+        try {
+            (new SendTelegramCustomerMessageJob($flaky->id))->handle(app(TelegramClient::class));
+            $this->fail('Galat sementara harus dilempar agar dicoba ulang.');
+        } catch (TelegramDeliveryException) {
+            $this->assertSame('failed', $flaky->fresh()->status);
+            $this->assertSame(1, $flaky->fresh()->attempts);
+        }
+
+        (new SendTelegramCustomerMessageJob($first->id))->handle(app(TelegramClient::class));
+        Http::assertSentCount(3);
     }
 
     public function test_a_failed_isolation_or_reopen_alerts_the_admin_and_respects_the_switch(): void

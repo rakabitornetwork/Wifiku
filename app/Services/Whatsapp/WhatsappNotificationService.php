@@ -20,7 +20,7 @@ class WhatsappNotificationService
     /**
      * Catat pesan di outbox dan antrekan pengirimannya.
      */
-    public function queue(string $phone, WhatsappMessageType $type, string $body, ?Customer $customer = null): WhatsappMessage
+    public function queue(string $phone, WhatsappMessageType $type, string $body, ?Customer $customer = null, bool $sensitive = false): WhatsappMessage
     {
         $message = WhatsappMessage::create([
             'customer_id' => $customer?->id,
@@ -28,6 +28,8 @@ class WhatsappNotificationService
             'type' => $type,
             'body' => $body,
             'status' => WhatsappMessageStatus::Queued,
+            // Kode OTP dan tautan reset selalu rahasia; balasan bot yang memuat password ditandai pemanggil.
+            'is_sensitive' => $sensitive || in_array($type, [WhatsappMessageType::AccountSecurity, WhatsappMessageType::PasswordReset], true),
         ]);
 
         SendWhatsappMessageJob::dispatch($message);
@@ -64,5 +66,6 @@ class WhatsappNotificationService
         }
 
         $message->update(['status' => WhatsappMessageStatus::Sent, 'sent_at' => now(), 'error' => null]);
+        $message->redactIfSensitive();
     }
 }

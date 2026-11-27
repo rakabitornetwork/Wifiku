@@ -67,6 +67,9 @@ class SendWhatsappMessageJob implements ShouldQueue
      */
     public function failed(?\Throwable $exception): void
     {
-        app(TelegramNotifier::class)->whatsappFailed($this->whatsappMessage->fresh() ?? $this->whatsappMessage);
+        $message = $this->whatsappMessage->fresh() ?? $this->whatsappMessage;
+        $message->redactIfSensitive();
+
+        app(TelegramNotifier::class)->whatsappFailed($message);
     }
 }

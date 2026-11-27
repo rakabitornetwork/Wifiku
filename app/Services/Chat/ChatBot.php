@@ -451,7 +451,7 @@ class ChatBot
 
             return [new ChatReply($live['available'] && $live['wifi_password']
                 ? "🔐 Password WiFi saat ini:\n{$live['wifi_password']}\n\n⚠️ Pesan ini tersimpan di riwayat chat. Hapus bila perangkat Anda dipakai bersama."
-                : '🔐 Password WiFi belum bisa dibaca saat ini. Coba lagi sebentar lagi atau hubungi CS.', [[['label' => '📋 Menu', 'data' => 'menu']]])];
+                : '🔐 Password WiFi belum bisa dibaca saat ini. Coba lagi sebentar lagi atau hubungi CS.', [[['label' => '📋 Menu', 'data' => 'menu']]], sensitive: true)];
         }
 
         return [new ChatReply('Balas 1 (ganti) atau 2 (lihat password). Ketik batal untuk kembali.', [[['label' => '❌ Batal', 'data' => 'batal']]])];
