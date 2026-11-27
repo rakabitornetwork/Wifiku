@@ -5,7 +5,7 @@ import { type FormEvent, useState } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
-import { Field, Input } from '@/Components/ui/Field';
+import { Field, Input, Select } from '@/Components/ui/Field';
 import { cn, formatDate } from '@/lib/utils';
 
 type SettingField = { name: string; label: string; hint: string | null; secret: boolean; value: string | null; is_set: boolean };
@@ -338,10 +338,17 @@ export default function Notifications({
                         <Field label="Chat ID tujuan" error={errors['settings.telegram.chat_id']} hint={fieldOf('telegram.chat_id')?.hint ?? undefined}>
                             <Input value={value('telegram.chat_id')} placeholder="-1001234567890" onChange={(event) => setField('telegram.chat_id', event.target.value)} />
                         </Field>
+                        <Field label="Pesan otomatis ke pelanggan" className="sm:col-span-2" error={errors['settings.telegram.customer_delivery']} hint={fieldOf('telegram.customer_delivery')?.hint ?? undefined}>
+                            <Select value={value('telegram.customer_delivery') || 'both'} onChange={(event) => setField('telegram.customer_delivery', event.target.value)}>
+                                <option value="off">Matikan (hanya WhatsApp)</option>
+                                <option value="both">WhatsApp dan Telegram</option>
+                                <option value="prefer">Utamakan Telegram (WhatsApp bila belum tertaut)</option>
+                            </Select>
+                        </Field>
                     </div>
                     <div className={cn('space-y-3 border-t px-6 py-5', !telegramOn && 'opacity-60')}>
                         <div className="text-xs font-semibold text-muted-foreground">Kirim peringatan untuk</div>
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
                             <Toggle
                                 label="Router offline dan pulih"
                                 checked={value('telegram.alert_router') !== '0'}
@@ -354,6 +361,12 @@ export default function Notifications({
                                 checked={value('telegram.alert_whatsapp') !== '0'}
                                 onChange={(on) => setField('telegram.alert_whatsapp', on ? '1' : '0')}
                                 hint="Setelah semua percobaan kirim habis."
+                            />
+                            <Toggle
+                                label="Isolir atau buka isolir gagal"
+                                checked={value('telegram.alert_isolation') !== '0'}
+                                onChange={(on) => setField('telegram.alert_isolation', on ? '1' : '0')}
+                                hint="Termasuk pelanggan yang sudah bayar tetapi belum terbuka."
                             />
                         </div>
                     </div>

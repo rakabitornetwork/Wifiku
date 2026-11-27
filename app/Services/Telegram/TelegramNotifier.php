@@ -3,10 +3,12 @@
 namespace App\Services\Telegram;
 
 use App\Jobs\Notification\SendTelegramMessageJob;
+use App\Models\Customer;
 use App\Models\Outage;
 use App\Models\Router;
 use App\Models\WhatsappMessage;
 use App\Services\Settings\SettingService;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -36,6 +38,24 @@ class TelegramNotifier
         $odp = $outage->odp ? "{$outage->odp->code} · {$outage->odp->name}" : 'ODP';
 
         $this->send('alert_outage', "⚠️ Gangguan baru: {$outage->title}\nLokasi: {$odp}");
+    }
+
+    /**
+     * Isolir atau buka-isolir tidak berhasil setelah semua percobaan. Gagal membuka berarti pelanggan sudah bayar tetapi masih terputus.
+     */
+    public function isolationFailed(Customer $customer, bool $reopening, string $error): void
+    {
+        $customer->loadMissing('router:id,name');
+        $router = $customer->router?->name ?? 'router';
+        $headline = $reopening
+            ? "🚨 Pelanggan sudah membayar tetapi GAGAL dibuka kembali: {$customer->name} ({$customer->customer_code})"
+            : "🚫 Gagal mengisolir pelanggan: {$customer->name} ({$customer->customer_code})";
+
+        $this->send('alert_isolation', "{$headline}
+Router: {$router}
+".Str::limit($error, 300).($reopening ? '
+Buka manual di router atau coba lagi setelah router terjangkau.' : '
+Isolir akan dicoba lagi pada penjadwalan berikutnya.'));
     }
 
     public function whatsappFailed(WhatsappMessage $message): void

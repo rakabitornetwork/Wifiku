@@ -35,6 +35,8 @@ class SettingDefinitions
         'telegram.bot_token' => ['label' => 'Token bot', 'default' => null, 'secret' => true, 'rules' => ['nullable', 'string', 'max:200', 'regex:/^\d{5,}:[A-Za-z0-9_-]{20,}$/'], 'hint' => 'Dari @BotFather, bentuknya 123456789:AAxxxx.'],
         'telegram.chat_id' => ['label' => 'Chat ID tujuan', 'default' => null, 'rules' => ['nullable', 'string', 'max:40', 'regex:/^(-?\d{5,20}|@[A-Za-z0-9_]{5,})$/'], 'hint' => 'ID pengguna, grup (diawali -), atau @namakanal. Kirim pesan ke bot lebih dulu agar bisa membalas.'],
         'telegram.bot_enabled' => ['label' => 'Aktifkan bot pelanggan', 'default' => '0', 'rules' => ['nullable', 'in:0,1'], 'hint' => 'Pelanggan terdaftar bisa cek tagihan, status ONU, dan ganti WiFi lewat chat dengan bot.'],
+        'telegram.customer_delivery' => ['label' => 'Pesan otomatis ke pelanggan', 'default' => 'both', 'rules' => ['nullable', 'in:off,both,prefer'], 'hint' => 'Berlaku bagi pelanggan yang sudah menautkan Telegram: off = hanya WhatsApp; both = WhatsApp dan Telegram; prefer = Telegram saja bila tertaut.'],
+        'telegram.alert_isolation' => ['label' => 'Isolir atau buka isolir gagal', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
         'telegram.alert_router' => ['label' => 'Router offline dan pulih', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
         'telegram.alert_outage' => ['label' => 'Gangguan ODP baru', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],
         'telegram.alert_whatsapp' => ['label' => 'Pesan WhatsApp gagal terkirim', 'default' => '1', 'rules' => ['nullable', 'in:0,1']],

@@ -43,7 +43,7 @@ class CustomerController extends Controller
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'routers' => Router::orderBy('name')->get(['id', 'name']),
-            'filters' => ['search' => trim((string) $request->query('search')), 'status' => $status?->value ?? '', 'router_id' => $routerId ? (string) $routerId : '', 'sort' => $sort, 'direction' => $direction],
+            'filters' => ['search' => trim((string) $request->query('search')), 'status' => $status?->value ?? '', 'router_id' => $routerId ? (string) $routerId : '', 'kontak' => $request->query('kontak') === 'tanpa-wa' ? 'tanpa-wa' : '', 'sort' => $sort, 'direction' => $direction],
         ]);
     }
 
@@ -152,8 +152,10 @@ class CustomerController extends Controller
         $search = trim((string) $request->input('search'));
         $status = CustomerStatus::tryFrom((string) $request->input('status'));
         $routerId = $request->integer('router_id') ?: null;
+        $withoutWhatsapp = $request->input('kontak') === 'tanpa-wa';
 
         return Customer::query()
+            ->when($withoutWhatsapp, fn ($query) => $query->where(fn ($query) => $query->whereNull('whatsapp')->orWhere('whatsapp', '')))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('customer_code', 'like', "%{$search}%")

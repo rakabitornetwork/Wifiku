@@ -30,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
         // Batas kirim WA Gateway (Baileys) agar broadcast massal tidak membuat nomor diblokir WhatsApp.
         RateLimiterFacade::for('whatsapp', fn () => Limit::perMinute(20));
 
+        // Telegram membatasi sekitar 30 pesan per detik untuk satu bot; sisakan ruang untuk balasan bot dan peringatan admin.
+        RateLimiterFacade::for('telegram', fn () => Limit::perSecond(20));
+
         // Owner memiliki akses penuh ke seluruh sistem, termasuk permission yang ditambahkan kemudian.
         // Hanya pengguna admin yang bisa menjadi Owner; sesi member VPN tidak pernah mendapat akses ini.
         Gate::before(fn (object $user): ?bool => $user instanceof User && $user->hasRole('Owner') ? true : null);

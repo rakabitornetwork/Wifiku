@@ -322,6 +322,17 @@ class DashboardWidgets
             ];
         }
 
+        if ($user->can(Permissions::CUSTOMERS_VIEW)) {
+            $items[] = [
+                'key' => 'no_whatsapp',
+                'label' => 'Pelanggan tanpa nomor WhatsApp',
+                'value' => Customer::query()->where('status', '!=', CustomerStatus::Inactive)->where(fn ($query) => $query->whereNull('whatsapp')->orWhere('whatsapp', ''))->count(),
+                'tone' => 'amber',
+                'href' => '/customers?kontak=tanpa-wa',
+                'hint' => 'Tidak menerima tagihan dan pemberitahuan',
+            ];
+        }
+
         return $items;
     }
 

@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Outage;
 use App\Models\Payment;
+use App\Services\Chat\CustomerTelegramChannel;
 use App\Services\Settings\SettingService;
 use Carbon\CarbonInterface;
 
@@ -16,10 +17,18 @@ use Carbon\CarbonInterface;
  */
 class CustomerNotifier
 {
+    /**
+     * Ikon bawaan salinan Telegram menurut jenis pesan.
+     *
+     * @var array<string, string>
+     */
+    private const ICONS = ['invoice' => '🧾', 'reminder' => '⏰', 'receipt' => '💳', 'outage' => '⚠️', 'isolir' => '🔴', 'test' => '🧪'];
+
     public function __construct(
         private readonly WhatsappNotificationService $whatsapp,
         private readonly SettingService $settings,
         private readonly VpnNotifier $vpn,
+        private readonly CustomerTelegramChannel $telegram,
     ) {}
 
     public function invoiceIssued(Invoice $invoice): void
@@ -109,7 +118,7 @@ class CustomerNotifier
             '',
             "Layanan internet {$this->company()} Anda telah aktif kembali. Bila belum tersambung, silakan matikan lalu nyalakan ulang modem.",
             'Terima kasih.',
-        ]));
+        ]), '🟢');
     }
 
     public function extensionGranted(Customer $customer, CarbonInterface $until, int $outstanding): void
@@ -121,7 +130,7 @@ class CustomerNotifier
             "Total tagihan yang harus dilunasi: {$this->rupiah($outstanding)}.",
             "Lihat tagihan dan bayar online: {$this->portalUrl($customer)}",
             'Mohon lunasi sebelum tanggal tersebut agar layanan tidak terisolir.',
-        ]));
+        ]), '🤝');
     }
 
     public function extensionEnding(Customer $customer, int $outstanding): void
@@ -155,7 +164,7 @@ class CustomerNotifier
             'Terima kasih atas kesabarannya.',
             '',
             "— {$this->company()}",
-        ]));
+        ]), '✅');
     }
 
     /**
@@ -173,10 +182,16 @@ class CustomerNotifier
         ]));
     }
 
-    private function send(Customer $customer, WhatsappMessageType $type, string $body): void
+    /**
+     * Kirim ke WhatsApp dan/atau Telegram (bila pelanggan menautkannya sesuai pengaturan pengiriman).
+     * Salinan Telegram diberi ikon sesuai fungsi pesan; WhatsApp tetap teks apa adanya.
+     */
+    private function send(Customer $customer, WhatsappMessageType $type, string $body, ?string $icon = null): void
     {
-        // Pelanggan hasil migrasi bisa belum punya nomor WhatsApp.
-        if (blank($customer->whatsapp)) {
+        $telegramSent = $this->telegram->send($customer, ($icon ?? self::ICONS[$type->value] ?? '🔔').' '.$body);
+
+        // Pelanggan hasil migrasi bisa belum punya nomor WhatsApp; bila Telegram diutamakan dan sudah terkirim, WhatsApp dilewati.
+        if (blank($customer->whatsapp) || ($telegramSent && $this->telegram->prefersTelegram())) {
             return;
         }
 

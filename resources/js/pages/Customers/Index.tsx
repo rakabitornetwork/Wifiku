@@ -36,7 +36,7 @@ type CustomerRow = {
 type Props = {
     customers: Paginated<CustomerRow>;
     routers: { id: number; name: string }[];
-    filters: { search: string; status: string; router_id: string; sort: string; direction: 'asc' | 'desc' };
+    filters: { search: string; status: string; router_id: string; kontak: string; sort: string; direction: 'asc' | 'desc' };
 };
 
 export default function CustomersIndex({ customers, routers, filters }: Props) {
@@ -67,7 +67,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
 
     const deleteSelected = () =>
         router.delete('/customers', {
-            data: selectAll ? { select_all: true, search: filters.search || undefined, status: filters.status || undefined, router_id: filters.router_id || undefined } : { ids: selected },
+            data: selectAll ? { select_all: true, search: filters.search || undefined, status: filters.status || undefined, router_id: filters.router_id || undefined, kontak: filters.kontak || undefined } : { ids: selected },
             preserveScroll: true,
             onStart: () => setDeleting(true),
             onFinish: () => {
@@ -80,7 +80,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
             },
         });
 
-    const applyFilter = (key: 'status' | 'router_id', value: string) =>
+    const applyFilter = (key: 'status' | 'router_id' | 'kontak', value: string) =>
         router.get('/customers', { ...filters, [key]: value || undefined, search: filters.search || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined, page: undefined }, { preserveState: true, replace: true });
 
     const sort = useServerSort();
@@ -101,12 +101,16 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
 
             <Card>
                 <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-                    <SearchInput value={filters.search} placeholder="Cari nama, kode, username, WhatsApp..." extra={{ status: filters.status || undefined, router_id: filters.router_id || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined }} />
+                    <SearchInput value={filters.search} placeholder="Cari nama, kode, username, WhatsApp..." extra={{ status: filters.status || undefined, router_id: filters.router_id || undefined, kontak: filters.kontak || undefined, sort: filters.sort || undefined, direction: filters.sort ? filters.direction : undefined }} />
                     <Select className="sm:w-44" value={filters.status} onChange={(event) => applyFilter('status', event.target.value)} aria-label="Filter status">
                         <option value="">Semua status</option>
                         <option value="active">Aktif</option>
                         <option value="isolated">Isolir</option>
                         <option value="inactive">Nonaktif</option>
+                    </Select>
+                    <Select className="sm:w-48" value={filters.kontak} onChange={(event) => applyFilter('kontak', event.target.value)} aria-label="Filter kontak">
+                        <option value="">Semua kontak</option>
+                        <option value="tanpa-wa">Tanpa nomor WhatsApp</option>
                     </Select>
                     <Select className="sm:w-48" value={filters.router_id} onChange={(event) => applyFilter('router_id', event.target.value)} aria-label="Filter router">
                         <option value="">Semua router</option>

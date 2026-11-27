@@ -4,6 +4,7 @@ namespace App\Jobs\Network;
 
 use App\Models\Customer;
 use App\Services\Network\IsolationService;
+use App\Services\Telegram\TelegramNotifier;
 use DateTime;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -68,5 +69,15 @@ class IsolateCustomerJob implements ShouldQueue
         }
 
         $isolation->isolate($customer);
+    }
+
+    /**
+     * Setelah semua percobaan habis, beri tahu admin lewat Telegram (bila diaktifkan).
+     */
+    public function failed(?\Throwable $exception): void
+    {
+        $customer = $this->customer->fresh() ?? $this->customer;
+
+        app(TelegramNotifier::class)->isolationFailed($customer, false, $exception?->getMessage() ?? 'Tanpa keterangan galat.');
     }
 }

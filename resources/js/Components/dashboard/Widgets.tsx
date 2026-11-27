@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, CalendarClock, CheckCircle2, ChevronRight, Megaphone, MessageSquareWarning, Radio, Ticket, UserPlus, WifiOff, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, CalendarClock, CheckCircle2, ChevronRight, Megaphone, MessageSquareWarning, PhoneOff, Radio, Ticket, UserPlus, WifiOff, type LucideIcon } from 'lucide-react';
 
 import { Card, CardHeader } from '@/Components/ui/Card';
 import { cn, formatRupiah } from '@/lib/utils';
@@ -272,7 +272,7 @@ export function WeakSignalWidget({ data }: { data: NonNullable<Widgets['weak_sig
     );
 }
 
-const attentionIcons: Record<string, LucideIcon> = { outages: Megaphone, promises: CalendarClock, new_customers: UserPlus, whatsapp: MessageSquareWarning };
+const attentionIcons: Record<string, LucideIcon> = { outages: Megaphone, promises: CalendarClock, new_customers: UserPlus, whatsapp: MessageSquareWarning, no_whatsapp: PhoneOff };
 const attentionTone = {
     red: 'bg-rose-500/12 text-rose-600 dark:text-rose-300',
     amber: 'bg-amber-500/14 text-amber-600 dark:text-amber-300',

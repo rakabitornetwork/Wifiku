@@ -42,7 +42,7 @@ class DashboardWidgetsTest extends TestCase
             ->where('widgets.collection.percent', 0)
             ->where('widgets.overdue.count', 0)
             ->where('widgets.weak_signal.count', 0)
-            ->has('widgets.attention', 4)
+            ->has('widgets.attention', 5)
             ->has('widgets.activity'));
     }
 
