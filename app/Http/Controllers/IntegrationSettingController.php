@@ -30,6 +30,7 @@ class IntegrationSettingController extends Controller
         'billing' => 'Penagihan',
         'whatsapp' => 'WhatsApp Gateway',
         'telegram' => 'Telegram',
+        'notify' => 'Pesan otomatis ke pelanggan',
         'genieacs' => 'GenieACS (TR-069)',
         'hotspot' => 'Hotspot',
         'vpn' => 'VPN Tunnel (pendaftaran member)',
@@ -41,7 +42,7 @@ class IntegrationSettingController extends Controller
      *
      * @var list<string>
      */
-    private const NOTIFICATION_GROUPS = ['whatsapp', 'telegram'];
+    private const NOTIFICATION_GROUPS = ['whatsapp', 'telegram', 'notify'];
 
     public function index(SettingService $settings): Response
     {

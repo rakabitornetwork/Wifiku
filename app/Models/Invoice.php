@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['invoice_number', 'customer_id', 'vpn_account_id', 'period_start', 'period_end', 'issue_date', 'due_date', 'is_prorated', 'prorata_days', 'period_days', 'subtotal', 'discount', 'tax', 'total', 'amount_paid', 'status', 'paid_at', 'reminder_sent_at', 'notes'])]
+#[Fillable(['invoice_number', 'customer_id', 'vpn_account_id', 'period_start', 'period_end', 'issue_date', 'due_date', 'is_prorated', 'prorata_days', 'period_days', 'subtotal', 'discount', 'tax', 'total', 'amount_paid', 'status', 'paid_at', 'reminder_sent_at', 'due_reminder_sent_at', 'notes'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
@@ -60,6 +60,7 @@ class Invoice extends Model
             'status' => InvoiceStatus::class,
             'paid_at' => 'datetime',
             'reminder_sent_at' => 'datetime',
+            'due_reminder_sent_at' => 'datetime',
         ];
     }
 

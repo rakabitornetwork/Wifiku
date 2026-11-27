@@ -38,7 +38,7 @@ class IntegrationSettingControllerTest extends TestCase
         $this->actingAs($this->admin())->get('/settings/integrations')->assertForbidden();
         $this->actingAs($this->owner())->get('/settings/integrations')->assertInertia(fn (Assert $page) => $page->component('Settings/Integrations')->has('groups', 7));
         $this->actingAs($this->admin())->get('/settings/notifications')->assertForbidden();
-        $this->actingAs($this->owner())->get('/settings/notifications')->assertInertia(fn (Assert $page) => $page->component('Settings/Notifications')->has('groups', 2)->where('groups.0.group', 'whatsapp')->where('groups.1.group', 'telegram'));
+        $this->actingAs($this->owner())->get('/settings/notifications')->assertInertia(fn (Assert $page) => $page->component('Settings/Notifications')->has('groups', 3)->where('groups.0.group', 'whatsapp')->where('groups.1.group', 'telegram')->where('groups.2.group', 'notify'));
     }
 
     public function test_secret_values_are_never_sent_to_the_browser(): void

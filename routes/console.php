@@ -5,6 +5,7 @@ use App\Enums\AssetType;
 use App\Enums\RouterStatus;
 use App\Jobs\Billing\GenerateMonthlyInvoicesJob;
 use App\Jobs\Billing\GenerateVpnInvoicesJob;
+use App\Jobs\Billing\SendDueDateRemindersJob;
 use App\Jobs\Billing\SendInvoiceRemindersJob;
 use App\Jobs\Billing\SendPromiseRemindersJob;
 use App\Jobs\GenieAcs\FetchOntRxPowerJob;
@@ -25,11 +26,13 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Billing: invoice siklus berjalan (termasuk prorata), lalu isolir tunggakan, lalu pengingat H-3 di jam kerja.
-Schedule::job(new GenerateMonthlyInvoicesJob)->dailyAt('00:10')->name('generate-invoices')->onOneServer()->withoutOverlapping(60);
+// Billing: invoice siklus berjalan terbit pukul 08.00 (pesan tagihan tidak masuk tengah malam), isolir tunggakan lewat tengah malam,
+// lalu pengingat H-3, janji bayar, dan hari jatuh tempo di jam kerja.
+Schedule::job(new GenerateMonthlyInvoicesJob)->dailyAt('08:00')->name('generate-invoices')->onOneServer()->withoutOverlapping(60);
 Schedule::job(new ProcessOverdueCustomersJob)->dailyAt('00:30')->name('auto-isolir')->onOneServer()->withoutOverlapping(60);
 Schedule::job(new SendInvoiceRemindersJob)->dailyAt('09:00')->name('invoice-reminders')->onOneServer()->withoutOverlapping(60);
 Schedule::job(new SendPromiseRemindersJob)->dailyAt('09:05')->name('promise-reminders')->onOneServer()->withoutOverlapping(60);
+Schedule::job(new SendDueDateRemindersJob)->dailyAt('09:10')->name('due-date-reminders')->onOneServer()->withoutOverlapping(60);
 
 // Jaringan: status router dan voucher hotspot kedaluwarsa.
 Schedule::call(function (): void {
@@ -52,7 +55,7 @@ Schedule::call(function (): void {
 })->hourly()->name('fetch-ont-rx-power')->onOneServer()->when(fn (): bool => app(GenieAcsService::class)->isConfigured());
 
 // VPN Tunnel: tagihan perpanjangan terbit menjelang masa berlaku habis (sebelum pengecekan kedaluwarsa).
-Schedule::job(new GenerateVpnInvoicesJob)->dailyAt('00:15')->name('generate-vpn-invoices')->onOneServer()->withoutOverlapping(60);
+Schedule::job(new GenerateVpnInvoicesJob)->dailyAt('08:05')->name('generate-vpn-invoices')->onOneServer()->withoutOverlapping(60);
 
 // VPN Tunnel: akun buatan member yang tidak dibayar 3 hari dibersihkan agar kuota dan IP-nya bebas.
 Schedule::job(new ExpirePendingVpnAccountsJob)->dailyAt('00:25')->name('expire-pending-vpn-accounts')->onOneServer()->withoutOverlapping(60);

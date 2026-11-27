@@ -53,7 +53,7 @@ class CustomerNotifier
             "Bayar online (QRIS/VA): {$this->portalUrl($customer)}",
             'Cek status ONU & ganti WiFi: '.route('portal.login').' (masuk dengan nomor WhatsApp ini)',
             'Terima kasih.',
-        ]));
+        ]), null, 'invoice');
     }
 
     public function invoiceReminder(Invoice $invoice): void
@@ -74,7 +74,23 @@ class CustomerNotifier
             "Kode pelanggan: {$customer->customer_code}",
             '',
             "Bayar online: {$this->portalUrl($customer)}",
-        ]));
+        ]), null, 'reminder');
+    }
+
+    public function invoiceDueToday(Invoice $invoice): void
+    {
+        $customer = $invoice->customer;
+        $remaining = max(0, $invoice->total - $invoice->amount_paid);
+
+        $this->send($customer, WhatsappMessageType::Reminder, implode("\n", [
+            "Halo {$customer->name},",
+            '',
+            "Tagihan {$invoice->invoice_number} sebesar {$this->rupiah($remaining)} jatuh tempo HARI INI ({$this->date($invoice->due_date)}).",
+            'Mohon lunasi hari ini agar layanan internet tidak diisolir otomatis.',
+            "Kode pelanggan: {$customer->customer_code}",
+            '',
+            "Bayar online (QRIS/VA): {$this->portalUrl($customer)}",
+        ]), '⏳', 'due_today');
     }
 
     public function paymentReceived(Payment $payment): void
@@ -97,7 +113,7 @@ class CustomerNotifier
             $invoice->status === InvoiceStatus::Paid ? 'Status tagihan: LUNAS.' : "Sisa tagihan: {$this->rupiah($remaining)}.",
             "Ref: {$payment->merchant_ref}",
             'Terima kasih.',
-        ]));
+        ]), null, 'receipt');
     }
 
     public function isolated(Customer $customer): void
@@ -108,7 +124,7 @@ class CustomerNotifier
             "Layanan internet {$this->company()} Anda sementara diisolir karena tagihan telah melewati jatuh tempo.",
             "Lihat tagihan dan bayar online: {$this->portalUrl($customer)}",
             'Layanan aktif kembali otomatis setelah pembayaran diterima.',
-        ]));
+        ]), null, 'isolated');
     }
 
     public function reopened(Customer $customer): void
@@ -118,7 +134,7 @@ class CustomerNotifier
             '',
             "Layanan internet {$this->company()} Anda telah aktif kembali. Bila belum tersambung, silakan matikan lalu nyalakan ulang modem.",
             'Terima kasih.',
-        ]), '🟢');
+        ]), '🟢', 'reopened');
     }
 
     public function extensionGranted(Customer $customer, CarbonInterface $until, int $outstanding): void
@@ -130,7 +146,7 @@ class CustomerNotifier
             "Total tagihan yang harus dilunasi: {$this->rupiah($outstanding)}.",
             "Lihat tagihan dan bayar online: {$this->portalUrl($customer)}",
             'Mohon lunasi sebelum tanggal tersebut agar layanan tidak terisolir.',
-        ]), '🤝');
+        ]), '🤝', 'extension');
     }
 
     public function extensionEnding(Customer $customer, int $outstanding): void
@@ -141,7 +157,7 @@ class CustomerNotifier
             "Masa perpanjangan pembayaran Anda berakhir besok. Tagihan yang belum lunas: {$this->rupiah($outstanding)}.",
             "Bayar online: {$this->portalUrl($customer)}",
             'Bila belum dibayar, layanan akan diisolir otomatis.',
-        ]));
+        ]), null, 'extension');
     }
 
     public function outage(Customer $customer, Outage $outage): void
@@ -152,7 +168,7 @@ class CustomerNotifier
             $outage->message,
             '',
             "— {$this->company()}",
-        ]));
+        ]), null, 'outage');
     }
 
     public function outageResolved(Customer $customer, Outage $outage): void
@@ -164,7 +180,7 @@ class CustomerNotifier
             'Terima kasih atas kesabarannya.',
             '',
             "— {$this->company()}",
-        ]), '✅');
+        ]), '✅', 'outage');
     }
 
     /**
@@ -186,8 +202,13 @@ class CustomerNotifier
      * Kirim ke WhatsApp dan/atau Telegram (bila pelanggan menautkannya sesuai pengaturan pengiriman).
      * Salinan Telegram diberi ikon sesuai fungsi pesan; WhatsApp tetap teks apa adanya.
      */
-    private function send(Customer $customer, WhatsappMessageType $type, string $body, ?string $icon = null): void
+    private function send(Customer $customer, WhatsappMessageType $type, string $body, ?string $icon = null, ?string $topic = null): void
     {
+        // Saklar per jenis pesan (Pengaturan → Notifikasi & Webhook); berlaku untuk WhatsApp dan Telegram sekaligus.
+        if ($topic !== null && $this->settings->get('notify', $topic) === '0') {
+            return;
+        }
+
         $telegramSent = $this->telegram->send($customer, ($icon ?? self::ICONS[$type->value] ?? '🔔').' '.$body);
 
         // Pelanggan hasil migrasi bisa belum punya nomor WhatsApp; bila Telegram diutamakan dan sudah terkirim, WhatsApp dilewati.

@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { AlertTriangle, Bot, Check, Copy, KeyRound, MessageCircle, QrCode, Send, Webhook, Wifi } from 'lucide-react';
+import { AlertTriangle, BellRing, Bot, Check, Copy, KeyRound, MessageCircle, QrCode, Send, Webhook, Wifi } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
@@ -19,6 +19,9 @@ function postJson<T>(url: string): Promise<T> {
 
     return fetch(url, { method: 'POST', headers: { Accept: 'application/json', 'X-XSRF-TOKEN': token } }).then((response) => response.json());
 }
+
+/** Ikon per jenis pesan otomatis ke pelanggan, sama dengan ikon yang tampil di pesan Telegram. */
+const topicIcons: Record<string, string> = { invoice: '🧾', reminder: '⏰', due_today: '⏳', receipt: '💳', isolated: '🔴', reopened: '🟢', extension: '🤝', outage: '⚠️' };
 
 function Toggle({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (value: boolean) => void; hint?: string }) {
     return (
@@ -338,7 +341,12 @@ export default function Notifications({
                         <Field label="Chat ID tujuan" error={errors['settings.telegram.chat_id']} hint={fieldOf('telegram.chat_id')?.hint ?? undefined}>
                             <Input value={value('telegram.chat_id')} placeholder="-1001234567890" onChange={(event) => setField('telegram.chat_id', event.target.value)} />
                         </Field>
-                        <Field label="Pesan otomatis ke pelanggan" className="sm:col-span-2" error={errors['settings.telegram.customer_delivery']} hint={fieldOf('telegram.customer_delivery')?.hint ?? undefined}>
+                        <Field
+                            label="Pesan otomatis ke pelanggan"
+                            className="sm:col-span-2"
+                            error={errors['settings.telegram.customer_delivery']}
+                            hint={fieldOf('telegram.customer_delivery')?.hint ?? undefined}
+                        >
                             <Select value={value('telegram.customer_delivery') || 'both'} onChange={(event) => setField('telegram.customer_delivery', event.target.value)}>
                                 <option value="off">Matikan (hanya WhatsApp)</option>
                                 <option value="both">WhatsApp dan Telegram</option>
@@ -397,6 +405,29 @@ export default function Notifications({
                         busy={hookBusy === 'telegram'}
                         result={hookResult.telegram}
                     />
+                </Card>
+
+                <Card>
+                    <div className="flex items-start gap-3 p-6 pb-0">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/14 text-amber-600 dark:text-amber-300">
+                            <BellRing className="size-5" />
+                        </span>
+                        <div>
+                            <h2 className="text-[15px] font-semibold tracking-tight">Pesan otomatis ke pelanggan</h2>
+                            <p className="mt-0.5 text-xs text-muted-foreground">Pilih jenis pesan yang dikirim. Berlaku untuk WhatsApp dan Telegram sekaligus. Kode OTP login portal selalu dikirim.</p>
+                        </div>
+                    </div>
+                    <div className="grid gap-x-8 gap-y-4 p-6 sm:grid-cols-2">
+                        {(groups.find((group) => group.group === 'notify')?.fields ?? []).map((field) => (
+                            <Toggle
+                                key={field.name}
+                                label={`${topicIcons[field.name.split('.')[1]] ?? '🔔'} ${field.label}`}
+                                hint={field.hint ?? undefined}
+                                checked={value(field.name) !== '0'}
+                                onChange={(on) => setField(field.name, on ? '1' : '0')}
+                            />
+                        ))}
+                    </div>
                 </Card>
 
                 <div className="flex justify-end">
