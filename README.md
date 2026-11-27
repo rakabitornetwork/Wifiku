@@ -222,6 +222,22 @@ Pemulihan di server baru: pasang aplikasi (`./deploy.sh --first-run`), hentikan 
 
 `APP_KEY` di `.env` berbeda dari key yang dipakai saat data terenkripsi disimpan. Kembalikan `APP_KEY` yang lama lalu `php artisan config:cache`. Hanya bila datanya memang belum berharga (instalasi baru), kosongkan nilai terenkripsi di tabel `settings` dan isi ulang dari menu Pengaturan.
 
+### `validation.uploaded` saat upload gambar
+
+PHP menolak file sebelum diproses aplikasi (pesan aslinya "The file failed to upload"). Aplikasi mengizinkan gambar hingga 8 MB, tetapi `upload_max_filesize` bawaan PHP hanya 2 MB. Ubah konfigurasi **PHP-FPM** (bukan CLI) di `/etc/php/8.4/fpm/php.ini`:
+
+```ini
+upload_max_filesize = 16M
+post_max_size = 20M
+file_uploads = On
+```
+
+```bash
+sudo systemctl restart php8.4-fpm
+```
+
+Di Nginx pastikan `client_max_body_size 20M;` (galat 413 berarti batas ini yang menolak). Bila nilainya sudah besar tetapi tetap gagal, periksa disk penuh (`df -h /tmp /home`) dan izin folder temporary upload. Di panel hosting, ubah lewat menu PHP Settings / MultiPHP INI Editor.
+
 ### Logo atau ilustrasi landing tidak muncul
 
 File disimpan di `storage/app/private/landing/` dan tercatat di tabel `landing_images`, keduanya tidak ikut git. Unggah ulang dari menu **Ilustrasi Landing**, atau pulihkan dari cadangan. Pastikan `storage/` bisa ditulis user PHP-FPM.
