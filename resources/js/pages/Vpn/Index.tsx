@@ -4,7 +4,6 @@ import { type FormEvent, useState } from 'react';
 
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
-import { VpnTabs } from '@/Components/VpnTabs';
 import { SearchInput } from '@/Components/SearchInput';
 import { Badge, StatusBadge } from '@/Components/ui/Badge';
 import { Button, buttonClass } from '@/Components/ui/Button';
@@ -290,7 +289,6 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                 }
             />
 
-            <VpnTabs />
 
             <Card className="mb-4">
                 <CardHeader

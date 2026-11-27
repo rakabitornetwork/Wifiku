@@ -105,7 +105,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
         });
     };
 
-    const isActive = (item: NavItem) => [item.match, ...(item.alsoMatch ?? [])].some((match) => !!match && (url === match || url.startsWith(match + '/') || url.startsWith(match + '?')));
+    const matches = (url: string, match: string) => url === match || url.startsWith(match + '/') || url.startsWith(match + '?');
+    const isActive = (item: NavItem) => !(item.exclude ?? []).some((path) => matches(url, path)) && [item.match, ...(item.alsoMatch ?? [])].some((match) => !!match && matches(url, match));
 
     const sidebar = (compact: boolean) => (
         <div className="flex h-full flex-col">

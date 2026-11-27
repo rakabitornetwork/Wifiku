@@ -5,7 +5,6 @@ import { type FormEvent, useState } from 'react';
 import { ConfirmDelete } from '@/Components/ConfirmDelete';
 import { PageHeader } from '@/Components/PageHeader';
 import { SearchInput } from '@/Components/SearchInput';
-import { VpnTabs } from '@/Components/VpnTabs';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
@@ -59,8 +58,7 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
 
     return (
         <>
-            <PageHeader title="VPN Tunnel" description="Kelola pelanggan yang mendaftar sendiri lewat landing page /vpn-tunnel." />
-            <VpnTabs />
+            <PageHeader title="Member VPN" description="Pelanggan layanan VPN Tunnel yang mendaftar sendiri lewat landing page /vpn-tunnel. Akun dan server VPN-nya ada di menu VPN Tunnel." actions={<Link href="/vpn" className="text-sm font-semibold text-primary hover:underline">Buka akun & server VPN</Link>} />
 
             <Card>
                 <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">

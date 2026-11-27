@@ -18,6 +18,7 @@ import {
     TrendingUp,
     UserCog,
     Users,
+    UsersRound,
     Wallet,
     Wifi,
     type LucideIcon,
@@ -31,6 +32,8 @@ export type NavItem = {
     match?: string;
     /** Alamat lain yang ikut menandai menu ini aktif (halaman yang digabung dalam satu menu). */
     alsoMatch?: string[];
+    /** Alamat yang tidak menandai menu ini aktif walau cocok dengan `match` (halaman yang dipindah ke menu lain). */
+    exclude?: string[];
     /** Modul yang dikerjakan pada fase berikutnya. */
     soon?: boolean;
     /** Permission yang dibutuhkan; menu disembunyikan bila tidak dimiliki. */
@@ -51,6 +54,7 @@ export const navigation: NavGroup[] = [
         title: 'Pelanggan',
         items: [
             { label: 'Data Pelanggan', href: '/customers', icon: Users, match: '/customers', permission: 'customers.view' },
+            { label: 'Member VPN', href: '/vpn/members', icon: UsersRound, match: '/vpn/members', permission: 'vpn.manage' },
             { label: 'Paket Bandwidth', href: '/packages', icon: Package, match: '/packages', permission: 'packages.manage' },
             { label: 'Voucher Hotspot', href: '/hotspot/batches', icon: Wifi, match: '/hotspot', permission: 'vouchers.manage' },
         ],
@@ -59,7 +63,7 @@ export const navigation: NavGroup[] = [
         title: 'Network',
         items: [
             { label: 'Manajemen Router', href: '/routers', icon: Router, match: '/routers', permission: 'routers.manage' },
-            { label: 'VPN Tunnel', href: '/vpn', icon: ShieldCheck, match: '/vpn', permission: 'vpn.manage' },
+            { label: 'VPN Tunnel', href: '/vpn', icon: ShieldCheck, match: '/vpn', exclude: ['/vpn/members'], permission: 'vpn.manage' },
             { label: 'Monitoring OLT & TR-069', href: '/monitoring', icon: Activity, match: '/monitoring', permission: 'assets.manage' },
             { label: 'Inventaris ONT & Aset', href: '/assets', icon: Boxes, match: '/assets', permission: 'assets.manage' },
         ],
