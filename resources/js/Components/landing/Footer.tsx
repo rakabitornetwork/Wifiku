@@ -20,7 +20,7 @@ export function Footer({ company, body, onLanding = true }: { company: Company; 
                 <div>
                     <div className="flex items-center gap-3 text-sm font-semibold text-white">
                         {company.logo ? (
-                            <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-sm">
+                            <span className="flex h-10 items-center">
                                 <img src={company.logo} alt="" className="h-7 w-auto max-w-36 object-contain" />
                             </span>
                         ) : (

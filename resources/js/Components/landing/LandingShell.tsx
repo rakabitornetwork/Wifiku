@@ -46,7 +46,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
                         {company.logo ? (
-                            <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-sm ring-1 ring-slate-200 dark:ring-white/10">
+                            <span className="flex h-10 items-center">
                                 <img src={company.logo} alt="" className="h-7 w-auto max-w-36 object-contain" />
                             </span>
                         ) : (
