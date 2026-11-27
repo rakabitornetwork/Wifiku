@@ -22,7 +22,7 @@ export function BrandMark({ tone }: { tone: 'dark' | 'auto' }) {
     return (
         <div className="flex items-center gap-3">
             {brand.logo ? (
-                <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-sm ring-1 ring-slate-900/5">
+                <span className="flex h-10 items-center">
                     <img src={brand.logo} alt="" className="h-7 w-auto max-w-32 object-contain" />
                 </span>
             ) : (

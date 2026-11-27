@@ -28,7 +28,7 @@ export function PortalShell({ company, children, loggedIn = false, hero }: Props
                     <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:h-[4.5rem]">
                         <Link href="/" className="flex min-w-0 items-center gap-3 text-sm font-semibold">
                             {company.logo ? (
-                                <span className="flex h-9 items-center rounded-lg bg-white px-2">
+                                <span className="flex h-9 items-center">
                                     <img src={company.logo} alt="" className="h-6 w-auto max-w-32 object-contain" />
                                 </span>
                             ) : (

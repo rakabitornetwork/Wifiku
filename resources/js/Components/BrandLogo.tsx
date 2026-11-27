@@ -17,7 +17,7 @@ const sizes = {
 } as const;
 
 /**
- * Tanda merek: logo perusahaan yang diunggah (di atas ubin putih agar terbaca di latar apa pun),
+ * Tanda merek: logo perusahaan yang diunggah (tampil langsung tanpa ubin, latar transparan),
  * atau ikon bawaan bila belum ada logo. `square` memaksa ubin persegi, mis. untuk sidebar yang diciutkan.
  */
 export function BrandLogo({ size = 'sm', square = false, icon: Icon = Wifi, className }: { size?: keyof typeof sizes; square?: boolean; icon?: LucideIcon; className?: string }) {
@@ -26,7 +26,7 @@ export function BrandLogo({ size = 'sm', square = false, icon: Icon = Wifi, clas
 
     if (logo) {
         return (
-            <span className={cn('flex shrink-0 items-center justify-center rounded-xl bg-white px-1.5 shadow-sm ring-1 ring-slate-900/10', square ? s.square : s.box, className)}>
+            <span className={cn('flex shrink-0 items-center justify-center', square ? s.square : s.box)}>
                 <img src={logo} alt="" className={cn('w-auto object-contain', square ? s.squareImage : s.image)} />
             </span>
         );
