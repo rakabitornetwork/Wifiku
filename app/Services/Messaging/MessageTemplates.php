@@ -27,10 +27,10 @@ class MessageTemplates
             'icon' => '🎉',
             'when' => 'Sekali, saat pelanggan baru berstatus aktif didaftarkan di panel (butuh nomor WhatsApp).',
             'editable' => true,
-            'placeholders' => ['nama' => 'Nama pelanggan', 'perusahaan' => 'Nama perusahaan', 'kode_pelanggan' => 'Kode pelanggan', 'link_portal' => 'Tautan login portal pelanggan'],
+            'placeholders' => ['nama' => 'Nama pelanggan', 'perusahaan' => 'Nama perusahaan', 'kode_pelanggan' => 'Kode pelanggan', 'link_portal' => 'Tautan login portal pelanggan', 'info_tagihan' => 'Ringkasan tagihan pertama (prorata) dan tagihan berikutnya'],
             'required' => ['kode_pelanggan'],
-            'sample' => [],
-            'default' => "Halo {nama},\n\nSelamat bergabung dan selamat datang di layanan internet {perusahaan}! 🎉\nTerima kasih telah mempercayakan koneksi internet Anda kepada kami.\n\nKode pelanggan Anda: {kode_pelanggan}\nSimpan kode ini untuk keperluan layanan.\n\nDi portal pelanggan Anda bisa melihat tagihan, mengecek status ONU, dan mengganti nama serta password WiFi:\n{link_portal}\n(masuk dengan nomor WhatsApp ini)\n\nBila ada kendala, balas pesan ini atau hubungi CS kami. Selamat menikmati internetnya!",
+            'sample' => ['info_tagihan' => "Info tagihan:\n• Tagihan pertama (prorata 21/30 hari): Rp 105.000, terbit 13/12/2026, jatuh tempo 20/12/2026.\n• Selanjutnya Rp 150.000/bulan, terbit tiap tanggal 3, jatuh tempo 7 hari setelahnya."],
+            'default' => "Halo {nama},\n\nSelamat bergabung dan selamat datang di layanan internet {perusahaan}! 🎉\nTerima kasih telah mempercayakan koneksi internet Anda kepada kami.\n\nKode pelanggan Anda: {kode_pelanggan}\nSimpan kode ini untuk keperluan layanan.\n\n{info_tagihan}\n\nDi portal pelanggan Anda bisa melihat tagihan, mengecek status ONU, dan mengganti nama serta password WiFi:\n{link_portal}\n(masuk dengan nomor WhatsApp ini)\n\nBila ada kendala, balas pesan ini atau hubungi CS kami. Selamat menikmati internetnya!",
         ],
         'invoice_issued' => [
             'label' => 'Tagihan baru',

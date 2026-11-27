@@ -6,6 +6,7 @@ use App\Actions\Customer\CreateCustomer;
 use App\Enums\WhatsappMessageType;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
+use App\Models\Package;
 use App\Models\TelegramMessage;
 use App\Models\WhatsappMessage;
 use App\Services\Messaging\MessageTemplates;
@@ -143,5 +144,24 @@ class MessageLogAndTemplatesTest extends TestCase
     {
         $this->actingAs($this->admin()->givePermissionTo('settings.manage'))->put('/settings/message-templates/isolated', ['body' => 'Halo {nama} {link_bayar}'])->assertForbidden();
         $this->assertSame(0, MessageTemplate::count());
+    }
+
+    public function test_the_welcome_message_summarises_the_first_prorata_bill_and_the_following_ones(): void
+    {
+        $this->travelTo('2026-12-13 10:00:00');
+        $package = Package::factory()->create(['price' => 150000]);
+        $customer = Customer::factory()->for($package)->create(['whatsapp' => '6281234567890', 'billing_day' => 3, 'due_days' => 7, 'installed_at' => '2026-12-13']);
+
+        app(CustomerNotifier::class)->welcome($customer->fresh());
+
+        $body = WhatsappMessage::sole()->body;
+        $this->assertStringContainsString('Tagihan pertama (prorata 21/31 hari): Rp 101.613, terbit 14/12/2026, jatuh tempo 21/12/2026.', $body);
+        $this->assertStringContainsString('Selanjutnya Rp 150.000/bulan, terbit tiap tanggal 3, jatuh tempo 7 hari setelahnya.', $body);
+
+        WhatsappMessage::query()->delete();
+        $full = Customer::factory()->for($package)->create(['whatsapp' => '6281234567891', 'billing_day' => 13, 'due_days' => 7, 'installed_at' => '2026-12-13']);
+        app(CustomerNotifier::class)->welcome($full->fresh());
+
+        $this->assertStringContainsString('Tagihan pertama: Rp 150.000 (1 bulan penuh)', WhatsappMessage::sole()->body);
     }
 }

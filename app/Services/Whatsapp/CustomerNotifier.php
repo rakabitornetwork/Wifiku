@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Outage;
 use App\Models\Payment;
+use App\Services\Billing\ProrataCalculator;
 use App\Services\Chat\CustomerTelegramChannel;
 use App\Services\Messaging\MessageTemplates;
 use App\Services\Settings\SettingService;
@@ -27,11 +28,47 @@ class CustomerNotifier
         private readonly VpnNotifier $vpn,
         private readonly CustomerTelegramChannel $telegram,
         private readonly MessageTemplates $templates,
+        private readonly ProrataCalculator $prorata,
     ) {}
 
     public function welcome(Customer $customer): void
     {
-        $this->send($customer, 'welcome', $this->base($customer));
+        $this->send($customer, 'welcome', [...$this->base($customer), 'info_tagihan' => $this->billingPreview($customer)]);
+    }
+
+    /**
+     * Ringkasan singkat tagihan pertama (prorata bila mulai di tengah siklus) dan tagihan sesudahnya, dihitung dari data pelanggan.
+     * Invoice pertama dibuat penjadwal pukul 08.00, jadi terbit hari ini bila pelanggan didaftarkan sebelum jam itu.
+     */
+    private function billingPreview(Customer $customer): string
+    {
+        $package = $customer->package;
+
+        if ($package === null || $customer->installed_at === null) {
+            return '';
+        }
+
+        $price = $package->price;
+        $today = CarbonImmutable::today();
+        $day = CarbonImmutable::parse($customer->installed_at)->startOfDay()->max($today);
+        [$cycleStart, $cycleEnd] = $this->prorata->cycleContaining($customer->billing_day, $day);
+        $installed = CarbonImmutable::parse($customer->installed_at)->startOfDay();
+        $issue = $day->equalTo($today) && now()->hour >= 8 ? $day->addDay() : $day;
+        $due = $issue->addDays($customer->due_days);
+
+        $first = $installed->greaterThan($cycleStart)
+            ? $this->prorata->calculate($price, $installed, $cycleStart, $cycleEnd)
+            : null;
+
+        $firstLine = $first
+            ? "• Tagihan pertama (prorata {$first['days']}/{$first['period_days']} hari): {$this->rupiah($first['amount'])}, terbit {$this->date($issue)}, jatuh tempo {$this->date($due)}."
+            : "• Tagihan pertama: {$this->rupiah($price)} (1 bulan penuh), terbit {$this->date($issue)}, jatuh tempo {$this->date($due)}.";
+
+        return implode("\n", [
+            'Info tagihan:',
+            $firstLine,
+            "• Selanjutnya {$this->rupiah($price)}/bulan, terbit tiap tanggal {$customer->billing_day}, jatuh tempo {$customer->due_days} hari setelahnya.",
+        ]);
     }
 
     public function invoiceIssued(Invoice $invoice): void

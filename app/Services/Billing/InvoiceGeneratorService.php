@@ -35,12 +35,7 @@ class InvoiceGeneratorService
      */
     public function cycleContaining(int $billingDay, CarbonImmutable $date): array
     {
-        $date = $date->startOfDay();
-        $start = $date->day >= $billingDay
-            ? $date->setDay($billingDay)
-            : $date->startOfMonth()->subMonthNoOverflow()->setDay($billingDay);
-
-        return [$start, $start->addMonthNoOverflow()->subDay()];
+        return $this->prorata->cycleContaining($billingDay, $date);
     }
 
     /**
