@@ -40,6 +40,11 @@ fi
 
 [ -f .env ] || { echo ".env belum ada. Jalankan: ./deploy.sh --first-run" >&2; exit 1; }
 
+if [ "$FIRST_RUN" -eq 0 ] && ! grep -qE '^APP_KEY=.+' .env; then
+    echo "APP_KEY di .env kosong. Isi key lama dari cadangan, atau gunakan --first-run untuk instalasi baru." >&2
+    exit 1
+fi
+
 if [ -d .git ]; then
     step "Menarik kode terbaru ($BRANCH)"
     git fetch --quiet origin
@@ -57,13 +62,30 @@ if [ "$FIRST_RUN" -eq 0 ]; then
 fi
 
 if [ "$FIRST_RUN" -eq 1 ]; then
-    if ! grep -qE '^APP_KEY=.+' .env; then
-        step "Membuat APP_KEY"
-        "$PHP_BIN" artisan key:generate --force
-    fi
+    USING_SQLITE=0
+    DB_FILE=""
     if grep -qE '^DB_CONNECTION=sqlite' .env || ! grep -q '^DB_CONNECTION=' .env; then
+        USING_SQLITE=1
         DB_FILE="$(grep -E '^DB_DATABASE=' .env | cut -d= -f2- || true)"
         DB_FILE="${DB_FILE:-database/database.sqlite}"
+    fi
+
+    if ! grep -qE '^APP_KEY=.+' .env; then
+        # Key baru membuat semua data terenkripsi (kredensial gateway/WA, pengaturan) tidak terbaca: "The MAC is invalid".
+        if [ "$USING_SQLITE" -eq 1 ] && [ -s "$DB_FILE" ] && [ "${FORCE_NEW_KEY:-0}" != "1" ]; then
+            echo "BERHENTI: APP_KEY kosong tetapi database '$DB_FILE' sudah berisi data." >&2
+            echo "Membuat key baru akan merusak data terenkripsi. Isi APP_KEY lama di .env (dari cadangan)." >&2
+            echo "Bila database memang boleh dibuang/kosong, jalankan: FORCE_NEW_KEY=1 ./deploy.sh --first-run" >&2
+            exit 1
+        fi
+        step "Membuat APP_KEY"
+        "$PHP_BIN" artisan key:generate --force
+        printf '\n\033[1;33mPERINGATAN: simpan APP_KEY di tempat aman (di luar VPS) dan JANGAN PERNAH menggantinya.\033[0m\n'
+        printf 'Tanpa key ini, kredensial terenkripsi di database tidak bisa dibaca lagi (The MAC is invalid).\n'
+        grep -E '^APP_KEY=' .env
+    fi
+
+    if [ "$USING_SQLITE" -eq 1 ]; then
         [ -f "$DB_FILE" ] || { mkdir -p "$(dirname "$DB_FILE")"; touch "$DB_FILE"; }
     fi
 fi
