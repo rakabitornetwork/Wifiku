@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\VpnAccountStatus;
 use App\Http\Requests\VpnAccountRequest;
 use App\Jobs\Vpn\RemoveVpnAccountJob;
 use App\Jobs\Vpn\SyncVpnAccountJob;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\VpnAccount;
 use App\Services\Vpn\VpnScriptBuilder;
 use App\Support\Toast;
@@ -44,6 +47,21 @@ class VpnAccountController extends Controller
     public function destroy(VpnAccount $account): RedirectResponse
     {
         $invoices = $account->invoices()->withTrashed()->get();
+
+        // Transaksi online yang masih berlaku bisa dibayar pelanggan kapan saja; menghapus akun sekarang akan membuat
+        // uang masuk ke tagihan yang sudah dibatalkan dan tanpa pemilik.
+        $hasLivePayment = Payment::query()
+            ->whereIn('invoice_id', $invoices->modelKeys())
+            ->where('status', PaymentStatus::Pending)
+            ->where('method', PaymentMethod::Gateway)
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->exists();
+
+        if ($hasLivePayment) {
+            Toast::error('Akun VPN ini masih punya transaksi pembayaran online yang belum kedaluwarsa. Tunggu sampai kedaluwarsa atau sampai dibayar, lalu hapus.');
+
+            return back();
+        }
 
         if ($invoices->isNotEmpty()) {
             if ($account->status !== VpnAccountStatus::Disabled) {

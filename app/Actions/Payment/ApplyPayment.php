@@ -73,6 +73,12 @@ class ApplyPayment
                 ->log('Pembayaran online Rp '.number_format($payment->amount, 0, ',', '.').' diterima untuk '.$payment->invoice->invoice_number);
         }
 
+        // Tagihan tanpa pelanggan dan tanpa akun VPN (mis. akunnya dihapus sebelum bayar): uang sudah dibukukan,
+        // tetapi tidak ada tujuan notifikasi maupun pembukaan layanan.
+        if ($payment->invoice->vpn_account_id === null && $payment->invoice->customer === null) {
+            return true;
+        }
+
         $this->notifier->paymentReceived($payment);
 
         if ($payment->invoice->vpn_account_id !== null) {

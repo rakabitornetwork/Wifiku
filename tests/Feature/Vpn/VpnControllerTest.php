@@ -3,9 +3,12 @@
 namespace Tests\Feature\Vpn;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Jobs\Vpn\RemoveVpnAccountJob;
 use App\Jobs\Vpn\SyncVpnAccountJob;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Router;
 use App\Models\VpnAccount;
 use App\Models\VpnServer;
@@ -157,6 +160,32 @@ class VpnControllerTest extends TestCase
         $this->assertSame(InvoiceStatus::Paid, $paid->fresh()->status);
         $this->assertStringContainsString('Budi (budi)', (string) $paid->fresh()->notes);
         Queue::assertPushed(RemoveVpnAccountJob::class);
+    }
+
+    public function test_disabled_account_with_a_live_online_payment_cannot_be_deleted(): void
+    {
+        Queue::fake([RemoveVpnAccountJob::class]);
+        $account = VpnAccount::factory()->create(['status' => 'disabled']);
+        $invoice = Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id, 'status' => InvoiceStatus::Unpaid]);
+        Payment::factory()->for($invoice)->create(['customer_id' => null, 'method' => PaymentMethod::Gateway, 'status' => PaymentStatus::Pending, 'expires_at' => now()->addDay()]);
+
+        $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
+
+        $this->assertModelExists($account);
+        $this->assertSame(InvoiceStatus::Unpaid, $invoice->fresh()->status);
+        Queue::assertNotPushed(RemoveVpnAccountJob::class);
+    }
+
+    public function test_disabled_account_whose_online_payment_expired_can_be_deleted(): void
+    {
+        Queue::fake([RemoveVpnAccountJob::class]);
+        $account = VpnAccount::factory()->create(['status' => 'disabled']);
+        $invoice = Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => $account->id, 'status' => InvoiceStatus::Unpaid]);
+        Payment::factory()->for($invoice)->create(['customer_id' => null, 'method' => PaymentMethod::Gateway, 'status' => PaymentStatus::Pending, 'expires_at' => now()->subHour()]);
+
+        $this->actingAs($this->admin())->delete("/vpn/accounts/{$account->id}")->assertRedirect();
+
+        $this->assertModelMissing($account);
     }
 
     public function test_disabled_account_with_partially_paid_invoice_cannot_be_deleted(): void

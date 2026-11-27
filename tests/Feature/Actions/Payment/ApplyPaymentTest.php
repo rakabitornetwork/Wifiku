@@ -39,6 +39,19 @@ class ApplyPaymentTest extends TestCase
         $this->assertSame('T-REF-1', $payment->fresh()->gateway_ref);
     }
 
+    public function test_payment_for_an_orphaned_invoice_is_recorded_without_error(): void
+    {
+        Queue::fake();
+        $invoice = Invoice::factory()->create(['customer_id' => null, 'vpn_account_id' => null, 'total' => 25000, 'status' => InvoiceStatus::Cancelled]);
+        $payment = Payment::factory()->for($invoice)->create(['customer_id' => null, 'amount' => 25000, 'status' => PaymentStatus::Pending]);
+
+        $this->assertTrue($this->app->make(ApplyPayment::class)->handle($payment, 'T-ORPHAN'));
+
+        $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
+        $this->assertSame(25000, $invoice->fresh()->amount_paid);
+        Queue::assertNothingPushed();
+    }
+
     public function test_partial_payment_marks_invoice_partial(): void
     {
         $invoice = Invoice::factory()->create(['total' => 200000]);
