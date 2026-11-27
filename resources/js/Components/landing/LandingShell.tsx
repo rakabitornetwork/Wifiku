@@ -42,7 +42,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
 
     return (
         <div className="flex min-h-screen flex-col">
-            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 text-slate-900 shadow-sm shadow-slate-200/60 backdrop-blur-xl dark:border-white/10 dark:bg-[#0b1026]/90 dark:text-white dark:shadow-lg dark:shadow-indigo-950/20">
+            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/[0.97] text-slate-900 shadow-sm shadow-slate-200/60 backdrop-blur-sm dark:border-white/10 dark:bg-[#0b1026]/[0.97] dark:text-white dark:shadow-lg dark:shadow-indigo-950/20">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
                         {company.logo ? (
@@ -94,7 +94,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
                         open ? 'visible grid-rows-[1fr] opacity-100' : 'invisible grid-rows-[0fr] opacity-0',
                     )}
                 >
-                    <nav className="overflow-hidden border-b border-slate-200 bg-white/95 text-slate-900 shadow-lg shadow-slate-300/40 backdrop-blur-xl dark:border-white/10 dark:bg-[#0b1026]/95 dark:text-white dark:shadow-indigo-950/30" aria-label="Navigasi seluler">
+                    <nav className="overflow-hidden border-b border-slate-200 bg-white text-slate-900 shadow-lg shadow-slate-300/40 dark:border-white/10 dark:bg-[#0b1026] dark:text-white dark:shadow-indigo-950/30" aria-label="Navigasi seluler">
                         <div className="mx-auto grid max-w-6xl gap-1 px-4 py-3">
                             {nav.map((item) => (
                                 <a key={item.id} href={href(item.id)} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-indigo-50/90 dark:hover:bg-white/10">
