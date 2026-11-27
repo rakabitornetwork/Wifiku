@@ -74,6 +74,12 @@ function makeEngraving(lite: boolean): string {
 
 const engravings = { full: makeEngraving(false), lite: makeEngraving(true) };
 
+/** Nama perusahaan boleh turun dua baris; huruf mengecil bila namanya panjang agar tetap muat di kartu. */
+const companyFontSize = (length: number): string => (length <= 16 ? '5.5pt' : length <= 28 ? '5pt' : length <= 40 ? '4.5pt' : '4.1pt');
+
+/** Nama agen (dua baris) juga mengecil bila panjang. */
+const agentFontSize = (length: number): string => (length <= 22 ? '5.2pt' : length <= 40 ? '4.6pt' : '4.1pt');
+
 const codeFontSize = (length: number): string => (length <= 8 ? '12pt' : length <= 10 ? '11pt' : length <= 12 ? '9.5pt' : '8.5pt');
 
 function A4Card({
@@ -113,8 +119,10 @@ function A4Card({
                     backgroundSize: '100% 100%, 100% 100%',
                 }}
             >
-                <div className="flex items-center justify-between gap-[1mm]">
-                    <div className="truncate text-[5.5pt] leading-none font-bold tracking-wider text-[#0f766e] uppercase">{company}</div>
+                <div className="flex items-start justify-between gap-[1mm]">
+                    <div className="min-w-0 font-bold leading-[1.1] tracking-wide break-words text-[#0f766e] uppercase" style={{ fontSize: companyFontSize(company.length) }}>
+                        {company}
+                    </div>
                     <span
                         className={`num flex size-[4mm] shrink-0 items-center justify-center rounded-full border-[0.25mm] text-[5.2pt] leading-none font-extrabold ${lite ? 'border-[#0f766e] bg-white text-[#0f766e]' : 'border-[#92400e] text-[#451a03]'}`}
                         style={{
@@ -130,17 +138,17 @@ function A4Card({
                 <div className="num truncate text-[6pt] leading-[1.15] font-semibold text-[#1e3a8a]">
                     {formatRupiah(batch.profile.price)} · {formatDuration(batch.profile.validity_minutes)}
                 </div>
-                <div className="flex items-baseline gap-[1mm] border-t border-dashed border-[#0f766e]/50 pt-[0.3mm] text-[5.2pt] leading-[1.15] text-[#334155]">
+                <div className="border-t border-dashed border-[#0f766e]/50 pt-[0.3mm] leading-[1.15] text-[#334155]">
                     {contactLine ? (
                         <>
-                            <span className="min-w-0 truncate">
+                            <div className="break-words" style={{ fontSize: agentFontSize((contact.label + (contact.name ?? '')).length) }}>
                                 <span className="font-bold">{contact.label}</span>
                                 {contact.name ? ` ${contact.name}` : ''}
-                            </span>
-                            {contact.phone && <span className="num shrink-0 font-bold text-[#0f172a]">{contact.phone}</span>}
+                            </div>
+                            {contact.phone && <div className="num text-[5.4pt] font-bold text-[#0f172a]">{contact.phone}</div>}
                         </>
                     ) : (
-                        'Scan QR atau masukkan kode'
+                        <span className="text-[5.2pt]">Scan QR atau masukkan kode</span>
                     )}
                 </div>
             </div>
@@ -220,13 +228,20 @@ export default function PrintVouchers({ batch, company, contact, loginUrl, vouch
                         <div key={voucher.id} className="voucher thermal-card mb-2 flex flex-col items-center gap-2 border border-dashed border-neutral-400 p-2 text-center">
                             <QRCodeSVG value={autoLoginUrl(loginUrl, voucher.code, voucher.password)} size={qrSize} level="M" className="shrink-0" />
                             <div className="w-full min-w-0">
-                                <div className="truncate text-[10px] font-semibold tracking-wide text-neutral-500 uppercase">{company}</div>
+                                <div className="text-[10px] font-semibold tracking-wide break-words text-neutral-500 uppercase">{company}</div>
                                 <div className="text-xs font-medium">{batch.profile.name}</div>
                                 <div className="my-1 font-mono text-lg leading-none font-bold tracking-widest">{voucher.code}</div>
                                 <div className="num text-[10px] text-neutral-600">
                                     {formatRupiah(batch.profile.price)} · {formatDuration(batch.profile.validity_minutes)}
                                 </div>
                                 <div className="mt-0.5 text-[9px] text-neutral-400">Scan QR atau masukkan kode</div>
+                                {(contact.name || contact.phone) && (
+                                    <div className="mt-1 border-t border-dashed border-neutral-300 pt-1 text-[9px] leading-tight break-words text-neutral-600">
+                                        <span className="font-bold">{contact.label}</span>
+                                        {contact.name ? ` ${contact.name}` : ''}
+                                        {contact.phone && <div className="num font-bold text-neutral-800">{contact.phone}</div>}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
