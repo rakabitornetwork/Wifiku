@@ -2,7 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { CheckCircle2, Clock3, Eye, EyeOff, Send, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
-import { PageHeader } from '@/Components/PageHeader';
+import { MessagingShell } from '@/Components/MessagingShell';
 import { SearchInput } from '@/Components/SearchInput';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
@@ -74,8 +74,7 @@ export default function MessagesIndex({ messages, filters, types, summary }: Pro
     const extra = { kanal: filters.kanal || undefined, status: filters.status || undefined, jenis: filters.jenis || undefined };
 
     return (
-        <>
-            <PageHeader title="Riwayat Pesan" description="Pesan WhatsApp dan Telegram yang dikirim ke pelanggan, otomatis maupun balasan bot. Isi yang memuat kode OTP, tautan reset, atau password selalu disembunyikan." />
+        <MessagingShell active="history" description="Pesan WhatsApp dan Telegram yang dikirim ke pelanggan, otomatis maupun balasan bot. Isi yang memuat kode OTP, tautan reset, atau password selalu disembunyikan.">
 
             <div className="mb-4 grid gap-3 sm:grid-cols-3">
                 {[
@@ -214,6 +213,6 @@ export default function MessagesIndex({ messages, filters, types, summary }: Pro
                     </div>
                 )}
             </Modal>
-        </>
+        </MessagingShell>
     );
 }

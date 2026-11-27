@@ -1,8 +1,8 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Lock, Pencil, RotateCcw } from 'lucide-react';
 import { type ReactNode, useRef, useState } from 'react';
 
-import { PageHeader } from '@/Components/PageHeader';
+import { MessagingShell } from '@/Components/MessagingShell';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
@@ -118,21 +118,7 @@ export default function MessageTemplates({ templates, maxLength }: { templates: 
     const missing = editing ? editing.required.filter((name) => !body.includes(`{${name}}`)) : [];
 
     return (
-        <>
-            <PageHeader title="Template Pesan" description="Pratinjau semua pesan otomatis ke pelanggan, persis seperti yang diterima di WhatsApp dan Telegram. Data di bawah adalah contoh." />
-
-            <div className="mb-5 rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-                Riwayat pesan yang benar-benar terkirim ada di menu{' '}
-                <Link href="/pesan" className="font-semibold text-primary hover:underline">
-                    Riwayat Pesan
-                </Link>
-                . Jenis pesan bisa dimatikan di{' '}
-                <Link href="/settings/notifications" className="font-semibold text-primary hover:underline">
-                    Notifikasi &amp; Webhook
-                </Link>
-                .
-            </div>
-
+        <MessagingShell active="templates" description="Pratinjau semua pesan otomatis ke pelanggan, persis seperti yang diterima di WhatsApp dan Telegram. Data di bawah adalah contoh.">
             <div className="space-y-5">
                 {templates.map((template) => (
                     <Card key={template.key} className="overflow-hidden">
@@ -229,6 +215,6 @@ export default function MessageTemplates({ templates, maxLength }: { templates: 
                     </div>
                 )}
             </Modal>
-        </>
+        </MessagingShell>
     );
 }

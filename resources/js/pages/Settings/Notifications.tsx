@@ -2,7 +2,7 @@ import { router, useForm } from '@inertiajs/react';
 import { AlertTriangle, BellRing, Bot, Check, Copy, KeyRound, MessageCircle, QrCode, Send, Webhook, Wifi } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
-import { PageHeader } from '@/Components/PageHeader';
+import { MessagingShell } from '@/Components/MessagingShell';
 import { Button } from '@/Components/ui/Button';
 import { Card } from '@/Components/ui/Card';
 import { Field, Input, Select } from '@/Components/ui/Field';
@@ -213,12 +213,7 @@ export default function Notifications({
     const telegramOn = value('telegram.enabled') === '1';
 
     return (
-        <>
-            <PageHeader
-                title="Notifikasi & Webhook"
-                description="Saluran pesan keluar aplikasi: WhatsApp (Evolution API) untuk pelanggan dan admin, serta Telegram untuk peringatan admin. Nilai rahasia disimpan terenkripsi."
-            />
-
+        <MessagingShell active="settings" description="Saluran pesan keluar aplikasi: WhatsApp (Evolution API) untuk pelanggan dan admin, serta Telegram untuk peringatan admin. Nilai rahasia disimpan terenkripsi.">
             <form onSubmit={submit} className="space-y-5">
                 <Card>
                     <div className="flex items-start justify-between gap-4 p-6 pb-0">
@@ -436,6 +431,6 @@ export default function Notifications({
                     </Button>
                 </div>
             </form>
-        </>
+        </MessagingShell>
     );
 }

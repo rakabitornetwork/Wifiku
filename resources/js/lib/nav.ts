@@ -3,13 +3,11 @@ import {
     Bell,
     Boxes,
     Images,
-    LayoutTemplate,
     Sparkles,
     CreditCard,
     LayoutDashboard,
     Map,
     Megaphone,
-    MessageSquareText,
     Package,
     Receipt,
     Router,
@@ -31,6 +29,8 @@ export type NavItem = {
     icon: LucideIcon;
     /** Awalan path yang dianggap aktif. */
     match?: string;
+    /** Alamat lain yang ikut menandai menu ini aktif (halaman yang digabung dalam satu menu). */
+    alsoMatch?: string[];
     /** Modul yang dikerjakan pada fase berikutnya. */
     soon?: boolean;
     /** Permission yang dibutuhkan; menu disembunyikan bila tidak dimiliki. */
@@ -82,9 +82,7 @@ export const navigation: NavGroup[] = [
             { label: 'Ilustrasi Landing', href: '/ilustrasi-landing', icon: Sparkles, match: '/ilustrasi-landing', permission: 'settings.manage' },
             { label: 'Galeri Landing', href: '/galeri-landing', icon: Images, match: '/galeri-landing', permission: 'settings.manage' },
             { label: 'Payment Gateway', href: '/settings/payment-gateways', icon: CreditCard, match: '/settings/payment-gateways', permission: 'settings.manage' },
-            { label: 'Riwayat Pesan', href: '/pesan', icon: MessageSquareText, match: '/pesan', permission: 'settings.manage' },
-            { label: 'Template Pesan', href: '/settings/message-templates', icon: LayoutTemplate, match: '/settings/message-templates', permission: 'settings.manage' },
-            { label: 'Notifikasi & Webhook', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', permission: 'settings.manage' },
+            { label: 'Pesan & Notifikasi', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', alsoMatch: ['/settings/message-templates', '/pesan'], permission: 'settings.manage' },
             { label: 'Pengaturan', href: '/settings/integrations', icon: Settings, match: '/settings/integrations', permission: 'settings.manage' },
         ],
     },
