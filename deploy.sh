@@ -40,10 +40,6 @@ fi
 
 [ -f .env ] || { echo ".env belum ada. Jalankan: ./deploy.sh --first-run" >&2; exit 1; }
 
-step "Mode maintenance ON"
-"$PHP_BIN" artisan down --retry=30 || true
-trap '"$PHP_BIN" artisan up || true' EXIT
-
 if [ -d .git ]; then
     step "Menarik kode terbaru ($BRANCH)"
     git fetch --quiet origin
@@ -52,6 +48,13 @@ fi
 
 step "Memasang dependensi PHP"
 "$COMPOSER_BIN" install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+# Maintenance mode baru bisa dipakai setelah vendor/ ada (artisan butuh vendor/autoload.php).
+if [ "$FIRST_RUN" -eq 0 ]; then
+    step "Mode maintenance ON"
+    "$PHP_BIN" artisan down --retry=30 || true
+    trap '"$PHP_BIN" artisan up || true' EXIT
+fi
 
 if [ "$FIRST_RUN" -eq 1 ]; then
     if ! grep -qE '^APP_KEY=.+' .env; then
