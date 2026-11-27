@@ -28,12 +28,12 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
 
     if (!item.href) {
         return (
-            <div className={cn(base, 'cursor-not-allowed text-slate-500')} title={`${item.label} (segera hadir)`}>
+            <div className={cn(base, 'cursor-not-allowed text-slate-400 dark:text-slate-500')} title={`${item.label} (segera hadir)`}>
                 <Icon className="size-[18px] shrink-0" />
                 {!collapsed && (
                     <>
                         <span className="truncate">{item.label}</span>
-                        <span className="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-slate-300">Segera</span>
+                        <span className="ml-auto rounded bg-slate-900/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-white/10 dark:text-slate-300">Segera</span>
                     </>
                 )}
             </div>
@@ -48,8 +48,8 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
             className={cn(
                 base,
                 active
-                    ? 'bg-white/[0.1] text-white before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-indigo-400'
-                    : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
+                    ? 'bg-primary/10 text-primary before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-primary dark:bg-white/[0.1] dark:text-white dark:before:bg-indigo-400'
+                    : 'text-slate-600 hover:bg-slate-900/[0.05] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white',
             )}
         >
             <Icon className="size-[18px] shrink-0" />
@@ -110,12 +110,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
     const sidebar = (compact: boolean) => (
         <div className="flex h-full flex-col">
-            <div className={cn('flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4 text-white', compact && 'justify-center px-0')}>
+            <div className={cn('flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4 text-slate-900 dark:text-white', compact && 'justify-center px-0')}>
                 <BrandLogo size="sm" square={compact} className="shadow-lg shadow-indigo-500/30" />
                 {!compact && (
                     <div className="leading-tight">
                         <div className="text-sm font-semibold">{brand.name}</div>
-                        <div className="text-[11px] text-slate-400">Manajemen ISP</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">Manajemen ISP</div>
                     </div>
                 )}
             </div>
@@ -130,7 +130,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     return (
                         <div key={group.title}>
                             {!compact && (
-                                <div className="mb-2 px-3 text-xs font-semibold text-slate-400">{group.title}</div>
+                                <div className="mb-2 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">{group.title}</div>
                             )}
                             {compact && <div className="mx-2 mb-1.5 border-t border-sidebar-border" />}
                             <div className="space-y-0.5">
