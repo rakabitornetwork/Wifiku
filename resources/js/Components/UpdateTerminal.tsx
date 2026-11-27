@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type TerminalStep = { key: string; label: string; status: 'pending' | 'running' | 'done' | 'failed' | 'skipped'; output: string | null };
 
@@ -23,6 +23,68 @@ const commands: Record<string, string> = {
     queue: 'php artisan queue:restart',
 };
 
+const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+
+/** Denyut bersama (ms) untuk animasi spinner, titik, dan bilah progres; hanya berdetak selama $active. */
+function useTick(active: boolean, interval = 90): number {
+    const [tick, setTick] = useState(0);
+
+    useEffect(() => {
+        if (!active) {
+            return;
+        }
+
+        const timer = window.setInterval(() => setTick((value) => value + 1), interval);
+
+        return () => window.clearInterval(timer);
+    }, [active, interval]);
+
+    return tick;
+}
+
+/** Mengetik teks karakter demi karakter seperti perintah yang sedang diketik di shell. */
+function Typed({ text, animate }: { text: string; animate: boolean }) {
+    const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const [shown, setShown] = useState(animate && !reduceMotion ? 0 : text.length);
+
+    useEffect(() => {
+        if (!animate || reduceMotion || shown >= text.length) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => setShown((value) => value + 1), 22);
+
+        return () => window.clearTimeout(timer);
+    }, [animate, reduceMotion, shown, text]);
+
+    // Setelah proses selesai, teks selalu ditampilkan utuh.
+    const visible = animate ? shown : text.length;
+
+    return (
+        <>
+            {text.slice(0, visible)}
+            {visible < text.length && <span className="text-slate-100">▍</span>}
+        </>
+    );
+}
+
+/** Bilah progres tak tentu: blok bergerak bolak-balik selama langkah berjalan. */
+function Bar({ tick }: { tick: number }) {
+    const width = 24;
+    const block = 6;
+    const cycle = (width - block) * 2;
+    const position = tick % cycle;
+    const start = position < width - block ? position : cycle - position;
+
+    return (
+        <span className="text-sky-400">
+            [{' '.repeat(start)}
+            <span className="text-emerald-300">{'='.repeat(block - 1)}&gt;</span>
+            {' '.repeat(width - block - start)}]
+        </span>
+    );
+}
+
 /**
  * Popup bergaya terminal Linux yang menampilkan progres pembaruan: tiap langkah ditulis sebagai perintah shell
  * beserta keluarannya, lengkap dengan kursor berkedip dan gulir otomatis ke baris terbaru.
@@ -30,6 +92,7 @@ const commands: Record<string, string> = {
 export function UpdateTerminal({ open, status, steps, error, host, from, to, onClose }: Props) {
     const body = useRef<HTMLDivElement>(null);
     const running = status === 'queued' || status === 'running';
+    const tick = useTick(open && running);
     const prompt = (
         <>
             <span className="font-semibold text-emerald-400">{host}</span>
@@ -81,13 +144,19 @@ export function UpdateTerminal({ open, status, steps, error, host, from, to, onC
                             {step.status !== 'pending' && (
                                 <p className="break-all">
                                     {prompt}
-                                    <span className="text-slate-100">{commands[step.key] ?? step.key}</span>
+                                    <span className="text-slate-100"><Typed text={commands[step.key] ?? step.key} animate={running} /></span>
                                 </p>
                             )}
                             {step.status === 'running' && (
-                                <p className="text-amber-300">
-                                    <span className="inline-block animate-pulse">▍</span> {step.label}…
-                                </p>
+                                <>
+                                    <p className="text-amber-300">
+                                        {SPINNER[tick % SPINNER.length]} {step.label}
+                                        {'.'.repeat((tick >> 3) % 4)}
+                                    </p>
+                                    <p className="mt-0.5">
+                                        <Bar tick={tick} />
+                                    </p>
+                                </>
                             )}
                             {step.output && <pre className="mt-1 break-all whitespace-pre-wrap text-slate-400">{step.output}</pre>}
                             {step.status === 'done' && <p className="text-emerald-400">[ OK ] {step.label}</p>}
