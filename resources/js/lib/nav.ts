@@ -78,15 +78,25 @@ export const navigation: NavGroup[] = [
         ],
     },
     {
-        title: 'Sistem & Tim',
+        title: 'Landing Page',
         items: [
-            { label: 'Tiket & Broadcast Gangguan', href: '/outages', icon: Megaphone, match: '/outages', permission: 'outages.manage' },
-            { label: 'Teknisi & RBAC', href: '/users', icon: UserCog, match: '/users', permission: 'users.manage' },
-            { label: 'Audit Log', href: '/audit-log', icon: ScrollText, match: '/audit-log', permission: 'audit.view' },
             { label: 'Ilustrasi Landing', href: '/ilustrasi-landing', icon: Sparkles, match: '/ilustrasi-landing', permission: 'settings.manage' },
             { label: 'Galeri Landing', href: '/galeri-landing', icon: Images, match: '/galeri-landing', permission: 'settings.manage' },
-            { label: 'Payment Gateway', href: '/settings/payment-gateways', icon: CreditCard, match: '/settings/payment-gateways', permission: 'settings.manage' },
+        ],
+    },
+    {
+        title: 'Komunikasi',
+        items: [
             { label: 'Pesan & Notifikasi', href: '/settings/notifications', icon: Bell, match: '/settings/notifications', alsoMatch: ['/settings/message-templates', '/pesan'], permission: 'settings.manage' },
+            { label: 'Tiket & Broadcast Gangguan', href: '/outages', icon: Megaphone, match: '/outages', permission: 'outages.manage' },
+        ],
+    },
+    {
+        title: 'Sistem & Tim',
+        items: [
+            { label: 'Teknisi & RBAC', href: '/users', icon: UserCog, match: '/users', permission: 'users.manage' },
+            { label: 'Audit Log', href: '/audit-log', icon: ScrollText, match: '/audit-log', permission: 'audit.view' },
+            { label: 'Payment Gateway', href: '/settings/payment-gateways', icon: CreditCard, match: '/settings/payment-gateways', permission: 'settings.manage' },
             { label: 'Pengaturan', href: '/settings/integrations', icon: Settings, match: '/settings/integrations', permission: 'settings.manage' },
         ],
     },
