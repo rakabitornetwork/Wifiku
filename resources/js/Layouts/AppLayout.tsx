@@ -48,7 +48,7 @@ function NavLink({ item, collapsed, active, onNavigate }: { item: NavItem; colla
             className={cn(
                 base,
                 active
-                    ? 'bg-white text-[#1877f2] shadow-md shadow-blue-900/25 dark:bg-white/[0.1] dark:text-white dark:shadow-none dark:before:absolute dark:before:inset-y-2 dark:before:left-0 dark:before:w-[3px] dark:before:rounded-full dark:before:bg-indigo-400'
+                    ? 'bg-white text-[#2e68c0] shadow-md shadow-blue-900/25 dark:bg-white/[0.1] dark:text-white dark:shadow-none dark:before:absolute dark:before:inset-y-2 dark:before:left-0 dark:before:w-[3px] dark:before:rounded-full dark:before:bg-indigo-400'
                     : 'text-white/90 hover:bg-white/15 hover:text-white dark:text-slate-300 dark:hover:bg-white/[0.06]',
             )}
         >

@@ -43,11 +43,11 @@
     --accent: oklch(0.93 0.045 277);
     --accent-foreground: oklch(0.34 0.17 277);
     --destructive: oklch(0.56 0.23 25);
-    /* Sidebar biru Facebook solid (#1877F2) di tema terang; navy pekat di tema gelap (lihat .dark). */
-    --sidebar: #1877f2;
+    /* Sidebar biru Facebook solid yang diredupkan (#2E68C0) di tema terang; navy pekat di tema gelap (lihat .dark). */
+    --sidebar: #2e68c0;
     --sidebar-border: oklch(1 0 0 / 0.2);
-    --sidebar-from: #1877f2;
-    --sidebar-to: #1877f2;
+    --sidebar-from: #2e68c0;
+    --sidebar-to: #2e68c0;
     --sidebar-glow: transparent;
     --navbar-tint-1: oklch(0.55 0.22 277 / 0.05);
     --navbar-tint-2: oklch(0.55 0.2 290 / 0.03);
