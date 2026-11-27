@@ -40,7 +40,7 @@ class InvoiceGeneratorService
 
     /**
      * Buat invoice siklus yang memuat $today; kembalikan invoice yang sudah ada bila siklus itu sudah ditagih.
-     * Mengembalikan null bila pelanggan tidak perlu ditagih (nonaktif atau belum terpasang).
+     * Mengembalikan null bila pelanggan tidak perlu ditagih (nonaktif, belum terpasang, atau paketnya gratis/Rp 0).
      */
     public function generateFor(Customer $customer, CarbonImmutable $today): ?Invoice
     {
@@ -56,13 +56,20 @@ class InvoiceGeneratorService
             return null;
         }
 
+        $customer->loadMissing('package');
+
+        // Paket Rp 0 (akun internal: server, tunnel, self-service) tidak ditagih; tagihan Rp 0 tak bisa dibayar sehingga
+        // pelanggannya akan tertunggak selamanya dan ikut diisolir.
+        if ($customer->package->price <= 0) {
+            return null;
+        }
+
         [$cycleStart, $cycleEnd] = $this->cycleContaining($customer->billing_day, $today);
 
         if ($existing = $this->existingFor($customer, $cycleEnd)) {
             return $existing;
         }
 
-        $customer->loadMissing('package');
         $serviceStart = $installedAt->max($cycleStart);
         $isProrated = $serviceStart->greaterThan($cycleStart);
         $price = $customer->package->price;

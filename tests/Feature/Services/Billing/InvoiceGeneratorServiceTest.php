@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\Package;
 use App\Models\WhatsappMessage;
 use App\Services\Billing\InvoiceGeneratorService;
+use App\Services\Network\IsolationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -113,6 +114,23 @@ class InvoiceGeneratorServiceTest extends TestCase
     public function test_skips_customer_installed_in_the_future(): void
     {
         $this->assertNull($this->generator()->generateFor($this->customer(['installed_at' => '2026-12-05']), CarbonImmutable::parse('2026-11-20')));
+    }
+
+    public function test_customer_on_a_free_package_is_never_billed_and_never_isolated(): void
+    {
+        $free = Customer::factory()->for(Package::factory()->create(['name' => 'Self-Service', 'price' => 0]))->create([
+            'billing_cycle' => BillingCycle::Fixed,
+            'billing_day' => 1,
+            'due_days' => 7,
+            'installed_at' => '2026-01-10',
+        ]);
+
+        $this->assertNull($this->generator()->generateFor($free, CarbonImmutable::parse('2026-11-01')));
+        $this->assertNull($this->generator()->generateFor($free, CarbonImmutable::parse('2026-12-01')));
+        $this->assertSame(0, Invoice::count());
+        $this->assertSame(0, WhatsappMessage::count());
+
+        $this->assertFalse($this->app->make(IsolationService::class)->shouldIsolate($free->fresh(), CarbonImmutable::parse('2026-12-20')));
     }
 
     public function test_skips_inactive_and_archived_customers(): void

@@ -36,6 +36,7 @@ class GenerateMonthlyInvoicesJob implements ShouldQueue
         Customer::query()
             ->whereIn('status', [CustomerStatus::Active, CustomerStatus::Isolated])
             ->where('installed_at', '<=', $today)
+            ->whereHas('package', fn ($query) => $query->withTrashed()->where('price', '>', 0))
             // Invoice siklus berjalan selalu berakhir pada/ setelah hari ini; bila sudah ada, pelanggan dilewati.
             ->whereDoesntHave('invoices', fn ($query) => $query->where('period_end', '>=', $today))
             ->chunkById(200, function (Collection $customers) use ($today): void {
