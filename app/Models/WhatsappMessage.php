@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['customer_id', 'phone', 'type', 'body', 'status', 'attempts', 'error', 'is_sensitive', 'sent_at'])]
+#[Fillable(['customer_id', 'phone', 'type', 'body', 'status', 'attempts', 'error', 'is_sensitive', 'sent_at', 'scheduled_at'])]
 class WhatsappMessage extends Model
 {
     /** @use HasFactory<WhatsappMessageFactory> */
@@ -29,6 +29,7 @@ class WhatsappMessage extends Model
             'attempts' => 'integer',
             'is_sensitive' => 'boolean',
             'sent_at' => 'datetime',
+            'scheduled_at' => 'datetime',
         ];
     }
 

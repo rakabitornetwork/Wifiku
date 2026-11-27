@@ -27,9 +27,16 @@ class EvolutionApiClient
     /**
      * @throws WhatsappDeliveryException
      */
-    public function sendText(string $phone, string $text): void
+    public function sendText(string $phone, string $text, int $typingMs = 0): void
     {
-        $this->call(fn (PendingRequest $request) => $request->post("/message/sendText/{$this->instance()}", ['number' => $phone, 'text' => $text]));
+        $payload = ['number' => $phone, 'text' => $text];
+
+        // Evolution menampilkan "sedang mengetik" selama `delay` ms sebelum pesan dikirim.
+        if ($typingMs > 0) {
+            $payload['delay'] = $typingMs;
+        }
+
+        $this->call(fn (PendingRequest $request) => $request->post("/message/sendText/{$this->instance()}", $payload));
     }
 
     /**

@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  */
 class WhatsappNotificationService
 {
-    public function __construct(private readonly EvolutionApiClient $client) {}
+    public function __construct(private readonly EvolutionApiClient $client, private readonly WhatsappPacer $pacer) {}
 
     /**
      * Catat pesan di outbox dan antrekan pengirimannya.
@@ -32,7 +32,15 @@ class WhatsappNotificationService
             'is_sensitive' => $sensitive || in_array($type, [WhatsappMessageType::AccountSecurity, WhatsappMessageType::PasswordReset], true),
         ]);
 
-        SendWhatsappMessageJob::dispatch($message);
+        // Pesan massal dijadwalkan dengan jeda acak; pesan penting (OTP, balasan bot) langsung dikirim.
+        $slot = $this->pacer->reserve($type);
+
+        if ($slot !== null) {
+            $message->update(['scheduled_at' => $slot]);
+            SendWhatsappMessageJob::dispatch($message)->delay($slot);
+        } else {
+            SendWhatsappMessageJob::dispatch($message);
+        }
 
         return $message;
     }
@@ -58,7 +66,7 @@ class WhatsappNotificationService
         $message->increment('attempts');
 
         try {
-            $this->client->sendText($message->phone, $message->body);
+            $this->client->sendText($message->phone, $message->body, $this->pacer->typingDelayMs($message->body));
         } catch (WhatsappDeliveryException $exception) {
             $message->update(['status' => WhatsappMessageStatus::Failed, 'error' => Str::limit($exception->getMessage(), 500)]);
 

@@ -286,6 +286,48 @@ export default function Notifications({
                             </Button>
                         </div>
                     </div>
+                    <div className="space-y-4 border-t p-6">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <div className="text-xs font-semibold text-muted-foreground">Ritme pengiriman (anti-blokir)</div>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    Pesan massal (tagihan, pengingat, gangguan) dikirim satu per satu dengan jeda acak, istirahat panjang di waktu acak, hanya di jam kirim, dan dibatasi per hari. Kode OTP, reset password, dan balasan bot tetap dikirim langsung.
+                                </p>
+                            </div>
+                            <Toggle label="Aktifkan" checked={value('whatsapp.pacing_enabled') !== '0'} onChange={(on) => setField('whatsapp.pacing_enabled', on ? '1' : '0')} />
+                        </div>
+                        {value('whatsapp.pacing_enabled') !== '0' && (
+                            <>
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <Field label="Jeda minimum (detik)" error={errors['settings.whatsapp.delay_min']}>
+                                        <Input type="number" min={1} value={value('whatsapp.delay_min')} onChange={(event) => setField('whatsapp.delay_min', event.target.value)} />
+                                    </Field>
+                                    <Field label="Jeda maksimum (detik)" error={errors['settings.whatsapp.delay_max']}>
+                                        <Input type="number" min={1} value={value('whatsapp.delay_max')} onChange={(event) => setField('whatsapp.delay_max', event.target.value)} />
+                                    </Field>
+                                    <Field label="Istirahat tiap ± N pesan" error={errors['settings.whatsapp.batch_size']} hint="Waktunya diacak.">
+                                        <Input type="number" min={2} value={value('whatsapp.batch_size')} onChange={(event) => setField('whatsapp.batch_size', event.target.value)} />
+                                    </Field>
+                                    <Field label="Batas pesan massal / hari" error={errors['settings.whatsapp.daily_limit']} hint="0 = tanpa batas.">
+                                        <Input type="number" min={0} value={value('whatsapp.daily_limit')} onChange={(event) => setField('whatsapp.daily_limit', event.target.value)} />
+                                    </Field>
+                                    <Field label="Istirahat minimum (menit)" error={errors['settings.whatsapp.rest_min']}>
+                                        <Input type="number" min={1} value={value('whatsapp.rest_min')} onChange={(event) => setField('whatsapp.rest_min', event.target.value)} />
+                                    </Field>
+                                    <Field label="Istirahat maksimum (menit)" error={errors['settings.whatsapp.rest_max']}>
+                                        <Input type="number" min={1} value={value('whatsapp.rest_max')} onChange={(event) => setField('whatsapp.rest_max', event.target.value)} />
+                                    </Field>
+                                    <Field label="Jam kirim mulai" error={errors['settings.whatsapp.window_start']}>
+                                        <Input type="time" value={value('whatsapp.window_start')} onChange={(event) => setField('whatsapp.window_start', event.target.value)} />
+                                    </Field>
+                                    <Field label="Jam kirim selesai" error={errors['settings.whatsapp.window_end']}>
+                                        <Input type="time" value={value('whatsapp.window_end')} onChange={(event) => setField('whatsapp.window_end', event.target.value)} />
+                                    </Field>
+                                </div>
+                                <Toggle label='Tampilkan "sedang mengetik" sebelum pesan terkirim' checked={value('whatsapp.typing_simulation') !== '0'} onChange={(on) => setField('whatsapp.typing_simulation', on ? '1' : '0')} />
+                            </>
+                        )}
+                    </div>
                     <BotSection
                         title="Bot pelanggan WhatsApp"
                         description="Pelanggan yang nomornya terdaftar bisa membalas pesan Anda untuk cek tagihan, status ONU, dan ganti WiFi. Pasang webhook agar Evolution API meneruskan pesan masuk ke aplikasi ini."
