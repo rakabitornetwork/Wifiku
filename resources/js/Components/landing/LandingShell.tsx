@@ -42,7 +42,7 @@ export function LandingShell({ company, staff, onLanding = true, children }: Pro
 
     return (
         <div className="flex min-h-screen flex-col">
-            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/[0.97] text-slate-900 shadow-sm shadow-slate-200/60 backdrop-blur-sm dark:border-white/10 dark:bg-[#0b1026]/[0.97] dark:text-white dark:shadow-lg dark:shadow-indigo-950/20">
+            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 text-slate-900 shadow-sm shadow-slate-200/60 backdrop-blur-md dark:border-white/10 dark:bg-[#0b1026]/90 dark:text-white dark:shadow-lg dark:shadow-indigo-950/20">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
                     <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
                         {company.logo ? (
