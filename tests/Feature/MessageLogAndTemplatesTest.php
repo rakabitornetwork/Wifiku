@@ -10,6 +10,7 @@ use App\Models\TelegramMessage;
 use App\Models\WhatsappMessage;
 use App\Services\Messaging\MessageTemplates;
 use App\Services\Settings\SettingService;
+use App\Services\Whatsapp\CustomerNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -108,5 +109,39 @@ class MessageLogAndTemplatesTest extends TestCase
         (new SettingService)->set('notify', 'welcome', '0');
         app(CreateCustomer::class)->handle($data('Dimati', 'active'));
         $this->assertSame(1, WhatsappMessage::count());
+    }
+
+    public function test_the_owner_edits_and_resets_a_template_and_the_next_message_uses_the_new_text(): void
+    {
+        $owner = $this->owner();
+        $this->actingAs($owner);
+
+        $this->put('/settings/message-templates/isolated', ['body' => 'Hai {nama}, internet diisolir. Bayar: {link_bayar}'])->assertSessionDoesntHaveErrors();
+        $this->assertSame('Hai {nama}, internet diisolir. Bayar: {link_bayar}', MessageTemplate::where('key', 'isolated')->value('body'));
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'Template Pesan', 'causer_id' => $owner->id]);
+
+        $customer = Customer::factory()->create(['name' => 'Budi', 'whatsapp' => '6281234567890']);
+        app(CustomerNotifier::class)->isolated($customer);
+        $this->assertStringStartsWith('Hai Budi, internet diisolir. Bayar: http', WhatsappMessage::sole()->body);
+
+        $this->delete('/settings/message-templates/isolated');
+        $this->assertDatabaseMissing('message_templates', ['key' => 'isolated']);
+    }
+
+    public function test_an_invalid_template_is_rejected_and_not_saved(): void
+    {
+        $this->actingAs($this->owner());
+
+        $this->put('/settings/message-templates/isolated', ['body' => 'Halo {nama}'])->assertSessionHasErrors('body');
+        $this->put('/settings/message-templates/isolated', ['body' => 'Halo {nama} {asal} {link_bayar}'])->assertSessionHasErrors('body');
+        $this->put('/settings/message-templates/login_code', ['body' => 'palsu {kode}'])->assertNotFound();
+        $this->put('/settings/message-templates/tidak_ada', ['body' => 'x'])->assertNotFound();
+        $this->assertSame(0, MessageTemplate::count());
+    }
+
+    public function test_only_the_owner_may_edit_templates(): void
+    {
+        $this->actingAs($this->admin()->givePermissionTo('settings.manage'))->put('/settings/message-templates/isolated', ['body' => 'Halo {nama} {link_bayar}'])->assertForbidden();
+        $this->assertSame(0, MessageTemplate::count());
     }
 }

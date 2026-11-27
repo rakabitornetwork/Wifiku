@@ -278,6 +278,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/integrations', [IntegrationSettingController::class, 'index'])->name('integrations.index');
         Route::get('/notifications', [IntegrationSettingController::class, 'notifications'])->name('notifications.index');
         Route::get('/message-templates', [MessageTemplateController::class, 'index'])->name('message-templates.index');
+        Route::put('/message-templates/{template}', [MessageTemplateController::class, 'update'])->name('message-templates.update');
+        Route::delete('/message-templates/{template}', [MessageTemplateController::class, 'destroy'])->name('message-templates.destroy');
         Route::post('/whatsapp/webhook', [ChatWebhookSettingController::class, 'whatsappInstall'])->middleware('throttle:10,1')->name('whatsapp.webhook');
         Route::post('/telegram/webhook', [ChatWebhookSettingController::class, 'telegramInstall'])->middleware('throttle:10,1')->name('telegram.webhook');
         Route::post('/telegram/webhook-info', [ChatWebhookSettingController::class, 'telegramInfo'])->middleware('throttle:20,1')->name('telegram.webhook-info');

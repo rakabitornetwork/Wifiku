@@ -167,9 +167,6 @@ class MessageTemplates
         ],
     ];
 
-    /** @var array<string, string>|null */
-    private ?array $overrides = null;
-
     public function __construct(private readonly SettingService $settings) {}
 
     /**
@@ -204,16 +201,13 @@ class MessageTemplates
             return $definition['default'];
         }
 
-        $this->overrides ??= MessageTemplate::query()->pluck('body', 'key')->all();
-
-        return $this->overrides[$key] ?? $definition['default'];
+        // Tanpa cache antarpermintaan: worker antrean berumur panjang harus langsung memakai teks yang baru disimpan Owner.
+        return MessageTemplate::query()->where('key', $key)->value('body') ?? $definition['default'];
     }
 
     public function isCustomised(string $key): bool
     {
-        $this->overrides ??= MessageTemplate::query()->pluck('body', 'key')->all();
-
-        return isset($this->overrides[$key]);
+        return MessageTemplate::query()->where('key', $key)->exists();
     }
 
     /**
@@ -286,12 +280,10 @@ class MessageTemplates
     public function save(string $key, string $body, ?User $user): void
     {
         MessageTemplate::query()->updateOrCreate(['key' => $key], ['body' => $body, 'updated_by' => $user?->id]);
-        $this->overrides = null;
     }
 
     public function reset(string $key): void
     {
         MessageTemplate::query()->where('key', $key)->delete();
-        $this->overrides = null;
     }
 }
