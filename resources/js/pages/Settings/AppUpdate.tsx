@@ -253,9 +253,8 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
                 status={state.status}
                 steps={state.steps}
                 error={state.error}
-                host={`${window.location.hostname}`}
-                from={state.from}
-                to={state.to}
+                user={(state.by ?? 'admin').split(' ')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'admin'}
+                host={window.location.hostname.split('.')[0] || 'server'}
                 onClose={() => setTerminalOpen(false)}
             />
         </>
