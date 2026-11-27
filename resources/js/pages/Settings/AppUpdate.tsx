@@ -1,7 +1,8 @@
-import { CheckCircle2, CircleDashed, Download, GitCommitHorizontal, Loader2, RefreshCw, SkipForward, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, GitCommitHorizontal, Loader2, RefreshCw, SquareTerminal, XCircle } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { PageHeader } from '@/Components/PageHeader';
+import { UpdateTerminal } from '@/Components/UpdateTerminal';
 import { Badge } from '@/Components/ui/Badge';
 import { Button } from '@/Components/ui/Button';
 import { Card, CardHeader } from '@/Components/ui/Card';
@@ -31,14 +32,6 @@ async function call<T>(url: string, method: 'GET' | 'POST' = 'GET'): Promise<{ o
 
     return { ok: response.ok, data: await response.json().catch(() => ({ message: 'Respons server tidak valid.' })) };
 }
-
-const stepIcon = {
-    pending: <CircleDashed className="size-4 text-muted-foreground" />,
-    running: <Loader2 className="size-4 animate-spin text-primary" />,
-    done: <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />,
-    failed: <XCircle className="size-4 text-rose-600 dark:text-rose-400" />,
-    skipped: <SkipForward className="size-4 text-muted-foreground" />,
-};
 
 type Tone = 'slate' | 'green' | 'amber' | 'blue' | 'red';
 
@@ -114,6 +107,7 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
     const [checked, setChecked] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [confirming, setConfirming] = useState(false);
+    const [terminalOpen, setTerminalOpen] = useState(initialState.status === 'queued' || initialState.status === 'running');
     const wasRunning = useRef(initialState.status === 'queued' || initialState.status === 'running');
 
     const running = state.status === 'queued' || state.status === 'running';
@@ -174,6 +168,7 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
 
         if (ok) {
             setState(data.state);
+            setTerminalOpen(true);
         } else {
             setError(data.message ?? 'Pembaruan tidak dapat dimulai.');
         }
@@ -187,9 +182,16 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
                 title="Pembaruan Aplikasi"
                 description="Tarik perubahan terbaru dari git dan pasang dengan satu klik: kode, dependensi, migrasi database, cache, dan queue worker."
                 actions={
-                    <Button variant="outline" onClick={check} disabled={checking || running}>
-                        <RefreshCw className={cn('size-4', checking && 'animate-spin')} /> {checking ? 'Memeriksa...' : 'Periksa pembaruan'}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        {state.status !== 'idle' && (
+                            <Button variant="outline" onClick={() => setTerminalOpen(true)}>
+                                <SquareTerminal className="size-4" /> Lihat terminal
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={check} disabled={checking || running}>
+                            <RefreshCw className={cn('size-4', checking && 'animate-spin')} /> {checking ? 'Memeriksa...' : 'Periksa pembaruan'}
+                        </Button>
+                    </div>
                 }
             />
 
@@ -246,36 +248,16 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
                 </Card>
             </div>
 
-            {state.status !== 'idle' && (
-                <Card className="mt-5">
-                    <CardHeader
-                        title="Proses pembaruan"
-                        action={
-                            state.status === 'succeeded' ? <Badge tone="green">Berhasil</Badge> : state.status === 'failed' ? <Badge tone="red">Gagal</Badge> : <Badge tone="blue">Berjalan</Badge>
-                        }
-                    />
-                    <div className="space-y-4 p-5">
-                        <p className="text-xs text-muted-foreground">
-                            {state.by && `Dimulai oleh ${state.by}`}
-                            {state.started_at && ` · ${formatDate(state.started_at)}`}
-                            {state.from && ` · ${state.from}${state.to ? ` → ${state.to}` : ''}`}
-                        </p>
-                        {state.error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">{state.error}</p>}
-                        {state.status === 'succeeded' && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">Pembaruan selesai. Halaman dimuat ulang otomatis sebentar lagi.</p>}
-                        <ol className="space-y-2">
-                            {state.steps.map((step) => (
-                                <li key={step.key} className="rounded-lg border">
-                                    <div className="flex items-center gap-2.5 px-3 py-2 text-sm">
-                                        {stepIcon[step.status]}
-                                        <span className={cn(step.status === 'pending' && 'text-muted-foreground')}>{step.label}</span>
-                                    </div>
-                                    {step.output && <pre className="num max-h-48 overflow-auto border-t bg-muted/40 px-3 py-2 text-xs whitespace-pre-wrap">{step.output}</pre>}
-                                </li>
-                            ))}
-                        </ol>
-                    </div>
-                </Card>
-            )}
+            <UpdateTerminal
+                open={terminalOpen}
+                status={state.status}
+                steps={state.steps}
+                error={state.error}
+                host={`${window.location.hostname}`}
+                from={state.from}
+                to={state.to}
+                onClose={() => setTerminalOpen(false)}
+            />
         </>
     );
 }
