@@ -82,6 +82,7 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                             <thead>
                                 <tr>
                                     <SortTh column="name" state={sort}>Member</SortTh>
+                                    <SortTh column="email" state={sort}>Email</SortTh>
                                     <Th>WhatsApp</Th>
                                     <SortTh column="accounts" state={sort}>Akun VPN</SortTh>
                                     <SortTh column="created_at" state={sort}>Terdaftar</SortTh>
@@ -93,10 +94,8 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                             <tbody>
                                 {members.data.map((member) => (
                                     <tr key={member.id} className="hover:bg-muted/40">
-                                        <Td>
-                                            <span className="font-medium">{member.name}</span>
-                                            <span className="ml-2 text-xs text-muted-foreground">{member.email}</span>
-                                        </Td>
+                                        <Td className="font-medium">{member.name}</Td>
+                                        <Td className="text-muted-foreground">{member.email}</Td>
                                         <Td>
                                             <a href={`https://wa.me/${member.whatsapp}`} target="_blank" rel="noreferrer" className="num inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
                                                 <MessageCircle className="size-3.5" /> {member.whatsapp}
