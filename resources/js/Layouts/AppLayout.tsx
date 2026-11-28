@@ -174,7 +174,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     mobileOpen ? 'translate-x-0' : '-translate-x-full',
                 )}
             >
-                <Button variant="ghost" size="icon" className="absolute top-3.5 right-3 text-slate-300 hover:bg-white/10 hover:text-white" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
+                <Button variant="close" size="icon" className="absolute top-3.5 right-3" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
                     <X className="size-4" />
                 </Button>
                 {sidebar(false)}
