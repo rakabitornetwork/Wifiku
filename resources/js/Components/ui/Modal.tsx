@@ -12,7 +12,7 @@ type Props = {
     children: ReactNode;
     footer?: ReactNode;
     size?: 'md' | 'lg';
-    /** 'sheet' (bawaan): menempel di bawah layar pada HP; 'center': selalu di tengah layar. */
+    /** 'center' (bawaan): selalu di tengah layar; 'sheet': menempel di bawah layar pada HP. */
     placement?: 'sheet' | 'center';
 };
 
@@ -29,7 +29,7 @@ export function Modal(props: Props) {
         latest.current = props;
     }
 
-    const { title, description, children, footer, size = 'md', placement = 'sheet' } = open ? props : latest.current;
+    const { title, description, children, footer, size = 'md', placement = 'center' } = open ? props : latest.current;
 
     useEffect(() => {
         if (open) {
