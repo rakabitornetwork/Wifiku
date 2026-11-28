@@ -158,7 +158,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                         <Button variant="outline" onClick={() => setImportOpen(true)}>
                             <Download className="size-4" /> Impor dari Router
                         </Button>
-                        <Button onClick={openCreate}>
+                        <Button variant="add" onClick={openCreate}>
                             <Plus className="size-4" /> Tambah Profil
                         </Button>
                     </div>

@@ -36,7 +36,7 @@ export default function BatchesIndex({ batches, routers, routerId, routerStats }
                 title="Voucher Hotspot"
                 description="Batch voucher yang sudah dibuat, lengkap dengan progres pemakaian."
                 actions={
-                    <Link href="/hotspot/batches/create" className={buttonClass()}>
+                    <Link href="/hotspot/batches/create" className={buttonClass('add')}>
                         <Plus className="size-4" /> Generate Voucher
                     </Link>
                 }

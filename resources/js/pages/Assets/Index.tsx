@@ -117,7 +117,7 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                 title="Inventaris ONT & Aset"
                 description="Perangkat ONT dan aset lain, termasuk kepemilikan dan pelanggan pemakainya."
                 actions={
-                    <Button onClick={openCreate}>
+                    <Button variant="add" onClick={openCreate}>
                         <Plus className="size-4" /> Tambah Perangkat
                     </Button>
                 }

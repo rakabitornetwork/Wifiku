@@ -55,7 +55,7 @@ export default function GalleryIndex({ photos, limit }: { photos: Photo[]; limit
                 title="Galeri Landing"
                 description={`Foto hasil instalasi yang tampil di landing page (${photos.length}/${limit}). Gunakan foto asli dan pastikan pelanggan setuju rumahnya difoto.`}
                 actions={
-                    <Button onClick={openCreate} disabled={photos.length >= limit}>
+                    <Button variant="add" onClick={openCreate} disabled={photos.length >= limit}>
                         <Plus className="size-4" /> Tambah Foto
                     </Button>
                 }

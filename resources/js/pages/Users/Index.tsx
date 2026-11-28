@@ -63,7 +63,7 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                 title="Teknisi & RBAC"
                 description="Akun tim dan hak aksesnya. Hanya Owner yang dapat mengelola halaman ini."
                 actions={
-                    <Button onClick={openCreate}>
+                    <Button variant="add" onClick={openCreate}>
                         <Plus className="size-4" /> Tambah Pengguna
                     </Button>
                 }

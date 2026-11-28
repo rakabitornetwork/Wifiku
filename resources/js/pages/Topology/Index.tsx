@@ -87,7 +87,7 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                 description="Titik ODP, lokasi pelanggan, dan tarikan kabel dari ODP ke rumah pelanggan."
                 actions={
                     canManage && (
-                        <Button onClick={openCreate}>
+                        <Button variant="add" onClick={openCreate}>
                             <Plus className="size-4" /> Tambah ODP
                         </Button>
                     )

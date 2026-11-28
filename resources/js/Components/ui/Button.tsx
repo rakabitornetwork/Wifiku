@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'edit' | 'info' | 'success' | 'warning' | 'remove' | 'close' | 'save';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'edit' | 'info' | 'success' | 'warning' | 'remove' | 'close' | 'save' | 'add';
 type Size = 'sm' | 'md' | 'icon';
 
 const variants: Record<Variant, string> = {
@@ -17,6 +17,7 @@ const variants: Record<Variant, string> = {
     warning: 'bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white dark:text-amber-400 dark:hover:text-white',
     close: 'border-transparent bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(127_29_29/0.4)] hover:brightness-110',
     save: 'border-transparent bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(6_78_59/0.4)] hover:brightness-110',
+    add: 'border-transparent bg-gradient-to-br from-sky-500 to-blue-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(30_58_138/0.4)] hover:brightness-110',
     remove: 'border-transparent bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(127_29_29/0.4)] hover:brightness-110',
 };
 

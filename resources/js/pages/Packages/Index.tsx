@@ -116,7 +116,7 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                 title="Paket Bandwidth"
                 description="Paket internet PPPoE yang dijual kepada pelanggan."
                 actions={
-                    <Button onClick={openCreate}>
+                    <Button variant="add" onClick={openCreate}>
                         <Plus className="size-4" /> Tambah Paket
                     </Button>
                 }

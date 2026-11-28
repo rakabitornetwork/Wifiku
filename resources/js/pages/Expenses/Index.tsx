@@ -109,7 +109,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                         <Button variant="outline" onClick={() => setManageCategories(true)}>
                             <Tags className="size-4" /> Kategori
                         </Button>
-                        <Button onClick={openCreate}>
+                        <Button variant="add" onClick={openCreate}>
                             <Plus className="size-4" /> Catat Pengeluaran
                         </Button>
                     </>
@@ -270,7 +270,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                             ))}
                         </Select>
                     </Field>
-                    <Button type="submit" disabled={categoryForm.processing}>
+                    <Button variant="add" type="submit" disabled={categoryForm.processing}>
                         Tambah
                     </Button>
                 </form>

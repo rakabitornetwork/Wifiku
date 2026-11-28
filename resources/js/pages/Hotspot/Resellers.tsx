@@ -56,7 +56,7 @@ export default function Resellers({ resellers }: { resellers: Paginated<Reseller
                 title="Voucher Hotspot"
                 description="Reseller yang menerima batch voucher dengan harga khusus."
                 actions={
-                    <Button onClick={openCreate}>
+                    <Button variant="add" onClick={openCreate}>
                         <Plus className="size-4" /> Tambah Reseller
                     </Button>
                 }

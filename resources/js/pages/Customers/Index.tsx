@@ -93,7 +93,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                 title="Data Pelanggan"
                 description="Pelanggan PPPoE beserta paket, router, dan status layanannya."
                 actions={
-                    <Link href="/customers/create" className={buttonClass()}>
+                    <Link href="/customers/create" className={buttonClass('add')}>
                         <Plus className="size-4" /> Tambah Pelanggan
                     </Link>
                 }

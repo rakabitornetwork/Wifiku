@@ -102,7 +102,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                 title="Manajemen Router"
                 description="Daftar router MikroTik (Multi-NAS) per POP atau desa."
                 actions={
-                    <Button onClick={openCreate}>
+                    <Button variant="add" onClick={openCreate}>
                         <Plus className="size-4" /> Tambah Router
                     </Button>
                 }

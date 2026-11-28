@@ -283,7 +283,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                 title="VPN Tunnel"
                 description="Jual layanan VPN L2TP (dengan atau tanpa IPsec) dan SSTP. Script RouterOS dibuat otomatis untuk router pelanggan dan router server Anda."
                 actions={
-                    <Button onClick={openAccountCreate} disabled={servers.length === 0}>
+                    <Button variant="add" onClick={openAccountCreate} disabled={servers.length === 0}>
                         <Plus className="size-4" /> Tambah Akun VPN
                     </Button>
                 }
@@ -295,7 +295,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                     title="Server VPN"
                     description="Router MikroTik Anda yang menerima koneksi tunnel dari pelanggan."
                     action={
-                        <Button variant="outline" size="sm" onClick={openServerCreate}>
+                        <Button variant="add" size="sm" onClick={openServerCreate}>
                             <Plus className="size-4" /> Tambah Server
                         </Button>
                     }
