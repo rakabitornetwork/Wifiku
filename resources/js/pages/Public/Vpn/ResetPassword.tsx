@@ -53,8 +53,9 @@ export default function ResetPassword({ company, token, email }: { company: stri
                     />
                 </Field>
                 <Button
+                    variant="save"
                     type="submit"
-                    className="h-12 w-full bg-indigo-600 text-base font-semibold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 hover:opacity-100"
+                    className="h-12 w-full text-base"
                     disabled={processing}
                 >
                     {processing ? 'Menyimpan...' : 'Simpan password'}

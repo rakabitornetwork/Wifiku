@@ -291,7 +291,7 @@ function WifiCard({ currentSsid }: { currentSsid: string | null }) {
                 <Field label="Ulangi password baru" error={form.errors.password_confirmation}>
                     <Input type="password" value={form.data.password_confirmation} onChange={(event) => form.setData('password_confirmation', event.target.value)} minLength={8} maxLength={63} autoComplete="new-password" required />
                 </Field>
-                <Button type="submit" className="h-11 bg-indigo-600 text-white hover:bg-indigo-700 hover:opacity-100 sm:col-span-2 lg:col-span-1" disabled={form.processing}>
+                <Button variant="save" type="submit" className="h-11 sm:col-span-2 lg:col-span-1" disabled={form.processing}>
                     {form.processing ? 'Mengirim ke ONU...' : 'Simpan pengaturan WiFi'}
                 </Button>
             </form>
