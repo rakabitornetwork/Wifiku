@@ -166,7 +166,7 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                                         <Td>{item.router?.name ?? <span className="text-muted-foreground">Semua router</span>}</Td>
                                         <Td className="num text-right font-medium">{formatRupiah(item.price)}</Td>
                                         <Td className="num">{item.customers_count}</Td>
-                                        <Td>{item.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}</Td>
+                                        <Td className="text-center">{item.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}</Td>
                                         <Td>
                                             <button
                                                 type="button"

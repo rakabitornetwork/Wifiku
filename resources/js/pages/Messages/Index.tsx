@@ -164,7 +164,7 @@ export default function MessagesIndex({ messages, filters, types, summary }: Pro
                                                     {message.hidden ? 'Isi disembunyikan' : message.body}
                                                 </span>
                                             </Td>
-                                            <Td>
+                                            <Td className="text-center">
                                                 <Badge tone={status.tone}>
                                                     <status.icon className="size-3.5" /> {status.label}
                                                 </Badge>

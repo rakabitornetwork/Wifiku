@@ -202,7 +202,7 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                                         <Td className="num text-muted-foreground">
                                             {odp.latitude !== null ? `${Number(odp.latitude).toFixed(5)}, ${Number(odp.longitude).toFixed(5)}` : '-'}
                                         </Td>
-                                        <Td>{odp.open_outages_count > 0 ? <Badge tone="red">Gangguan</Badge> : <Badge tone="green">Normal</Badge>}</Td>
+                                        <Td className="text-center">{odp.open_outages_count > 0 ? <Badge tone="red">Gangguan</Badge> : <Badge tone="green">Normal</Badge>}</Td>
                                         <Td>
                                             <div className="flex justify-end gap-1">
                                                 {can('outages.manage') && (

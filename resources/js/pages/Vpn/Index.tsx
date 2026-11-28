@@ -448,7 +448,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                                         </Td>
                                         <Td className="text-muted-foreground">{formatDate(account.expires_at)}</Td>
                                         <Td className="num text-right">{formatRupiah(account.monthly_price)}</Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <span title={account.last_error ?? undefined}>
                                                 {account.last_error ? <Badge tone="red">Gagal sinkron</Badge> : <StatusBadge status={account.status} />}
                                             </span>

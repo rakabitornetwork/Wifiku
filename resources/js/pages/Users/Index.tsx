@@ -98,7 +98,7 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                                         <Badge tone={user.role === 'Owner' ? 'blue' : 'slate'}>{roleLabels[user.role ?? '']?.label ?? user.role ?? '-'}</Badge>
                                     </Td>
                                     <Td className="text-muted-foreground">{formatDate(user.last_login_at)}</Td>
-                                    <Td>{user.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Nonaktif</Badge>}</Td>
+                                    <Td className="text-center">{user.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Nonaktif</Badge>}</Td>
                                     <Td>
                                         <div className="flex justify-end gap-1">
                                             <Button

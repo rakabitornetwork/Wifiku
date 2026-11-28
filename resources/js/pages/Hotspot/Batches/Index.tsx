@@ -103,7 +103,7 @@ export default function BatchesIndex({ batches, routers, routerId, routerStats }
                                         </Td>
                                         <Td className="num">{batch.used_count}</Td>
                                         <Td className="text-muted-foreground">{formatDate(batch.created_at)}</Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <StatusBadge status={batch.status} />
                                         </Td>
                                     </tr>

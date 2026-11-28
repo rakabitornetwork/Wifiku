@@ -137,7 +137,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                                             {router.host}:{router.api_port}
                                             {router.use_ssl && <span className="ml-1.5 text-[10px] uppercase">ssl</span>}
                                         </Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <span title={router.last_error ?? undefined}>
                                                 <StatusBadge status={router.status} />
                                             </span>

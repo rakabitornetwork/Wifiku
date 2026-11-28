@@ -82,7 +82,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
                                         <tr key={router.id}>
                                             <Td className="font-medium">{router.name}</Td>
                                             <Td className="num text-muted-foreground">{router.host}</Td>
-                                            <Td>
+                                            <Td className="text-center">
                                                 <StatusBadge status={router.status} />
                                             </Td>
                                             <Td className="text-muted-foreground">{formatDate(router.last_checked_at)}</Td>

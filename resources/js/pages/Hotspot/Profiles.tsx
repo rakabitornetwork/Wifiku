@@ -193,7 +193,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                                         <Td className="num text-right font-medium">{formatRupiah(profile.price)}</Td>
                                         <Td className="num">{formatDuration(profile.validity_minutes)}</Td>
                                         <Td className="num">{profile.vouchers_count}</Td>
-                                        <Td>{profile.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}</Td>
+                                        <Td className="text-center">{profile.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}</Td>
                                         <Td>
                                             <div className="flex justify-end gap-1">
                                                 <Button variant="edit" size="icon" onClick={() => openEdit(profile)} aria-label="Ubah">
@@ -271,7 +271,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                                                 <Td className="num text-muted-foreground">{profile.rate_limit ?? '-'}</Td>
                                                 <Td className="num text-right">{profile.price > 0 ? formatRupiah(profile.price) : '-'}</Td>
                                                 <Td className="num">{formatDuration(profile.validity_minutes)}</Td>
-                                                <Td>{profile.exists ? <Badge>Sudah ada</Badge> : <Badge tone="blue">Baru</Badge>}</Td>
+                                                <Td className="text-center">{profile.exists ? <Badge>Sudah ada</Badge> : <Badge tone="blue">Baru</Badge>}</Td>
                                             </tr>
                                         ))}
                                     </tbody>

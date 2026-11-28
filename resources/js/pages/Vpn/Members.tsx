@@ -118,7 +118,7 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                                         </Td>
                                         <Td className="whitespace-nowrap text-muted-foreground">{formatDate(member.created_at)}</Td>
                                         <Td className="whitespace-nowrap text-muted-foreground">{member.last_login_at ? formatDate(member.last_login_at) : '-'}</Td>
-                                        <Td>{member.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Dinonaktifkan</Badge>}</Td>
+                                        <Td className="text-center">{member.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Dinonaktifkan</Badge>}</Td>
                                         <Td>
                                             <div className="flex justify-center gap-1">
                                                 <Button variant="warning" size="icon" onClick={() => sendReset(member)} disabled={sending === member.id} aria-label="Kirim tautan reset password" title="Kirim tautan reset password lewat WhatsApp">

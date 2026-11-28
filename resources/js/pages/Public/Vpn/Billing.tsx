@@ -159,7 +159,7 @@ export default function Billing({ company, member, open, outstanding, history, p
                                                 {invoice.paid_at ? formatDate(invoice.paid_at) : '-'}
                                                 {invoice.paid_via && <span className="ml-1.5 text-xs">({invoice.paid_via})</span>}
                                             </Td>
-                                            <Td>
+                                            <Td className="text-center">
                                                 <StatusBadge status={invoice.status} />
                                             </Td>
                                         </tr>

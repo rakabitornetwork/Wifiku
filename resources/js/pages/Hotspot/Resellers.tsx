@@ -86,7 +86,7 @@ export default function Resellers({ resellers }: { resellers: Paginated<Reseller
                                         <Td className="num text-muted-foreground">{reseller.phone ?? '-'}</Td>
                                         <Td className="num">{reseller.discount_percent}%</Td>
                                         <Td className="num">{reseller.voucher_batches_count}</Td>
-                                        <Td>{reseller.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Nonaktif</Badge>}</Td>
+                                        <Td className="text-center">{reseller.is_active ? <Badge tone="green">Aktif</Badge> : <Badge>Nonaktif</Badge>}</Td>
                                         <Td>
                                             <div className="flex justify-end gap-1">
                                                 <Button variant="edit" size="icon" onClick={() => openEdit(reseller)} aria-label="Ubah">

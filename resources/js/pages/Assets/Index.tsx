@@ -168,7 +168,7 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                                             <span className="text-muted-foreground"> · {[asset.brand, asset.model].filter(Boolean).join(' ') || '-'}</span>
                                         </Td>
                                         <Td className="num text-muted-foreground">{asset.mac_address ?? '-'}</Td>
-                                        <Td>{asset.ownership === 'company' ? <Badge tone="blue">Milik perusahaan</Badge> : <Badge>Milik pelanggan</Badge>}</Td>
+                                        <Td className="text-center">{asset.ownership === 'company' ? <Badge tone="blue">Milik perusahaan</Badge> : <Badge>Milik pelanggan</Badge>}</Td>
                                         <Td>
                                             {asset.customer ? (
                                                 <>
@@ -186,7 +186,7 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                                             )}
                                             {asset.last_seen_at && <div className="text-[11px] text-muted-foreground">{formatDate(asset.last_seen_at)}</div>}
                                         </Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <StatusBadge status={asset.status} />
                                         </Td>
                                         <Td>

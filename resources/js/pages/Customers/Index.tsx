@@ -192,7 +192,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                                         <Td className="num text-muted-foreground">
                                             {customer.billing_cycle === 'fixed' ? 'Tgl' : 'Anniv.'} {customer.billing_day}
                                         </Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <StatusBadge status={customer.status} />
                                             {customer.promise_to_pay_until && customer.promise_to_pay_until.slice(0, 10) >= new Date().toISOString().slice(0, 10) && (
                                                 <span className="num ml-2 text-[11px] text-muted-foreground">Janji s.d. {formatDate(customer.promise_to_pay_until)}</span>

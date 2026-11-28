@@ -200,7 +200,7 @@ export default function InvoicesIndex({
                                                     invoice.amount_paid,
                                             )}
                                         </Td>
-                                        <Td className="whitespace-nowrap">
+                                        <Td className="text-center whitespace-nowrap">
                                             <StatusBadge
                                                 status={invoice.status}
                                             />

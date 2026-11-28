@@ -149,7 +149,7 @@ export default function BatchShow({ batch, stats, vouchers, status }: Props) {
                                         <Td className="num text-right">{formatRupiah(voucher.price)}</Td>
                                         <Td className="text-muted-foreground">{formatDate(voucher.first_login_at)}</Td>
                                         <Td className="text-muted-foreground">{formatDate(voucher.expires_at)}</Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <StatusBadge status={voucher.status} />
                                         </Td>
                                     </tr>

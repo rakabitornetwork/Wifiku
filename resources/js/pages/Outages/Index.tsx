@@ -116,7 +116,7 @@ export default function OutagesIndex({ outages, odps }: Props) {
                                         <Td className="num">{outage.notified_count}</Td>
                                         <Td className="whitespace-nowrap text-muted-foreground">{formatDate(outage.created_at)}</Td>
                                         <Td className="whitespace-nowrap text-muted-foreground">{formatDate(outage.resolved_at)}</Td>
-                                        <Td>
+                                        <Td className="text-center">
                                             <StatusBadge status={outage.status === 'open' ? 'failed' : 'completed'} />
                                         </Td>
                                         <Td>
