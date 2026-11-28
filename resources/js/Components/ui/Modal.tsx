@@ -78,7 +78,7 @@ export function Modal(props: Props) {
                         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
                         {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose} aria-label="Tutup">
+                    <Button variant="close" size="icon" onClick={onClose} aria-label="Tutup">
                         <X className="size-4" />
                     </Button>
                 </div>
