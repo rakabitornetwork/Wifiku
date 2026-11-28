@@ -334,7 +334,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                                         </Td>
                                         <Td className="num">{server.accounts_count}</Td>
                                         <Td>
-                                            <div className="flex flex-col items-start gap-1">
+                                            <div className="flex flex-col items-center gap-1 text-center">
                                                 {server.is_active ? <Badge tone="green">Dijual</Badge> : <Badge>Nonaktif</Badge>}
                                                 <span className="text-xs text-muted-foreground">{server.setup_at ? `Terpasang ${formatDate(server.setup_at)}` : 'Belum dipasang'}</span>
                                             </div>
