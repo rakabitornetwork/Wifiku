@@ -135,7 +135,7 @@ export default function ProfileEdit({ account, pendingPhone }: Props) {
                                     <Camera className="size-3.5" /> {avatarForm.processing ? 'Mengunggah...' : 'Unggah foto'}
                                 </Button>
                                 {account.avatar_url && (
-                                    <Button variant="outline" size="sm" onClick={() => router.delete('/profil/avatar', { preserveScroll: true })}>
+                                    <Button variant="danger" size="sm" onClick={() => router.delete('/profil/avatar', { preserveScroll: true })}>
                                         <Trash2 className="size-3.5" /> Hapus foto
                                     </Button>
                                 )}
