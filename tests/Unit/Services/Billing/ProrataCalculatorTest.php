@@ -56,4 +56,29 @@ class ProrataCalculatorTest extends TestCase
 
         (new ProrataCalculator)->calculate(1, CarbonImmutable::parse('2026-11-01'), CarbonImmutable::parse('2026-11-30'), CarbonImmutable::parse('2026-11-01'));
     }
+
+    /**
+     * @return array<string, array{int, string, string, string}>
+     */
+    public static function endOfMonthCycles(): array
+    {
+        return [
+            'day 31 in 30-day month' => [31, '2026-11-30', '2026-11-30', '2026-12-30'],
+            'day 31 before month end' => [31, '2026-11-15', '2026-10-31', '2026-11-29'],
+            'day 31 in december' => [31, '2026-12-31', '2026-12-31', '2027-01-30'],
+            'day 31 february' => [31, '2027-02-10', '2027-01-31', '2027-02-27'],
+            'day 29 non leap february' => [29, '2027-02-28', '2027-02-28', '2027-03-28'],
+            'day 30 march after february' => [30, '2027-03-05', '2027-02-28', '2027-03-29'],
+            'day 15 unchanged' => [15, '2026-11-20', '2026-11-15', '2026-12-14'],
+        ];
+    }
+
+    #[DataProvider('endOfMonthCycles')]
+    public function test_cycle_clamps_billing_day_to_month_end(int $day, string $date, string $start, string $end): void
+    {
+        [$cycleStart, $cycleEnd] = (new ProrataCalculator)->cycleContaining($day, CarbonImmutable::parse($date));
+
+        $this->assertSame($start, $cycleStart->toDateString());
+        $this->assertSame($end, $cycleEnd->toDateString());
+    }
 }

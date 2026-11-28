@@ -152,8 +152,8 @@ export function ImportPppModal({ router, onClose }: Props) {
                     <div>
                         <h3 className="mb-2 text-sm font-semibold">2. Pengaturan tagihan</h3>
                         <div className="grid gap-4 sm:grid-cols-3">
-                            <Field label="Tanggal tagihan (1–28)" error={errors.billing_day}>
-                                <Input type="number" min={1} max={28} value={form.data.billing_day} onChange={(event) => form.setData('billing_day', event.target.value)} />
+                            <Field label="Tanggal tagihan (1–31)" error={errors.billing_day}>
+                                <Input type="number" min={1} max={31} value={form.data.billing_day} onChange={(event) => form.setData('billing_day', event.target.value)} />
                             </Field>
                             <Field label="Jatuh tempo (hari)" error={errors.due_days}>
                                 <Input type="number" min={1} max={60} value={form.data.due_days} onChange={(event) => form.setData('due_days', event.target.value)} />

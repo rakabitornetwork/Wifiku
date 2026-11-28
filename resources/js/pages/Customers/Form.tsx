@@ -200,8 +200,8 @@ export default function CustomerForm({ customer, routers, packages, odps }: Prop
                             </Select>
                         </Field>
                         {form.data.billing_cycle === 'fixed' ? (
-                            <Field label="Tanggal tagihan" error={form.errors.billing_day} hint="1–28 setiap bulan.">
-                                <Input type="number" min={1} max={28} value={form.data.billing_day} onChange={set('billing_day')} required />
+                            <Field label="Tanggal tagihan" error={form.errors.billing_day} hint="1–31 setiap bulan; di bulan yang lebih pendek jatuh pada hari terakhir bulan itu.">
+                                <Input type="number" min={1} max={31} value={form.data.billing_day} onChange={set('billing_day')} required />
                             </Field>
                         ) : (
                             <Field label="Tanggal tagihan" hint="Otomatis mengikuti tanggal pasang.">

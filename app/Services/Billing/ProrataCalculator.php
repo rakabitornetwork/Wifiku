@@ -38,19 +38,31 @@ class ProrataCalculator
     }
 
     /**
-     * Siklus tagihan yang memuat $date untuk tanggal tagihan $billingDay (1–28): mulai pada billing_day,
-     * berakhir sehari sebelum billing_day bulan berikutnya.
+     * Siklus tagihan yang memuat $date untuk tanggal tagihan $billingDay (1–31): mulai pada billing_day,
+     * berakhir sehari sebelum billing_day bulan berikutnya. Di bulan yang lebih pendek, tanggal tagihan
+     * dimundurkan ke hari terakhir bulan itu (tanggal 31 menjadi 30 November atau 28/29 Februari).
      *
      * @return array{0: CarbonImmutable, 1: CarbonImmutable}
      */
     public function cycleContaining(int $billingDay, CarbonImmutable $date): array
     {
         $date = $date->startOfDay();
-        $start = $date->day >= $billingDay
-            ? $date->setDay($billingDay)
-            : $date->startOfMonth()->subMonthNoOverflow()->setDay($billingDay);
+        $thisMonth = $this->billingDateInMonth($billingDay, $date);
+        $start = $date->greaterThanOrEqualTo($thisMonth)
+            ? $thisMonth
+            : $this->billingDateInMonth($billingDay, $date->startOfMonth()->subMonth());
 
-        return [$start, $start->addMonthNoOverflow()->subDay()];
+        return [$start, $this->billingDateInMonth($billingDay, $start->startOfMonth()->addMonth())->subDay()];
+    }
+
+    /**
+     * Tanggal tagihan pada bulan yang memuat $month, dibatasi sampai hari terakhir bulan itu.
+     */
+    public function billingDateInMonth(int $billingDay, CarbonImmutable $month): CarbonImmutable
+    {
+        $first = $month->startOfMonth();
+
+        return $first->setDay(min($billingDay, $first->daysInMonth));
     }
 
     private function inclusiveDays(CarbonImmutable $from, CarbonImmutable $to): int

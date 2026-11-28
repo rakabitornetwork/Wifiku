@@ -183,7 +183,7 @@ class LegacyDatabaseImporterTest extends TestCase
         $siti = Customer::findOrFail(2);
         $this->assertSame('', $siti->whatsapp);
         $this->assertSame('inactive', $siti->status->value);
-        $this->assertSame(28, $siti->billing_day);
+        $this->assertSame(31, $siti->billing_day);
         $this->assertSame('Tanpa Paket (migrasi)', $siti->package->name);
         $this->assertFalse($siti->package->is_active);
         $this->assertSame(1, $report['customers_tanpa_whatsapp']);

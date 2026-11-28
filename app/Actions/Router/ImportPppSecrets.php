@@ -148,9 +148,10 @@ class ImportPppSecrets
             return $today->toDateString();
         }
 
-        $next = $today->day >= $billingDay ? $today->copy()->addMonthNoOverflow() : $today->copy();
+        $month = $today->copy()->startOfMonth();
+        $month = $today->day >= min($billingDay, $month->daysInMonth) ? $month->addMonth() : $month;
 
-        return $next->setDay($billingDay)->toDateString();
+        return $month->setDay(min($billingDay, $month->daysInMonth))->toDateString();
     }
 
     /**

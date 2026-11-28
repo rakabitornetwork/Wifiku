@@ -64,7 +64,7 @@ class CustomerRequest extends FormRequest
             ],
             'pppoe_password' => [$customer ? 'nullable' : 'required', 'string', 'max:64'],
             'billing_cycle' => ['required', Rule::enum(BillingCycle::class)],
-            'billing_day' => ['nullable', 'required_if:billing_cycle,fixed', 'integer', 'between:1,28'],
+            'billing_day' => ['nullable', 'required_if:billing_cycle,fixed', 'integer', 'between:1,31'],
             'due_days' => ['required', 'integer', 'between:1,60'],
             'installed_at' => ['required', 'date'],
             'status' => ['required', Rule::enum(CustomerStatus::class)],
@@ -135,7 +135,7 @@ class CustomerRequest extends FormRequest
         }
 
         if ($data['billing_cycle'] === BillingCycle::Anniversary->value) {
-            $data['billing_day'] = min(28, (int) date('j', strtotime($data['installed_at'])));
+            $data['billing_day'] = (int) date('j', strtotime($data['installed_at']));
         }
 
         return $data;

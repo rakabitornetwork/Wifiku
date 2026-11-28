@@ -119,7 +119,7 @@ class CustomerControllerTest extends TestCase
         ];
     }
 
-    public function test_anniversary_cycle_uses_install_day_capped_at_28(): void
+    public function test_anniversary_cycle_uses_install_day_up_to_31(): void
     {
         $router = Router::factory()->create();
         $package = Package::factory()->create();
@@ -128,7 +128,21 @@ class CustomerControllerTest extends TestCase
             'billing_cycle' => 'anniversary', 'billing_day' => null, 'installed_at' => '2026-10-31',
         ]));
 
-        $this->assertSame(28, Customer::sole()->billing_day);
+        $this->assertSame(31, Customer::sole()->billing_day);
+    }
+
+    public function test_fixed_cycle_accepts_billing_day_up_to_31_but_not_32(): void
+    {
+        $router = Router::factory()->create();
+        $package = Package::factory()->create();
+
+        $this->actingAs($this->admin())->post('/customers', $this->validPayload($router, $package, ['billing_day' => 32]))
+            ->assertSessionHasErrors('billing_day');
+
+        $this->actingAs($this->admin())->post('/customers', $this->validPayload($router, $package, ['billing_day' => 31]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(31, Customer::sole()->billing_day);
     }
 
     public function test_fixed_cycle_requires_billing_day(): void

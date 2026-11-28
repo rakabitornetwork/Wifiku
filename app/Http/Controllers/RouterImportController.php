@@ -31,7 +31,7 @@ class RouterImportController extends Controller
             'mappings' => ['required', 'array', 'min:1'],
             'mappings.*.package' => ['nullable', 'string', 'regex:/^(new|\d+)$/'],
             'mappings.*.price' => ['nullable', 'integer', 'min:0'],
-            'billing_day' => ['required', 'integer', 'between:1,28'],
+            'billing_day' => ['required', 'integer', 'between:1,31'],
             'due_days' => ['required', 'integer', 'between:1,60'],
             'bill_from' => ['required', 'in:next_cycle,now'],
         ]);

@@ -121,7 +121,7 @@ class LegacyDatabaseImporter
                 'pppoe_username' => $customer->username,
                 'pppoe_password' => Crypt::encryptString($this->decrypt($customer->password, "pelanggan #{$customer->id}")),
                 'billing_cycle' => 'fixed',
-                'billing_day' => min(28, max(1, (int) ($customer->billing_day ?: 1))),
+                'billing_day' => min(31, max(1, (int) ($customer->billing_day ?: 1))),
                 'due_days' => 7,
                 'installed_at' => $this->date($customer->start_date ?? $customer->created_at),
                 'status' => $status,

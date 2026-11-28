@@ -29,7 +29,7 @@ class InvoiceGeneratorService
     ) {}
 
     /**
-     * Siklus tagihan yang memuat $date untuk tanggal tagihan $billingDay (1–28).
+     * Siklus tagihan yang memuat $date untuk tanggal tagihan $billingDay (1–31).
      *
      * @return array{0: CarbonImmutable, 1: CarbonImmutable}
      */

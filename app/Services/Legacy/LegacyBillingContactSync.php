@@ -3,6 +3,7 @@
 namespace App\Services\Legacy;
 
 use App\Models\Customer;
+use App\Services\Billing\ProrataCalculator;
 use App\Services\Portal\CustomerLoginService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\ConnectionInterface;
@@ -80,7 +81,7 @@ class LegacyBillingContactSync
                 $this->report['whatsapp_tetap_beda']++;
             }
 
-            $billingDay = min(28, max(1, (int) $old->billing_day));
+            $billingDay = min(31, max(1, (int) $old->billing_day));
 
             if ($customer->billing_day === $billingDay) {
                 $this->report['tanggal_tagihan_sama']++;
@@ -107,9 +108,10 @@ class LegacyBillingContactSync
      */
     private function nextOccurrence(int $day, CarbonImmutable $today): CarbonImmutable
     {
-        $candidate = $today->setDay($day);
+        $calculator = new ProrataCalculator;
+        $candidate = $calculator->billingDateInMonth($day, $today);
 
-        return $candidate->greaterThan($today) ? $candidate : $today->startOfMonth()->addMonthNoOverflow()->setDay($day);
+        return $candidate->greaterThan($today) ? $candidate : $calculator->billingDateInMonth($day, $today->startOfMonth()->addMonth());
     }
 
     private function key(?string $username): string
