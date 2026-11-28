@@ -308,6 +308,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                             <thead>
                                 <tr>
                                     <Th>Server</Th>
+                                    <Th>Router</Th>
                                     <Th>Alamat publik</Th>
                                     <Th>Pool IP tunnel</Th>
                                     <Th>Protokol</Th>
@@ -319,10 +320,8 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                             <tbody>
                                 {servers.map((server) => (
                                     <tr key={server.id} className="hover:bg-muted/40">
-                                        <Td>
-                                            <span className="font-medium">{server.name}</span>
-                                            <span className="ml-2 text-xs text-muted-foreground">Router: {server.router.name}</span>
-                                        </Td>
+                                        <Td className="font-medium">{server.name}</Td>
+                                        <Td className="text-muted-foreground">{server.router.name}</Td>
                                         <Td className="num text-muted-foreground">{server.public_host}</Td>
                                         <Td className="num text-muted-foreground">
                                             {server.pool_start} – {server.pool_end}
