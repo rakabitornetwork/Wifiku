@@ -12,6 +12,8 @@ type Props = {
     children: ReactNode;
     footer?: ReactNode;
     size?: 'md' | 'lg';
+    /** 'sheet' (bawaan): menempel di bawah layar pada HP; 'center': selalu di tengah layar. */
+    placement?: 'sheet' | 'center';
 };
 
 /** Lama animasi tutup (ms); jendela baru dilepas dari DOM setelahnya. Harus sama dengan durasi animate-modal-out di app.css. */
@@ -27,7 +29,7 @@ export function Modal(props: Props) {
         latest.current = props;
     }
 
-    const { title, description, children, footer, size = 'md' } = open ? props : latest.current;
+    const { title, description, children, footer, size = 'md', placement = 'sheet' } = open ? props : latest.current;
 
     useEffect(() => {
         if (open) {
@@ -61,11 +63,12 @@ export function Modal(props: Props) {
     }
 
     return (
-        <div className={cn('fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4', !open && 'pointer-events-none')} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
+        <div className={cn('fixed inset-0 z-50 flex justify-center', placement === 'center' ? 'items-center p-4' : 'items-end p-0 sm:items-center sm:p-4', !open && 'pointer-events-none')} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
             <div className={cn('absolute inset-0 bg-[#0b1026]/60 backdrop-blur-[3px]', open ? 'animate-backdrop-in' : 'animate-backdrop-out')} onClick={onClose} />
             <div
                 className={cn(
-                    'relative flex max-h-[92vh] w-full flex-col rounded-t-2xl border bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.5)] sm:rounded-2xl',
+                    'relative flex w-full flex-col border bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.5)]',
+                    placement === 'center' ? 'max-h-[calc(100dvh-2rem)] rounded-2xl' : 'max-h-[92vh] rounded-t-2xl sm:rounded-2xl',
                     open ? 'animate-modal-in' : 'animate-modal-out',
                     size === 'lg' ? 'sm:max-w-2xl' : 'sm:max-w-lg',
                 )}

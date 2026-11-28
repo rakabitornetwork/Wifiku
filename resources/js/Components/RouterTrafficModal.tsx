@@ -339,6 +339,7 @@ export function RouterTrafficModal({ router, onClose }: { router: { id: number; 
             open={router !== null}
             onClose={onClose}
             size="lg"
+            placement="center"
             title={`Live trafik · ${router?.name ?? ''}`}
             description="Cuplikan langsung dari router tiap 2 detik lewat satu koneksi. Pemantauan berhenti saat jendela ditutup atau tab disembunyikan."
             footer={
