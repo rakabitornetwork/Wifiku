@@ -116,7 +116,7 @@ export default function BatchCreate({ profiles, resellers, charsets }: Props) {
                         <Link href="/hotspot/batches" className={buttonClass('close')}>
                             Batal
                         </Link>
-                        <Button type="submit" disabled={form.processing}>
+                        <Button variant="add" type="submit" disabled={form.processing}>
                             {form.processing ? 'Membuat...' : 'Generate'}
                         </Button>
                     </div>

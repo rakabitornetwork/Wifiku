@@ -84,7 +84,7 @@ export default function InvoicesIndex({
                 actions={
                     canCollect && (
                         <Button
-                            variant="outline"
+                            variant="add"
                             onClick={() =>
                                 router.post(
                                     "/invoices/generate",
