@@ -93,7 +93,7 @@ export function FinanceWidget({ data }: { data: NonNullable<Widgets['finance']> 
     const profitable = data.current.net_profit >= 0;
 
     return (
-        <Card className="flex flex-col lg:col-span-2">
+        <Card className="flex min-w-0 flex-col lg:col-span-2">
             <CardHeader
                 title="Pendapatan dan pengeluaran"
                 description="Enam bulan terakhir, uang yang benar-benar diterima."
@@ -103,10 +103,10 @@ export function FinanceWidget({ data }: { data: NonNullable<Widgets['finance']> 
                     </Link>
                 }
             />
-            <div className="grid gap-x-8 gap-y-3 px-6 pt-5 sm:grid-cols-3">
+            <div className="grid gap-x-8 gap-y-4 px-4 pt-5 sm:px-6 md:grid-cols-3 [&>div]:min-w-0">
                 <div>
                     <div className="text-xs text-muted-foreground">Pendapatan bulan ini</div>
-                    <div className="num mt-1 flex items-baseline gap-2 text-2xl font-semibold tracking-tight">
+                    <div className="num mt-1 flex flex-wrap items-baseline gap-x-2 text-xl font-semibold tracking-tight sm:text-2xl">
                         {formatRupiah(data.current.revenue)}
                         {change !== null && (
                             <span className={cn('inline-flex items-center text-xs font-semibold', change >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
@@ -119,11 +119,11 @@ export function FinanceWidget({ data }: { data: NonNullable<Widgets['finance']> 
                 </div>
                 <div>
                     <div className="text-xs text-muted-foreground">Pengeluaran bulan ini</div>
-                    <div className="num mt-1 text-2xl font-semibold tracking-tight">{formatRupiah(data.current.expenses)}</div>
+                    <div className="num mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{formatRupiah(data.current.expenses)}</div>
                 </div>
                 <div>
                     <div className="text-xs text-muted-foreground">{profitable ? 'Laba bersih' : 'Rugi bersih'}</div>
-                    <div className={cn('num mt-1 text-2xl font-semibold tracking-tight', profitable ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>{formatRupiah(Math.abs(data.current.net_profit))}</div>
+                    <div className={cn('num mt-1 text-xl font-semibold tracking-tight sm:text-2xl', profitable ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>{formatRupiah(Math.abs(data.current.net_profit))}</div>
                 </div>
             </div>
 
@@ -180,7 +180,7 @@ export function CollectionWidget({ data }: { data: NonNullable<Widgets['collecti
     const text = data.invoices === 0 ? 'text-muted-foreground' : data.percent >= 80 ? 'text-emerald-600 dark:text-emerald-400' : data.percent >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
 
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Penagihan bulan ini" description="Tagihan yang terbit bulan ini dan sudah tertagih." />
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-6">
                 <div className="relative size-40">
@@ -217,7 +217,7 @@ export function CollectionWidget({ data }: { data: NonNullable<Widgets['collecti
 
 export function OverdueWidget({ data }: { data: NonNullable<Widgets['overdue']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Tagihan terlambat" description={data.count > 0 ? `${data.count} invoice · ${formatRupiah(data.total)}` : 'Lewat jatuh tempo dan belum lunas.'} />
             {data.items.length === 0 ? (
                 <EmptyNote>Tidak ada tagihan yang terlambat.</EmptyNote>
@@ -246,7 +246,7 @@ export function OverdueWidget({ data }: { data: NonNullable<Widgets['overdue']> 
 
 export function WeakSignalWidget({ data }: { data: NonNullable<Widgets['weak_signal']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Sinyal ONT bermasalah" description={data.count > 0 ? `${data.count} ONT di bawah -25 dBm${data.critical > 0 ? ` · ${data.critical} kritis` : ''}` : 'ONT dengan redaman terburuk.'} />
             {data.items.length === 0 ? (
                 <EmptyNote>Semua sinyal ONT yang terbaca dalam batas baik.</EmptyNote>
@@ -282,7 +282,7 @@ const attentionTone = {
 
 export function AttentionWidget({ items }: { items: NonNullable<Widgets['attention']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Perlu perhatian" description="Yang menunggu tindakan Anda hari ini." />
             <ul className="divide-y divide-border/70">
                 {items.map((item) => {
@@ -311,7 +311,7 @@ export function AttentionWidget({ items }: { items: NonNullable<Widgets['attenti
 
 export function ActivityWidget({ items }: { items: NonNullable<Widgets['activity']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader
                 title="Aktivitas terbaru"
                 description="Perubahan terakhir yang dilakukan tim."
@@ -348,7 +348,7 @@ const dueLabel = (days: number) => (days <= 0 ? 'Hari ini' : days === 1 ? 'Besok
 
 export function UpcomingWidget({ data }: { data: NonNullable<Widgets['upcoming']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Jatuh tempo 3 hari ke depan" description={data.count > 0 ? `${data.count} invoice · ${formatRupiah(data.total)}` : 'Tagihan yang segera jatuh tempo.'} />
             {data.items.length === 0 ? (
                 <EmptyNote icon={CalendarClock}>Tidak ada tagihan yang jatuh tempo dalam 3 hari ke depan.</EmptyNote>
@@ -404,7 +404,7 @@ function offlineFor(since: string | null): string {
 
 export function RoutersOfflineWidget({ data }: { data: NonNullable<Widgets['routers_offline']> }) {
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Router offline" description={data.offline > 0 ? `${data.offline} dari ${data.total} router tidak terjangkau` : `${data.total} router dipantau`} />
             {data.items.length === 0 ? (
                 <EmptyNote>Semua router terjangkau.</EmptyNote>
@@ -436,10 +436,10 @@ export function VoucherTodayWidget({ data }: { data: NonNullable<Widgets['vouche
     const topMax = Math.max(1, ...data.top_profiles.map((row) => row.count));
 
     return (
-        <Card className="flex flex-col">
+        <Card className="flex min-w-0 flex-col">
             <CardHeader title="Penjualan voucher hari ini" description="Voucher yang dipakai login pertama hari ini." />
             <div className="flex-1 px-6 py-5">
-                <div className="flex items-end justify-between gap-3">
+                <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
                     <div>
                         <div className="num text-4xl font-semibold tracking-tight">{data.count}</div>
                         <div className="text-xs text-muted-foreground">voucher terjual</div>

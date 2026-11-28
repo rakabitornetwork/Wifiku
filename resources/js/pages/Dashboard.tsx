@@ -29,7 +29,7 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
         <>
             <PageHeader title="Dashboard" description="Ringkasan operasional jaringan dan pelanggan." />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 <StatCard tone="blue" label="Total pelanggan" value={formatNumber(stats.customers_active + stats.customers_isolated + stats.customers_inactive)} hint={`${formatNumber(stats.customers_inactive)} nonaktif`} icon={<Users className="size-4" />} />
                 <StatCard tone="green" label="Pelanggan aktif" value={formatNumber(stats.customers_active)} hint="Layanan berjalan normal" icon={<UserCheck className="size-4" />} />
                 <StatCard tone="red" label="Pelanggan isolir" value={formatNumber(stats.customers_isolated)} hint="Menunggu pelunasan" icon={<AlertTriangle className="size-4" />} />

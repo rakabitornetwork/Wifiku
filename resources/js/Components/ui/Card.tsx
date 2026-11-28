@@ -16,8 +16,8 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 
 export function CardHeader({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
     return (
-        <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
-            <div>
+        <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:gap-4 sm:px-6">
+            <div className="min-w-0">
                 <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
                 {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
             </div>
@@ -49,13 +49,13 @@ export function StatCard({ label, value, hint, icon, tone = 'default', className
     const styles = statTones[tone];
 
     return (
-        <Card className={cn('relative flex flex-col justify-center overflow-hidden p-5', styles.card, className)}>
+        <Card className={cn('relative flex min-w-0 flex-col justify-center overflow-hidden p-4 sm:p-5', styles.card, className)}>
             <span className="pointer-events-none absolute -top-10 -right-8 size-32 rounded-full bg-white/10" />
             <div className="relative flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-white/85">{label}</span>
                 <span className={cn('flex size-9 items-center justify-center rounded-xl ring-1 ring-white/20', styles.icon)}>{icon}</span>
             </div>
-            <div className="num relative mt-3 text-3xl font-semibold tracking-tight">{value}</div>
+            <div className="num relative mt-3 text-2xl font-semibold tracking-tight break-words sm:text-3xl">{value}</div>
             {hint && <div className="relative mt-1 text-xs text-white/80">{hint}</div>}
         </Card>
     );
