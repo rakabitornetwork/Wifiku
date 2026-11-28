@@ -170,7 +170,7 @@ export default function MessageTemplates({ templates, maxLength }: { templates: 
                             <Button variant="close" onClick={() => setEditing(null)}>
                                 Batal
                             </Button>
-                            <Button onClick={save} disabled={saving || missing.length > 0 || body.trim() === '' || body.length > maxLength}>
+                            <Button variant="save" onClick={save} disabled={saving || missing.length > 0 || body.trim() === '' || body.length > maxLength}>
                                 {saving ? 'Menyimpan...' : 'Simpan'}
                             </Button>
                         </div>

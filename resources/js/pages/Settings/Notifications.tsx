@@ -468,7 +468,7 @@ export default function Notifications({
                 </Card>
 
                 <div className="flex justify-end">
-                    <Button type="submit" disabled={form.processing}>
+                    <Button variant="save" type="submit" disabled={form.processing}>
                         {form.processing ? 'Menyimpan...' : 'Simpan pengaturan'}
                     </Button>
                 </div>

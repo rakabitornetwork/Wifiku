@@ -113,7 +113,7 @@ export default function Resellers({ resellers }: { resellers: Paginated<Reseller
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="reseller-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="reseller-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

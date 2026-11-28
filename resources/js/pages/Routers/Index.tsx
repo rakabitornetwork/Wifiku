@@ -189,7 +189,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="router-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="router-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

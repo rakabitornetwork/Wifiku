@@ -100,7 +100,7 @@ export default function GalleryIndex({ photos, limit }: { photos: Photo[]; limit
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="gallery-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="gallery-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

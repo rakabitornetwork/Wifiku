@@ -496,7 +496,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                         <Button variant="close" onClick={() => setServerOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="vpn-server-form" disabled={serverForm.processing}>
+                        <Button variant="save" type="submit" form="vpn-server-form" disabled={serverForm.processing}>
                             {serverForm.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>
@@ -572,7 +572,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                         <Button variant="close" onClick={() => setAccountOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="vpn-account-form" disabled={accountForm.processing}>
+                        <Button variant="save" type="submit" form="vpn-account-form" disabled={accountForm.processing}>
                             {accountForm.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

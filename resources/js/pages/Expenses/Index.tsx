@@ -198,7 +198,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="expense-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="expense-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

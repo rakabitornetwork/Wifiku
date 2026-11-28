@@ -172,7 +172,7 @@ function GatewayCard({ gateway, mask, feeBearers, callbackUrl }: { gateway: Gate
                         <Checkbox label="Aktifkan gateway" checked={form.data.is_active} onChange={(checked) => form.setData('is_active', checked)} />
                         <Checkbox label="Mode sandbox (uji coba)" checked={form.data.is_sandbox} onChange={(checked) => form.setData('is_sandbox', checked)} />
                     </div>
-                    <Button type="submit" disabled={form.processing}>
+                    <Button variant="save" type="submit" disabled={form.processing}>
                         {form.processing ? 'Menyimpan...' : 'Simpan'}
                     </Button>
                 </div>

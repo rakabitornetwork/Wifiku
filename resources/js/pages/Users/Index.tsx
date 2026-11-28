@@ -133,7 +133,7 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="user-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="user-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

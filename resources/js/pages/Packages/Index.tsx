@@ -207,7 +207,7 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="package-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="package-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

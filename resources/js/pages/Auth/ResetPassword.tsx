@@ -38,7 +38,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                         <Field label="Ulangi password baru" error={errors.password_confirmation}>
                             <Input type="password" autoComplete="new-password" value={data.password_confirmation} onChange={(event) => setData('password_confirmation', event.target.value)} required />
                         </Field>
-                        <Button type="submit" className="w-full" disabled={processing}>
+                        <Button variant="save" type="submit" className="w-full" disabled={processing}>
                             {processing ? 'Menyimpan...' : 'Simpan password'}
                         </Button>
                     </form>

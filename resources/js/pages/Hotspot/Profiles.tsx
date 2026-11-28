@@ -293,7 +293,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="profile-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="profile-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

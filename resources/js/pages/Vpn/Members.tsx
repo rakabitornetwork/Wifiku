@@ -148,7 +148,7 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                         <Button variant="close" onClick={() => setEditing(null)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="vpn-member-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="vpn-member-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>

@@ -230,7 +230,7 @@ export default function CustomerForm({ customer, routers, packages, odps }: Prop
                     <Link href="/customers" className={buttonClass('close')}>
                         Batal
                     </Link>
-                    <Button type="submit" disabled={form.processing}>
+                    <Button variant="save" type="submit" disabled={form.processing}>
                         {form.processing ? 'Menyimpan...' : 'Simpan pelanggan'}
                     </Button>
                 </div>

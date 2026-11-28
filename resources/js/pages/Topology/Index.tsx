@@ -242,7 +242,7 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                         <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
-                        <Button type="submit" form="odp-form" disabled={form.processing}>
+                        <Button variant="save" type="submit" form="odp-form" disabled={form.processing}>
                             {form.processing ? 'Menyimpan...' : 'Simpan'}
                         </Button>
                     </>
