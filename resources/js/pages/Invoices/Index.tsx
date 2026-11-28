@@ -145,7 +145,7 @@ export default function InvoicesIndex({
                                         key={invoice.id}
                                         className="hover:bg-muted/40"
                                     >
-                                        <Td className="num font-medium">
+                                        <Td className="num font-medium whitespace-nowrap">
                                             {invoice.invoice_number}
                                             {invoice.is_prorated && (
                                                 <Badge
@@ -156,7 +156,7 @@ export default function InvoicesIndex({
                                                 </Badge>
                                             )}
                                         </Td>
-                                        <Td>
+                                        <Td className="whitespace-nowrap">
                                             {invoice.customer ? (
                                                 <>
                                                     <span className="num text-xs text-muted-foreground">
@@ -191,21 +191,21 @@ export default function InvoicesIndex({
                                                 </Badge>
                                             )}
                                         </Td>
-                                        <Td className="num text-right">
+                                        <Td className="num text-right whitespace-nowrap">
                                             {formatRupiah(invoice.total)}
                                         </Td>
-                                        <Td className="num text-right font-medium">
+                                        <Td className="num text-right font-medium whitespace-nowrap">
                                             {formatRupiah(
                                                 invoice.total -
                                                     invoice.amount_paid,
                                             )}
                                         </Td>
-                                        <Td>
+                                        <Td className="whitespace-nowrap">
                                             <StatusBadge
                                                 status={invoice.status}
                                             />
                                         </Td>
-                                        <Td>
+                                        <Td className="whitespace-nowrap">
                                             <div className="flex justify-end gap-1">
                                                 {canCollect &&
                                                     (invoice.status ===
