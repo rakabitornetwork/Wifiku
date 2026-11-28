@@ -80,7 +80,7 @@ export default function GalleryIndex({ photos, limit }: { photos: Photo[]; limit
                                     <Button variant="ghost" size="icon" onClick={() => toggle(photo)} aria-label={photo.is_published ? 'Sembunyikan dari landing' : 'Tayangkan di landing'}>
                                         {photo.is_published ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => openEdit(photo)} aria-label="Ubah foto">
+                                    <Button variant="edit" size="icon" onClick={() => openEdit(photo)} aria-label="Ubah foto">
                                         <Pencil className="size-4" />
                                     </Button>
                                     <ConfirmDelete url={`/galeri-landing/${photo.id}`} title={`Hapus foto "${photo.title}"?`} description="Foto dihapus permanen dari galeri dan server." />

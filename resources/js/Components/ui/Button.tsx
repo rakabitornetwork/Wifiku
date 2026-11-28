@@ -11,7 +11,7 @@ const variants: Record<Variant, string> = {
     outline: 'border border-input bg-card text-foreground shadow-xs hover:border-primary/40 hover:bg-accent/60',
     ghost: 'text-muted-foreground hover:bg-muted hover:text-foreground',
     danger: 'border-transparent bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(127_29_29/0.4)] hover:brightness-110',
-    edit: 'bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground',
+    edit: 'border-transparent bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(124_45_18/0.4)] hover:brightness-110',
     info: 'bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white dark:text-sky-400 dark:hover:text-white',
     success: 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white dark:text-emerald-400 dark:hover:text-white',
     warning: 'bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white dark:text-amber-400 dark:hover:text-white',

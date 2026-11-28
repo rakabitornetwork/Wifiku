@@ -122,7 +122,7 @@ export default function MessageTemplates({ templates, maxLength }: { templates: 
                                 {!template.enabled && <Badge tone="amber">Dimatikan</Badge>}
                                 {template.customised && <Badge tone="blue">Disesuaikan</Badge>}
                                 {isOwner && template.editable && (
-                                    <Button size="sm" variant="outline" onClick={() => openEditor(template)}>
+                                    <Button size="sm" variant="edit" onClick={() => openEditor(template)}>
                                         <Pencil className="size-3.5" /> Ubah teks
                                     </Button>
                                 )}
