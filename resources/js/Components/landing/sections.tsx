@@ -470,7 +470,7 @@ export function Gallery({ content, photos }: { content: Sections['gallery']; pho
 
             {current && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label={current.title} onClick={() => setActive(null)}>
-                    <button type="button" className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" onClick={() => setActive(null)} aria-label="Tutup">
+                    <button type="button" className={buttonClass('close', 'icon', 'absolute top-4 right-4 rounded-full')} onClick={() => setActive(null)} aria-label="Tutup">
                         <X className="size-5" />
                     </button>
                     {photos.length > 1 && (

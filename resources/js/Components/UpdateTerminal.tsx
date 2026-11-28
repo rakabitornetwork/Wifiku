@@ -203,7 +203,7 @@ export function UpdateTerminal({ open, status, steps, error, user, host, onClose
                         <span className={windowButton} aria-hidden>
                             <Square className="size-3" />
                         </span>
-                        <button type="button" onClick={onClose} className={cn(windowButton, 'hover:bg-[#e95420]')} aria-label={running ? 'Sembunyikan terminal (proses tetap berjalan)' : 'Tutup terminal'} title={running ? 'Sembunyikan (proses tetap berjalan)' : 'Tutup'}>
+                        <button type="button" onClick={onClose} className={cn(windowButton, 'border-transparent bg-gradient-to-br from-rose-500 to-red-700 text-white hover:brightness-110')} aria-label={running ? 'Sembunyikan terminal (proses tetap berjalan)' : 'Tutup terminal'} title={running ? 'Sembunyikan (proses tetap berjalan)' : 'Tutup'}>
                             <X className="size-3.5" />
                         </button>
                     </div>
