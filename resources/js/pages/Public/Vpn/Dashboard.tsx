@@ -112,7 +112,7 @@ export default function Dashboard({ company, member, accounts, maxAccounts, pric
                         <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{member.name}</h1>
                         <p className="mt-2 text-sm text-indigo-100/80">{member.email}</p>
                     </div>
-                    <Button onClick={openCreate} disabled={full || protocols.length === 0} className="h-11 bg-white px-5 font-semibold text-indigo-700 shadow-md hover:bg-white/90 hover:opacity-100">
+                    <Button variant="add" onClick={openCreate} disabled={full || protocols.length === 0} className="h-11 px-5 ring-1 ring-white/40">
                         <Plus className="size-4" /> Buat Akun VPN
                     </Button>
                 </div>
