@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'edit' | 'info' | 'success' | 'warning' | 'remove';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'edit' | 'info' | 'success' | 'warning' | 'remove' | 'close';
 type Size = 'sm' | 'md' | 'icon';
 
 const variants: Record<Variant, string> = {
@@ -15,6 +15,7 @@ const variants: Record<Variant, string> = {
     info: 'bg-sky-500/10 text-sky-600 hover:bg-sky-500 hover:text-white dark:text-sky-400 dark:hover:text-white',
     success: 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white dark:text-emerald-400 dark:hover:text-white',
     warning: 'bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white dark:text-amber-400 dark:hover:text-white',
+    close: 'border-transparent bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_1px_2px_rgb(127_29_29/0.4)] hover:brightness-110',
     remove: 'bg-destructive/10 text-destructive hover:bg-destructive hover:text-white',
 };
 

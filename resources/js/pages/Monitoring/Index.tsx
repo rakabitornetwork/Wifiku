@@ -214,7 +214,7 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
                 title="Detail Wi-Fi & Perangkat Terhubung"
                 description={detailOnt ? `${detailOnt.serial_number}${detailOnt.customer ? ` · ${detailOnt.customer.name}` : ''} — data terakhir dari GenieACS.` : undefined}
                 footer={
-                    <Button variant="outline" onClick={() => setDetailOnt(null)}>
+                    <Button variant="close" onClick={() => setDetailOnt(null)}>
                         Tutup
                     </Button>
                 }

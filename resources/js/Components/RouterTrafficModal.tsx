@@ -342,7 +342,7 @@ export function RouterTrafficModal({ router, onClose }: { router: { id: number; 
             title={`Live trafik · ${router?.name ?? ''}`}
             description="Cuplikan langsung dari router tiap 2 detik lewat satu koneksi. Pemantauan berhenti saat jendela ditutup atau tab disembunyikan."
             footer={
-                <Button variant="outline" onClick={onClose}>
+                <Button variant="close" onClick={onClose}>
                     Tutup
                 </Button>
             }

@@ -186,7 +186,7 @@ export default function MessagesIndex({ messages, filters, types, summary }: Pro
                 title={open?.customer ? `${open.customer.name} · ${open.customer.code}` : (open?.destination ?? 'Pesan')}
                 description={open ? `${open.channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'} · ${time(open.created_at)}${open.sent_at ? ` · terkirim ${time(open.sent_at)}` : ''}` : undefined}
                 footer={
-                    <Button variant="outline" onClick={() => setOpen(null)}>
+                    <Button variant="close" onClick={() => setOpen(null)}>
                         Tutup
                     </Button>
                 }
