@@ -73,7 +73,7 @@ export function ImportPppModal({ router, onClose }: Props) {
             description="Membaca PPP secret dari router. Router tidak diubah sama sekali."
             footer={
                 <>
-                    <Button variant="outline" onClick={onClose}>
+                    <Button variant="close" onClick={onClose}>
                         Batal
                     </Button>
                     <Button onClick={submit} disabled={!preview || toImport === 0 || form.processing}>

@@ -233,7 +233,7 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                 title={editing ? 'Ubah Perangkat' : 'Tambah Perangkat'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="asset-form" disabled={form.processing}>
@@ -299,7 +299,7 @@ export default function AssetsIndex({ assets, filters }: { assets: Paginated<Ass
                 description={wifiAsset ? `${wifiAsset.serial_number}${wifiAsset.customer ? ` · ${wifiAsset.customer.name}` : ''} — dikirim via GenieACS (TR-069).` : undefined}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setWifiAsset(null)}>
+                        <Button variant="close" onClick={() => setWifiAsset(null)}>
                             Batal
                         </Button>
                         <Button type="submit" form="wifi-form" disabled={wifiForm.processing}>

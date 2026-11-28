@@ -32,7 +32,7 @@ export function ConfirmDelete({ url, title, description }: Props) {
                 onClose={() => setOpen(false)}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button variant="danger" onClick={submit} disabled={processing}>

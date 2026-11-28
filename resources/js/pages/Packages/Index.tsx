@@ -204,7 +204,7 @@ export default function PackagesIndex({ packages, routers, search, routerId }: {
                 title={editing ? 'Ubah Paket' : 'Tambah Paket'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="package-form" disabled={form.processing}>

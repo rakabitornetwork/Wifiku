@@ -261,7 +261,7 @@ export default function InvoicesIndex({
                 footer={
                     <>
                         <Button
-                            variant="outline"
+                            variant="close"
                             onClick={() => setPaying(null)}
                         >
                             Batal

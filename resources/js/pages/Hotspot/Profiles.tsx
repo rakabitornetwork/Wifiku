@@ -219,7 +219,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                 description="Membaca Hotspot User Profile yang sudah ada di RouterOS. Router tidak diubah."
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setImportOpen(false)}>
+                        <Button variant="close" onClick={() => setImportOpen(false)}>
                             Batal
                         </Button>
                         <Button onClick={submitImport} disabled={importing || chosen.length === 0}>
@@ -290,7 +290,7 @@ export default function HotspotProfiles({ profiles, routers }: { profiles: Pagin
                 title={editing ? 'Ubah Profil Hotspot' : 'Tambah Profil Hotspot'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="profile-form" disabled={form.processing}>

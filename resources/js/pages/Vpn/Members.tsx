@@ -145,7 +145,7 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                 title="Ubah Member"
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setEditing(null)}>
+                        <Button variant="close" onClick={() => setEditing(null)}>
                             Batal
                         </Button>
                         <Button type="submit" form="vpn-member-form" disabled={form.processing}>

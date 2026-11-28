@@ -177,7 +177,7 @@ export function LocationPickerModal({ open, initial, addressFilled, onClose, onC
             description="Klik peta atau geser pin ke rumah pelanggan, atau gunakan lokasi perangkat ini."
             footer={
                 <>
-                    <Button type="button" variant="outline" onClick={onClose}>
+                    <Button type="button" variant="close" onClick={onClose}>
                         Batal
                     </Button>
                     <Button type="button" onClick={confirm} disabled={!position || saving}>

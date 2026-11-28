@@ -74,7 +74,7 @@ export function PaymentExtensionModal({ customer, onClose }: Props) {
             onClose={onClose}
             footer={
                 <>
-                    <Button variant="outline" onClick={onClose}>
+                    <Button variant="close" onClick={onClose}>
                         Batal
                     </Button>
                     <Button type="submit" form="extension-form" disabled={form.processing || info === null}>

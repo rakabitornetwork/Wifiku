@@ -113,7 +113,7 @@ export default function BatchCreate({ profiles, resellers, charsets }: Props) {
                         </Select>
                     </Field>
                     <div className="flex justify-end gap-2 sm:col-span-2">
-                        <Link href="/hotspot/batches" className={buttonClass('outline')}>
+                        <Link href="/hotspot/batches" className={buttonClass('close')}>
                             Batal
                         </Link>
                         <Button type="submit" disabled={form.processing}>

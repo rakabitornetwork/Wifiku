@@ -97,7 +97,7 @@ export default function GalleryIndex({ photos, limit }: { photos: Photo[]; limit
                 title={editing ? 'Ubah Foto' : 'Tambah Foto'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="gallery-form" disabled={form.processing}>

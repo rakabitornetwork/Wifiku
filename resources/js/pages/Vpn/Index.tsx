@@ -493,7 +493,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                 title={serverEditing ? 'Ubah Server VPN' : 'Tambah Server VPN'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setServerOpen(false)}>
+                        <Button variant="close" onClick={() => setServerOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="vpn-server-form" disabled={serverForm.processing}>
@@ -569,7 +569,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                 title={accountEditing ? 'Ubah Akun VPN' : 'Tambah Akun VPN'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setAccountOpen(false)}>
+                        <Button variant="close" onClick={() => setAccountOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="vpn-account-form" disabled={accountForm.processing}>
@@ -694,7 +694,7 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                 description="Mengambil PPP secret dan port forward yang sudah ada di router. Router tidak diubah; IP, profile, dan port lama dipertahankan."
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setImporting(null)}>
+                        <Button variant="close" onClick={() => setImporting(null)}>
                             Batal
                         </Button>
                         <Button onClick={submitImport} disabled={!importing || importing.busy || importing.selected.length === 0}>

@@ -167,7 +167,7 @@ export default function MessageTemplates({ templates, maxLength }: { templates: 
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setEditing(null)}>
+                            <Button variant="close" onClick={() => setEditing(null)}>
                                 Batal
                             </Button>
                             <Button onClick={save} disabled={saving || missing.length > 0 || body.trim() === '' || body.length > maxLength}>

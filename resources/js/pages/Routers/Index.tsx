@@ -186,7 +186,7 @@ export default function RoutersIndex({ routers, search }: { routers: Paginated<R
                 description="Password disimpan terenkripsi dan tidak pernah ditampilkan kembali."
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="router-form" disabled={form.processing}>

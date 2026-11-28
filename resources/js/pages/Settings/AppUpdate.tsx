@@ -234,7 +234,7 @@ export default function AppUpdate({ info: initialInfo, state: initialState }: { 
                                 <>
                                     <span className="text-sm">Pasang {info.behind} commit baru sekarang? Antrean pesan dimuat ulang sebentar.</span>
                                     <Button onClick={start}>Ya, perbarui</Button>
-                                    <Button variant="outline" onClick={() => setConfirming(false)}>
+                                    <Button variant="close" onClick={() => setConfirming(false)}>
                                         Batal
                                     </Button>
                                 </>

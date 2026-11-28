@@ -232,7 +232,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                 onClose={() => setConfirming(false)}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setConfirming(false)}>
+                        <Button variant="close" onClick={() => setConfirming(false)}>
                             Batal
                         </Button>
                         <Button variant="danger" onClick={deleteSelected} disabled={deleting}>

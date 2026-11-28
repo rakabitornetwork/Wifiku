@@ -130,7 +130,7 @@ export default function UsersIndex({ users }: { users: Paginated<UserRow> }) {
                 title={editing ? 'Ubah Pengguna' : 'Tambah Pengguna'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="user-form" disabled={form.processing}>

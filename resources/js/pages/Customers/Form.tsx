@@ -227,7 +227,7 @@ export default function CustomerForm({ customer, routers, packages, odps }: Prop
                 </Card>
 
                 <div className="flex justify-end gap-2">
-                    <Link href="/customers" className={buttonClass('outline')}>
+                    <Link href="/customers" className={buttonClass('close')}>
                         Batal
                     </Link>
                     <Button type="submit" disabled={form.processing}>

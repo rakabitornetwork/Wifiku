@@ -123,7 +123,7 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                         </span>
                         <Button
                             size="sm"
-                            variant="outline"
+                            variant="close"
                             onClick={() => {
                                 setPicking(false);
                                 setOpen(true);
@@ -239,7 +239,7 @@ export default function TopologyIndex({ odps, customers, routers }: Props) {
                 title={editing ? 'Ubah ODP' : 'Tambah ODP'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="odp-form" disabled={form.processing}>

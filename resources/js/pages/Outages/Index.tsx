@@ -145,7 +145,7 @@ export default function OutagesIndex({ outages, odps }: Props) {
                 description="Pesan dikirim ke semua pelanggan aktif dan terisolir di ODP terpilih, dibatasi 20 pesan per menit."
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="outage-form" disabled={form.processing || !selected}>
@@ -180,7 +180,7 @@ export default function OutagesIndex({ outages, odps }: Props) {
                 title="Tandai gangguan selesai?"
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setResolving(null)}>
+                        <Button variant="close" onClick={() => setResolving(null)}>
                             Batal
                         </Button>
                         <Button onClick={resolve}>Tandai selesai</Button>

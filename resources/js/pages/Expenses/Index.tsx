@@ -195,7 +195,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                 title={editing ? 'Ubah Pengeluaran' : 'Catat Pengeluaran'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="expense-form" disabled={form.processing}>

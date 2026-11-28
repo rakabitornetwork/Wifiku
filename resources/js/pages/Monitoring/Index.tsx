@@ -274,7 +274,7 @@ export default function MonitoringIndex({ onts, filters, summary, genieacsConfig
                 description={wifiOnt ? `${wifiOnt.serial_number}${wifiOnt.customer ? ` · ${wifiOnt.customer.name}` : ''} — dikirim via GenieACS (TR-069).` : undefined}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setWifiOnt(null)}>
+                        <Button variant="close" onClick={() => setWifiOnt(null)}>
                             Batal
                         </Button>
                         <Button type="submit" form="wifi-form" disabled={wifiForm.processing}>

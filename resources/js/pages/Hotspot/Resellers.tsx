@@ -110,7 +110,7 @@ export default function Resellers({ resellers }: { resellers: Paginated<Reseller
                 title={editing ? 'Ubah Reseller' : 'Tambah Reseller'}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="close" onClick={() => setOpen(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="reseller-form" disabled={form.processing}>

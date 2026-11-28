@@ -200,7 +200,7 @@ export default function Dashboard({ company, member, accounts, maxAccounts, pric
                 description={`Tagihan ${formatRupiah(price)} untuk bulan pertama langsung terbit. Akun aktif setelah dibayar.`}
                 footer={
                     <>
-                        <Button variant="outline" onClick={() => setCreating(false)}>
+                        <Button variant="close" onClick={() => setCreating(false)}>
                             Batal
                         </Button>
                         <Button type="submit" form="member-account-form" disabled={form.processing}>
