@@ -39,14 +39,14 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
             </div>
 
             {(widgets.finance || widgets.collection) && (
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
                     {widgets.finance && <FinanceWidget data={widgets.finance} />}
                     {widgets.collection && <CollectionWidget data={widgets.collection} />}
                 </div>
             )}
 
             {(widgets.routers_offline || widgets.upcoming || widgets.voucher_today) && (
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
                     {widgets.routers_offline && <RoutersOfflineWidget data={widgets.routers_offline} />}
                     {widgets.upcoming && <UpcomingWidget data={widgets.upcoming} />}
                     {widgets.voucher_today && <VoucherTodayWidget data={widgets.voucher_today} />}
@@ -54,14 +54,14 @@ export default function Dashboard({ stats, widgets, routers }: Props) {
             )}
 
             {(widgets.overdue || widgets.weak_signal || widgets.attention) && (
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
                     {widgets.overdue && <OverdueWidget data={widgets.overdue} />}
                     {widgets.weak_signal && <WeakSignalWidget data={widgets.weak_signal} />}
                     {widgets.attention && <AttentionWidget items={widgets.attention} />}
                 </div>
             )}
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <Card className={widgets.activity ? 'lg:col-span-2' : 'lg:col-span-3'}>
                     <CardHeader title="Status router" description="Multi-NAS yang terhubung ke sistem." />
                     {routers.length === 0 ? (

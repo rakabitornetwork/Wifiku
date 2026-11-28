@@ -8,7 +8,7 @@ export const cardSurface = 'rounded-2xl border bg-card text-card-foreground shad
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
         <div
-            className={cn(cardSurface, className)}
+            className={cn('min-w-0', cardSurface, className)}
             {...props}
         />
     );
