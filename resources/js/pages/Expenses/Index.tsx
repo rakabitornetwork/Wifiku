@@ -155,7 +155,7 @@ export default function ExpensesIndex({ expenses, total, categories, routers, fi
                                         <Td>
                                             <Badge tone="blue">{expense.expense_category.name}</Badge>
                                         </Td>
-                                        <Td className="max-w-xs">{expense.description}</Td>
+                                        <Td className="max-w-xs whitespace-normal">{expense.description}</Td>
                                         <Td className="text-muted-foreground">{expense.router?.name ?? '-'}</Td>
                                         <Td className="num text-right font-medium">{formatRupiah(expense.amount)}</Td>
                                         <Td className="text-muted-foreground">{expense.creator.name}</Td>

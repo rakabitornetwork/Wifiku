@@ -60,6 +60,7 @@ class InvoiceController extends Controller
     {
         return [
             'invoice_number' => 'invoice_number',
+            'customer_code' => fn () => Customer::query()->select('customer_code')->whereColumn('customers.id', 'invoices.customer_id'),
             'customer' => fn () => Customer::query()->select('name')->whereColumn('customers.id', 'invoices.customer_id'),
             'period' => 'period_start',
             'due_date' => 'due_date',

@@ -106,9 +106,9 @@ export default function OutagesIndex({ outages, odps }: Props) {
                                     <tr key={outage.id} className="hover:bg-muted/40">
                                         <Td>
                                             <span className="num font-medium">{outage.odp.code}</span>
-                                            <div className="text-xs text-muted-foreground">{outage.odp.name}</div>
+                                            <span className="ml-2 text-xs text-muted-foreground">{outage.odp.name}</span>
                                         </Td>
-                                        <Td className="max-w-xs">
+                                        <Td className="max-w-xs whitespace-normal">
                                             <div className="font-medium">{outage.title}</div>
                                             <div className="line-clamp-2 text-xs text-muted-foreground">{outage.message}</div>
                                             <div className="text-[11px] text-muted-foreground">oleh {outage.creator.name}</div>

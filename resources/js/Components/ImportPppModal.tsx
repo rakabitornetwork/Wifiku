@@ -119,11 +119,11 @@ export function ImportPppModal({ router, onClose }: Props) {
                                             <tr key={profile.name}>
                                                 <Td className="align-top">
                                                     <span className="num font-medium">{profile.name}</span>
-                                                    {profile.rate_limit && <div className="num text-xs text-muted-foreground">{profile.rate_limit}</div>}
+                                                    {profile.rate_limit && <span className="num ml-2 text-xs text-muted-foreground">{profile.rate_limit}</span>}
                                                     {profile.is_isolir && <Badge tone="amber">Profile isolir</Badge>}
                                                 </Td>
                                                 <Td className="num align-top">{profile.count}</Td>
-                                                <Td className="space-y-2">
+                                                <Td className="space-y-2 whitespace-normal">
                                                     <Select value={mapping.package} onChange={(event) => setMapping(profile.name, { package: event.target.value })} aria-label={`Paket untuk ${profile.name}`}>
                                                         <option value="">Lewati profile ini</option>
                                                         {!profile.is_isolir && <option value="new">+ Buat paket baru “{profile.name}”</option>}

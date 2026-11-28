@@ -42,7 +42,7 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
 }
 
 export function Td({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-    return <td className={cn('border-b border-border/70 px-4 py-3.5 align-middle', className)} {...props} />;
+    return <td className={cn('border-b border-border/70 px-4 py-3.5 align-middle whitespace-nowrap', className)} {...props} />;
 }
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {

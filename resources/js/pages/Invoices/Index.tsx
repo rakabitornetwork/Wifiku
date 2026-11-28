@@ -130,6 +130,7 @@ export default function InvoicesIndex({
                             <thead>
                                 <tr>
                                     <SortTh column="invoice_number" state={sort}>No. invoice</SortTh>
+                                    <SortTh column="customer_code" state={sort}>ID pelanggan</SortTh>
                                     <SortTh column="customer" state={sort}>Pelanggan</SortTh>
                                     <SortTh column="period" state={sort}>Periode</SortTh>
                                     <SortTh column="due_date" state={sort}>Jatuh tempo</SortTh>
@@ -156,19 +157,18 @@ export default function InvoicesIndex({
                                                 </Badge>
                                             )}
                                         </Td>
+                                        <Td className="num whitespace-nowrap text-muted-foreground">
+                                            {invoice.customer ? (
+                                                invoice.customer.customer_code
+                                            ) : (
+                                                <Badge tone="blue">VPN</Badge>
+                                            )}
+                                        </Td>
                                         <Td className="whitespace-nowrap">
                                             {invoice.customer ? (
-                                                <>
-                                                    <span className="num text-xs text-muted-foreground">
-                                                        {invoice.customer.customer_code}
-                                                    </span>{" "}
-                                                    {invoice.customer.name}
-                                                </>
+                                                invoice.customer.name
                                             ) : (
                                                 <>
-                                                    <Badge tone="blue" className="mr-1.5">
-                                                        VPN
-                                                    </Badge>
                                                     {invoice.vpn_account?.name}
                                                     <span className="num ml-1.5 text-xs text-muted-foreground">
                                                         {invoice.vpn_account?.username}

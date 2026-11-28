@@ -94,8 +94,8 @@ export default function VpnMembers({ members, search, status, maxAccounts }: Pro
                                 {members.data.map((member) => (
                                     <tr key={member.id} className="hover:bg-muted/40">
                                         <Td>
-                                            <div className="font-medium">{member.name}</div>
-                                            <div className="text-xs text-muted-foreground">{member.email}</div>
+                                            <span className="font-medium">{member.name}</span>
+                                            <span className="ml-2 text-xs text-muted-foreground">{member.email}</span>
                                         </Td>
                                         <Td>
                                             <a href={`https://wa.me/${member.whatsapp}`} target="_blank" rel="noreferrer" className="num inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">

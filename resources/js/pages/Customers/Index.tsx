@@ -195,7 +195,7 @@ export default function CustomersIndex({ customers, routers, filters }: Props) {
                                         <Td>
                                             <StatusBadge status={customer.status} />
                                             {customer.promise_to_pay_until && customer.promise_to_pay_until.slice(0, 10) >= new Date().toISOString().slice(0, 10) && (
-                                                <div className="num mt-0.5 text-[11px] text-muted-foreground">Janji s.d. {formatDate(customer.promise_to_pay_until)}</div>
+                                                <span className="num ml-2 text-[11px] text-muted-foreground">Janji s.d. {formatDate(customer.promise_to_pay_until)}</span>
                                             )}
                                         </Td>
                                         <Td>

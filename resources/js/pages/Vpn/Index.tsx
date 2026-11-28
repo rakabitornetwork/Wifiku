@@ -320,8 +320,8 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                                 {servers.map((server) => (
                                     <tr key={server.id} className="hover:bg-muted/40">
                                         <Td>
-                                            <div className="font-medium">{server.name}</div>
-                                            <div className="text-xs text-muted-foreground">Router: {server.router.name}</div>
+                                            <span className="font-medium">{server.name}</span>
+                                            <span className="ml-2 text-xs text-muted-foreground">Router: {server.router.name}</span>
                                         </Td>
                                         <Td className="num text-muted-foreground">{server.public_host}</Td>
                                         <Td className="num text-muted-foreground">
@@ -414,12 +414,12 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                                 {accounts.data.map((account) => (
                                     <tr key={account.id} className="hover:bg-muted/40">
                                         <Td>
-                                            <div className="font-medium">{account.name}</div>
-                                            <div className="text-xs text-muted-foreground">
+                                            <span className="font-medium">{account.name}</span>
+                                            <span className="ml-2 text-xs text-muted-foreground">
                                                 {account.server.name}
                                                 {account.member && <span className="ml-1.5 rounded bg-sky-500/10 px-1 py-0.5 text-[10px] text-sky-600 dark:text-sky-400" title={account.member.email}>member: {account.member.name}</span>}
                                                 {account.adopted && <span className="ml-1.5 rounded bg-muted px-1 py-0.5 text-[10px] uppercase">impor</span>}
-                                            </div>
+                                            </span>
                                         </Td>
                                         <Td className="num">{account.username}</Td>
                                         <Td>
@@ -741,8 +741,8 @@ export default function VpnIndex({ accounts, servers, routers, search, serverId,
                                                 />
                                             </Td>
                                             <Td>
-                                                <div className="num font-medium">{row.username}</div>
-                                                <div className="text-xs text-muted-foreground">{row.name !== row.username ? row.name : row.profile}</div>
+                                                <span className="num font-medium">{row.username}</span>
+                                                <span className="ml-2 text-xs text-muted-foreground">{row.name !== row.username ? row.name : row.profile}</span>
                                             </Td>
                                             <Td className="num text-muted-foreground">{row.remote_address ?? '-'}</Td>
                                             <Td className="num text-xs text-muted-foreground">

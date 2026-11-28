@@ -158,7 +158,7 @@ export default function MessagesIndex({ messages, filters, types, summary }: Pro
                                             <Td className="whitespace-nowrap">
                                                 {meta ? `${meta.icon} ${meta.label}` : (message.type ?? '-')}
                                             </Td>
-                                            <Td className="max-w-xs">
+                                            <Td className="max-w-xs whitespace-normal">
                                                 <span className={cn('line-clamp-2 text-sm', message.hidden && 'flex items-center gap-1.5 text-muted-foreground italic')}>
                                                     {message.hidden && <EyeOff className="size-3.5 shrink-0" />}
                                                     {message.hidden ? 'Isi disembunyikan' : message.body}
